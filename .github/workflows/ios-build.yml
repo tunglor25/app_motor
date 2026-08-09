@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     name: Build Unsigned iOS IPA
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -18,29 +18,40 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install NPM Dependencies
         run: npm install
 
       - name: Sync Capacitor iOS
-        run: npx cap sync ios
+        run: |
+          npx cap sync ios
+          echo "--- Capacitor sync completed ---"
+          ls -la ios/App/
+
+      - name: Resolve SPM Dependencies
+        run: |
+          cd ios/App
+          xcodebuild -project App.xcodeproj -resolvePackageDependencies
 
       - name: Build iOS App (Unsigned)
         run: |
           cd ios/App
-          # Auto-generate user schemes just in case
           xcodebuild -project App.xcodeproj -list
-          # We force code signing to be disabled so it builds without a provisioning profile
-          xcodebuild -project App.xcodeproj -scheme App -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO build
+          xcodebuild -project App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
           
       - name: Package into Unsigned IPA
         run: |
-          # Create Payload folder for IPA structure
           mkdir -p Payload
-          # Move the compiled .app into Payload
           mv ios/App/build/Release-iphoneos/App.app Payload/
-          # Zip it up as .ipa
           zip -r app-motor-ios-unsigned.ipa Payload
           
       - name: Upload IPA Artifact
