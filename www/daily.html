@@ -785,9 +785,26 @@
               routeWhileDragging: false,
               show: false,
               createMarker: function() { return null; },
-              lineOptions: { styles: [{color: 'var(--cyan, #2BE7FF)', opacity: 0.8, weight: 5}] }
+              lineOptions: { styles: [{color: 'var(--amber, #ffb703)', opacity: 0.8, weight: 5}] }
             }).addTo(miniMap);
           }).addTo(miniMap);
+
+          setTimeout(() => {
+            const gcInput = document.querySelector('.leaflet-control-geocoder-form input');
+            if (gcInput) {
+              let typeTimeout;
+              gcInput.addEventListener('input', () => {
+                clearTimeout(typeTimeout);
+                typeTimeout = setTimeout(() => {
+                  if (gcInput.value.length >= 2) {
+                    const ev = new Event('keydown', { bubbles: true, cancelable: true });
+                    ev.keyCode = 32;
+                    gcInput.dispatchEvent(ev);
+                  }
+                }, 500);
+              });
+            }
+          }, 1000);
         }
 
       // GPS watch
