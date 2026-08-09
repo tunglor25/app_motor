@@ -50,8 +50,17 @@ jobs:
           
       - name: Package into Unsigned IPA
         run: |
+          echo "--- Finding .app bundle ---"
+          find ios/App/build -name "*.app" -type d 2>/dev/null || true
+          APP_PATH=$(find ios/App/build -name "*.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: No .app found. Listing build directory:"
+            find ios/App/build -maxdepth 4 -type d
+            exit 1
+          fi
+          echo "Found app at: $APP_PATH"
           mkdir -p Payload
-          mv ios/App/build/Release-iphoneos/App.app Payload/
+          cp -r "$APP_PATH" Payload/
           zip -r app-motor-ios-unsigned.ipa Payload
           
       - name: Upload IPA Artifact
