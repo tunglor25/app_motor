@@ -391,6 +391,7 @@
         html.light-theme .mp-btn.play { background: var(--cyan); color: #fff; }
         html.light-theme #clock { color: #111; text-shadow: none; }
     </style>
+    <script src="js/data_engine.js"></script>
     <script>
         if (localStorage.getItem('light_mode') === 'true') {
             document.documentElement.classList.add('light-theme');
@@ -575,43 +576,28 @@
             }
         }
 
-        function updateSpeedValue(speed) {
-            currentSpeed = speed;
-            document.getElementById('speed').innerText = speed;
+        // --- ECU Engine Integration ---
+        window.addEventListener('ecu_data', (e) => {
+            const data = e.detail;
+            updateTachometer(data.rpm);
             
-            // Trip calculation
-            let now = performance.now();
-            let dt = (now - lastTime) / 1000 / 3600; // hours
-            distanceTrip += speed * dt;
-            document.getElementById('trip').innerText = distanceTrip.toFixed(1);
-            lastTime = now;
-
-            // Fuel avg calculation
-            let avg = 0;
-            if(currentTPS > 0) {
-                avg = (speed / currentTPS) * 12;
+            // We bypass updateSpeedValue's internal calculation and use engine data directly
+            currentSpeed = data.speed;
+            document.getElementById('speed').innerText = Math.round(data.speed);
+            
+            document.getElementById('trip').innerText = data.tripA.toFixed(1);
+            document.getElementById('avg').innerText = data.avgKmL.toFixed(1);
+            
+            document.getElementById('tps').innerText = Math.round(data.tps);
+            document.getElementById('volt').innerText = data.battery.toFixed(1);
+            document.getElementById('temp').innerText = Math.round(data.ect);
+            
+            if (data.ect > 105) {
+                document.getElementById('temp').style.color = 'var(--red)';
+            } else {
+                document.getElementById('temp').style.color = 'var(--cyan)';
             }
-            document.getElementById('avg').innerText = avg.toFixed(1);
-        }
-
-        // Boot Sweep Animation
-        setTimeout(() => {
-            let sweepRPM = 0;
-            let interval = setInterval(() => {
-                sweepRPM += 300;
-                updateTachometer(sweepRPM);
-                if(sweepRPM >= 12000) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        let downInterval = setInterval(() => {
-                            sweepRPM -= 300;
-                            updateTachometer(sweepRPM);
-                            if(sweepRPM <= 0) clearInterval(downInterval);
-                        }, 10);
-                    }, 200);
-                }
-            }, 10);
-        }, 500);
+        });
 
   // --- Anti-Web Behaviors ---
   document.addEventListener('contextmenu',e=>e.preventDefault());
@@ -723,7 +709,7 @@
       try{
         const showMap = localStorage.getItem('show_map') !== 'false';
         if (!showMap) {
-          document.getElementById('mapContainer').style.display = 'none';
+          document.getElementById('sideWidget').style.display = 'none';
           return;
         }
         

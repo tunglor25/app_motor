@@ -372,6 +372,43 @@
     </div>
   </div>
 
+  <!-- ADVANCED FEATURES -->
+  <div class="section">
+    <div class="section-title">CHỨC NĂNG NÂNG CAO</div>
+    <div class="section-card">
+      <div class="row" style="cursor: pointer;" onclick="window.location.href='diagnostics.html'">
+        <div class="row-left">
+          <div class="row-icon red">🔧</div>
+          <div>
+            <div class="row-label">ECU Diagnostics (Đọc Lỗi)</div>
+            <div class="row-desc">Quét lỗi động cơ, xem cảm biến</div>
+          </div>
+        </div>
+        <div class="row-value">❯</div>
+      </div>
+      <div class="row" style="cursor: pointer;" onclick="window.location.href='drag.html'">
+        <div class="row-left">
+          <div class="row-icon green">🏁</div>
+          <div>
+            <div class="row-label">Drag Race Mode</div>
+            <div class="row-desc">Đo gia tốc 0-60 & 0-100 km/h</div>
+          </div>
+        </div>
+        <div class="row-value">❯</div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon amber">🎮</div>
+          <div>
+            <div class="row-label">Chế độ Mô phỏng (Demo Mode)</div>
+            <div class="row-desc">Tự động nhảy số ECU để test giao diện</div>
+          </div>
+        </div>
+        <div class="toggle" id="toggleDemoMode" data-key="demo_mode"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- UNITS -->
   <div class="section">
     <div class="section-title">ĐƠN VỊ ĐO LƯỜNG</div>
@@ -486,6 +523,23 @@
           </div>
         </div>
         <div class="toggle on" id="toggleFullscreen" data-key="fullscreen"></div>
+      </div>
+      <div class="row" style="flex-direction: column; align-items: flex-start; gap: 10px; padding-bottom: 20px;">
+        <div class="row-left" style="width: 100%;">
+          <div class="row-icon blue">🏍️</div>
+          <div>
+            <div class="row-label">Hãng Xe (Logo)</div>
+            <div class="row-desc">Hiển thị trên màn hình Race</div>
+          </div>
+        </div>
+        <div class="selector" id="brandLogo" style="width: 100%; display: flex; flex-wrap: wrap; gap: 5px;">
+          <button class="btn sel-btn active" data-val="bmw">BMW</button>
+          <button class="btn sel-btn" data-val="honda">HONDA</button>
+          <button class="btn sel-btn" data-val="yamaha">YAMAHA</button>
+          <button class="btn sel-btn" data-val="ducati">DUCATI</button>
+          <button class="btn sel-btn" data-val="kawasaki">KAWASAKI</button>
+          <button class="btn sel-btn" data-val="redbull">RED BULL</button>
+        </div>
       </div>
     </div>
   </div>
@@ -611,7 +665,9 @@
     show_map: localStorage.getItem('show_map') !== 'false',
     map_style: localStorage.getItem('map_style') || 'dark',
     map_icon: localStorage.getItem('map_icon') || 'moto',
-    auto_hide_music: localStorage.getItem('auto_hide_music') !== 'false'
+    auto_hide_music: localStorage.getItem('auto_hide_music') !== 'false',
+    demo_mode: localStorage.getItem('demo_mode') === 'true',
+    brand_logo: localStorage.getItem('brand_logo') || 'bmw'
   };
 
   function save(key, val) {
@@ -679,6 +735,7 @@
   initToggle('toggleLightMode', 'light_mode');
   initToggle('toggleMap', 'show_map');
   initToggle('toggleMusicAuto', 'auto_hide_music');
+  initToggle('toggleDemoMode', 'demo_mode');
 
   // Speed warning row opacity
   document.getElementById('speedWarnRow').style.opacity = settings.speed_warn_enabled ? '1' : '0.4';
@@ -707,6 +764,7 @@
   initSelector('unitTemp', 'unit_temp');
   initSelector('mapStyle', 'map_style');
   initSelector('mapIcon', 'map_icon');
+  initSelector('brandLogo', 'brand_logo');
 
   // --- Number inputs ---
   function initNumInput(upId, downId, valId, key, min, max, step) {

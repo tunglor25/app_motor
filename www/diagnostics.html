@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ECU Diagnostics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/index.css">
+    <style>
+        :root {
+            --cyan: #2be7ff;
+            --red: #ff3366;
+            --green: #00ffaa;
+            --bg: #0a0a0f;
+            --panel: #14141a;
+            --dim: rgba(255, 255, 255, 0.4);
+        }
+        body {
+            background-color: var(--bg);
+            color: #fff;
+            font-family: 'Share Tech Mono', monospace;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+        }
+        .header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(43, 231, 255, 0.2);
+            background: linear-gradient(180deg, rgba(43,231,255,0.05) 0%, transparent 100%);
+        }
+        .header h1 {
+            margin: 0; font-size: 24px; color: var(--cyan);
+            text-transform: uppercase; letter-spacing: 2px;
+            flex: 1; text-align: center;
+        }
+        .btn-back {
+            background: transparent; border: 1px solid var(--cyan);
+            color: var(--cyan); width: 44px; height: 44px;
+            border-radius: 8px; font-size: 24px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+        .btn-back:active { background: rgba(43,231,255,0.2); }
+        
+        .container { padding: 20px; }
+        
+        .section-title {
+            color: var(--cyan); font-size: 14px;
+            border-left: 4px solid var(--cyan);
+            padding-left: 10px; margin: 20px 0 10px 0;
+            letter-spacing: 1px;
+        }
+        
+        .grid-2 {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+        .data-card {
+            background: var(--panel); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px; padding: 15px;
+            display: flex; flex-direction: column;
+        }
+        .data-lbl { color: var(--dim); font-size: 11px; margin-bottom: 5px; }
+        .data-val { font-size: 24px; color: #fff; }
+        .data-unit { font-size: 12px; color: var(--cyan); margin-left: 4px; }
+        
+        .dtc-box {
+            background: var(--panel); border: 1px dashed rgba(255,51,102,0.5);
+            border-radius: 8px; padding: 20px; text-align: center;
+            margin-top: 10px;
+        }
+        .dtc-none { color: var(--green); font-size: 18px; }
+        .dtc-err { color: var(--red); font-size: 20px; font-weight: bold; margin-bottom: 10px;}
+        .btn-clear {
+            background: rgba(255,51,102,0.1); border: 1px solid var(--red);
+            color: var(--red); padding: 10px 20px; border-radius: 6px;
+            font-family: 'Share Tech Mono', monospace; font-size: 14px;
+            cursor: pointer; width: 100%; margin-top: 15px;
+            text-transform: uppercase;
+        }
+        .btn-clear:active { background: var(--red); color: #fff; }
+        
+        /* Terminal Log */
+        .terminal {
+            background: #000; border: 1px solid #333; border-radius: 8px;
+            padding: 10px; height: 120px; overflow-y: auto;
+            font-size: 10px; color: #0f0; margin-top: 20px;
+        }
+        .terminal p { margin: 2px 0; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="btn-back" onclick="window.history.back()">❮</button>
+        <h1>ECU DIAGNOSTICS</h1>
+        <div style="width: 44px;"></div>
+    </div>
+
+    <div class="container">
+        <div class="section-title">LIVE SENSOR DATA</div>
+        <div class="grid-2">
+            <div class="data-card">
+                <div class="data-lbl">MANIFOLD PRESSURE</div>
+                <div><span class="data-val" id="diag-map">--</span><span class="data-unit">kPa</span></div>
+            </div>
+            <div class="data-card">
+                <div class="data-lbl">INTAKE AIR TEMP</div>
+                <div><span class="data-val" id="diag-iat">--</span><span class="data-unit">°C</span></div>
+            </div>
+            <div class="data-card">
+                <div class="data-lbl">O2 SENSOR VOLT</div>
+                <div><span class="data-val" id="diag-o2">--</span><span class="data-unit">V</span></div>
+            </div>
+            <div class="data-card">
+                <div class="data-lbl">INJECTOR PULSE</div>
+                <div><span class="data-val" id="diag-inj">--</span><span class="data-unit">ms</span></div>
+            </div>
+            <div class="data-card">
+                <div class="data-lbl">BATTERY HEALTH</div>
+                <div><span class="data-val" id="diag-batt">--</span><span class="data-unit">V</span></div>
+            </div>
+            <div class="data-card">
+                <div class="data-lbl">ENGINE TEMP</div>
+                <div><span class="data-val" id="diag-ect">--</span><span class="data-unit">°C</span></div>
+            </div>
+        </div>
+
+        <div class="section-title" style="margin-top:30px;">DIAGNOSTIC TROUBLE CODES</div>
+        <div class="dtc-box" id="dtcBox">
+            <div class="dtc-none" id="dtcMsg">NO DTC DETECTED</div>
+            <button class="btn-clear" id="btnClearDtc">Clear DTC Memory</button>
+        </div>
+        
+        <div class="terminal" id="termLog">
+            <p>> CONNECTING TO K-LINE ISO 9141-2...</p>
+            <p>> FAST INIT SUCCESS</p>
+            <p>> READING LIVE DATA STREAM...</p>
+        </div>
+    </div>
+
+    <script src="js/data_engine.js"></script>
+    <script>
+        const term = document.getElementById('termLog');
+        function logMsg(msg) {
+            const p = document.createElement('p');
+            p.textContent = '> ' + msg;
+            term.appendChild(p);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        window.addEventListener('ecu_data', (e) => {
+            const data = e.detail;
+            document.getElementById('diag-map').textContent = Math.round(data.map);
+            document.getElementById('diag-iat').textContent = Math.round(data.iat);
+            document.getElementById('diag-o2').textContent = data.o2Voltage.toFixed(2);
+            document.getElementById('diag-inj').textContent = data.injectorPulse.toFixed(1);
+            document.getElementById('diag-batt').textContent = data.battery.toFixed(1);
+            document.getElementById('diag-ect').textContent = Math.round(data.ect);
+            
+            // Randomly log hex data for hacker effect
+            if(Math.random() < 0.1) {
+                const hex = Array.from({length: 8}, () => Math.floor(Math.random()*256).toString(16).padStart(2, '0')).join(' ');
+                logMsg('RX: ' + hex.toUpperCase());
+            }
+        });
+        
+        document.getElementById('btnClearDtc').addEventListener('click', () => {
+            logMsg('SENDING CLEAR DTC COMMAND...');
+            setTimeout(() => {
+                logMsg('CLEAR DTC SUCCESS (0x44)');
+                document.getElementById('dtcMsg').textContent = 'NO DTC DETECTED';
+                document.getElementById('dtcMsg').className = 'dtc-none';
+                document.getElementById('dtcBox').style.borderColor = 'rgba(0,255,170,0.5)';
+            }, 800);
+        });
+    </script>
+</body>
+</html>

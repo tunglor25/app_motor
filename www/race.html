@@ -364,7 +364,7 @@
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="top-left">
-      <div class="m-badge"><div class="m-stripe m-s1"></div><div class="m-stripe m-s2"></div><div class="m-stripe m-s3"></div></div>
+      <div id="brandLogoContainer" style="display: flex; align-items: center; justify-content: flex-start; height: 32px; margin-right: 15px; min-width: 60px;"></div>
       <div class="info-block">
         <div class="info-item"><div class="info-lbl">LAP</div><div class="info-val" id="lapVal">00:00.0</div></div>
         <div class="info-item"><div class="info-lbl">TRIP</div><div class="info-val" id="tripVal">0.0</div></div>
@@ -442,6 +442,7 @@
   </div>
 </div>
 
+<script src="js/data_engine.js"></script>
 <script>
   // --- SVG Helper ---
   function svgEl(tag,a){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in a)e.setAttribute(k,a[k]);return e;}
@@ -724,7 +725,7 @@
     try{
       const showMap = localStorage.getItem('show_map') !== 'false';
       if (!showMap) {
-        document.getElementById('mapContainer').style.display = 'none';
+        document.getElementById('sideWidget').style.display = 'none';
         return;
       }
       
@@ -929,6 +930,12 @@
   }
   setTimeout(initMap,1000);
   window.addEventListener('resize',()=>{if(miniMap)setTimeout(()=>miniMap.invalidateSize(),200);});
+  // Load brand logo
+  const brand = localStorage.getItem('brand_logo') || 'bmw';
+  if (ECUData && ECUData.brands && ECUData.brands[brand]) {
+    document.getElementById('brandLogoContainer').innerHTML = ECUData.brands[brand];
+  }
+
 </script>
 </body>
 </html>

@@ -536,6 +536,7 @@
         <div>TEMP <span id="val-temp">0°C</span></div>
     </div>
 
+    <script src="js/data_engine.js"></script>
     <script>
         // --- SVG Drawing Utils ---
         function polar(cx, cy, r, angle) {
@@ -670,58 +671,22 @@
             }, 1000);
         });
 
-        // --- BLE Data Handling ---
-        const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
-        const CHAR_UUIDS = {
-            RPM: 'beb5483e-36e1-4688-b7f5-ea07361b26a8',
-            SPEED: '8b423985-7977-4b72-b2d6-4e5088277be9',
-            ECT: 'e3b1c67d-94bb-4286-904b-3cc34a4c6a99',
-            TPS: '19a28e8d-71b5-4148-84be-97b7cbce39fa',
-            VOLT: 'c19f5615-585a-4712-b062-1bd074a1a5b8'
-        };
-
-        function handleBLEData(uuid, value) {
-            if (uuid === CHAR_UUIDS.RPM) {
-                const val = value.getUint16(0, true);
-                setDialValue('rpm', val);
-            } else if (uuid === CHAR_UUIDS.SPEED) {
-                const val = value.getUint8(0);
-                setDialValue('speed', val);
-            } else if (uuid === CHAR_UUIDS.ECT) {
-                const val = value.getInt8(0);
-                tempText.textContent = val + '°C';
-                if (val > 105) {
-                    tempText.classList.add('hot');
-                } else {
-                    tempText.classList.remove('hot');
-                }
-            } else if (uuid === CHAR_UUIDS.TPS) {
-                const val = value.getUint8(0);
-                tpsText.textContent = val + '%';
-            } else if (uuid === CHAR_UUIDS.VOLT) {
-                const decoder = new TextDecoder('utf-8');
-                const val = decoder.decode(value);
-                battText.textContent = val + 'V';
+        // --- ECU Engine Integration ---
+        window.addEventListener('ecu_data', (e) => {
+            const data = e.detail;
+            setDialValue('rpm', data.rpm);
+            setDialValue('speed', data.speed);
+            
+            tempText.textContent = Math.round(data.ect) + '°C';
+            if (data.ect > 105) {
+                tempText.classList.add('hot');
+            } else {
+                tempText.classList.remove('hot');
             }
-        }
-
-        async function setupBLEService(service) {
-            const subscribeChar = async (uuid, handler) => {
-                try {
-                    const characteristic = await service.getCharacteristic(uuid);
-                    await characteristic.startNotifications();
-                    characteristic.addEventListener('characteristicvaluechanged', handler);
-                } catch (e) {
-                    console.error('Error subscribing to ' + uuid, e);
-                }
-            };
-
-            await subscribeChar(CHAR_UUIDS.RPM, (e) => handleBLEData(CHAR_UUIDS.RPM, e.target.value));
-            await subscribeChar(CHAR_UUIDS.SPEED, (e) => handleBLEData(CHAR_UUIDS.SPEED, e.target.value));
-            await subscribeChar(CHAR_UUIDS.ECT, (e) => handleBLEData(CHAR_UUIDS.ECT, e.target.value));
-            await subscribeChar(CHAR_UUIDS.TPS, (e) => handleBLEData(CHAR_UUIDS.TPS, e.target.value));
-            await subscribeChar(CHAR_UUIDS.VOLT, (e) => handleBLEData(CHAR_UUIDS.VOLT, e.target.value));
-        }
+            
+            tpsText.textContent = Math.round(data.tps) + '%';
+            battText.textContent = data.battery.toFixed(1) + 'V';
+        });
 
   // --- Anti-Web Behaviors ---
   document.addEventListener('contextmenu',e=>e.preventDefault());

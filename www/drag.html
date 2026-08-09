@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Drag Mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/index.css">
+    <style>
+        :root {
+            --cyan: #2be7ff;
+            --bg: #0a0a0f;
+            --dim: rgba(255, 255, 255, 0.4);
+            --red: #ff3366;
+            --green: #00ffaa;
+        }
+        body {
+            background-color: var(--bg);
+            color: #fff;
+            font-family: 'Share Tech Mono', monospace;
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; height: 100vh;
+        }
+        .header {
+            padding: 20px; display: flex; align-items: center;
+            border-bottom: 1px solid rgba(43, 231, 255, 0.2);
+        }
+        .header h1 {
+            margin: 0; font-size: 24px; color: var(--red);
+            text-transform: uppercase; letter-spacing: 2px; flex: 1; text-align: center;
+        }
+        .btn-back {
+            background: transparent; border: 1px solid var(--dim);
+            color: #fff; width: 44px; height: 44px;
+            border-radius: 8px; font-size: 24px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        
+        .drag-content {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        
+        .speed-display {
+            font-size: 80px; font-weight: bold; color: #fff;
+            line-height: 1; margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+        .speed-unit { font-size: 24px; color: var(--cyan); }
+        
+        .status-box {
+            background: rgba(255,51,102,0.1); border: 1px solid var(--red);
+            color: var(--red); padding: 8px 16px; border-radius: 4px;
+            font-size: 14px; letter-spacing: 2px; margin-bottom: 40px;
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
+        .status-box.ready {
+            background: rgba(0,255,170,0.1); border-color: var(--green); color: var(--green);
+            animation: none;
+        }
+        
+        .time-row {
+            display: flex; justify-content: space-between; width: 100%; max-width: 300px;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px 20px; border-radius: 8px; margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        .time-lbl { color: var(--dim); font-size: 16px; }
+        .time-val { color: var(--cyan); font-size: 20px; font-weight: bold; }
+        
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="btn-back" onclick="window.history.back()">❮</button>
+        <h1>DRAG RACE</h1>
+        <div style="width: 44px;"></div>
+    </div>
+    
+    <div class="drag-content">
+        <div class="status-box" id="dragStatus">WAITING FOR STOP...</div>
+        
+        <div class="speed-display"><span id="dragSpeed">0</span><span class="speed-unit">km/h</span></div>
+        
+        <div class="time-row">
+            <span class="time-lbl">0 - 60 km/h</span>
+            <span class="time-val" id="time60">--.-- s</span>
+        </div>
+        <div class="time-row">
+            <span class="time-lbl">0 - 100 km/h</span>
+            <span class="time-val" id="time100">--.-- s</span>
+        </div>
+    </div>
+
+    <script src="js/data_engine.js"></script>
+    <script>
+        const statusEl = document.getElementById('dragStatus');
+        const speedEl = document.getElementById('dragSpeed');
+        const time60El = document.getElementById('time60');
+        const time100El = document.getElementById('time100');
+        
+        let lastSpeed = -1;
+
+        window.addEventListener('ecu_data', (e) => {
+            const data = e.detail;
+            const spd = Math.round(data.speed);
+            
+            if (spd !== lastSpeed) {
+                speedEl.textContent = spd;
+                lastSpeed = spd;
+            }
+            
+            if (spd === 0) {
+                statusEl.textContent = 'READY TO LAUNCH';
+                statusEl.className = 'status-box ready';
+            } else if (data.accelTiming.active) {
+                statusEl.textContent = 'ACCELERATING...';
+                statusEl.className = 'status-box';
+                // Show live timer
+                const elapsed = (Date.now() - data.accelTiming.startTime) / 1000;
+                if(data.accelTiming.time0to60 === 0 && spd < 60) time60El.textContent = elapsed.toFixed(2) + ' s';
+                if(data.accelTiming.time0to100 === 0 && spd < 100) time100El.textContent = elapsed.toFixed(2) + ' s';
+            } else if (spd > 0) {
+                statusEl.textContent = 'DECELERATE TO 0';
+                statusEl.className = 'status-box';
+            }
+            
+            if (data.accelTiming.time0to60 > 0) time60El.textContent = data.accelTiming.time0to60.toFixed(2) + ' s';
+            if (data.accelTiming.time0to100 > 0) time100El.textContent = data.accelTiming.time0to100.toFixed(2) + ' s';
+        });
+        
+        // Listen to explicit accel events if needed, but polling ecu_data is enough.
+    </script>
+</body>
+</html>

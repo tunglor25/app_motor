@@ -23,6 +23,21 @@ window.ECUData = {
     avgKmL: 0.0,
     instantL100km: 0.0,
     
+    // Brand Logos (SVGs & PNGs)
+    brands: {
+        'bmw': '<img src="img/logos/bmw.png" style="height: 32px; object-fit: contain;">',
+        
+        'honda': '<img src="img/logos/honda.png" style="height: 32px; object-fit: contain;">',
+        
+        'yamaha': '<img src="img/logos/yamaha.png" style="height: 32px; object-fit: contain;">',
+        
+        'ducati': '<img src="img/logos/ducati.png" style="height: 32px; object-fit: contain;">',
+        
+        'kawasaki': '<img src="img/logos/kawasaki.png" style="height: 32px; object-fit: contain;">',
+        
+        'redbull': '<img src="img/logos/redbull.png" style="height: 32px; object-fit: contain;">'
+    },
+    
     // Acceleration Tracking
     accelTiming: {
         active: false,
@@ -46,9 +61,12 @@ const ECUController = {
         ECUData.tripB = parseFloat(localStorage.getItem('tripB') || 0);
         ECUData.fuelConsumed = parseFloat(localStorage.getItem('fuelConsumed') || 0);
         
-        // Start Mock Data by default if not connected
-        if (!ECUData.isConnected) {
+        // Start Mock Data if enabled in settings
+        if (!ECUData.isConnected && localStorage.getItem('demo_mode') === 'true') {
             this.startMockData();
+        } else {
+            // Dispatch initial empty data so UI has 0 values instead of NaN
+            this.dispatchUpdate('ecu_data', ECUData);
         }
     },
 
