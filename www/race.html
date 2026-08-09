@@ -568,43 +568,50 @@
     }
   });
 
+  // --- ECU Engine Integration ---
+  window.addEventListener('ecu_data', (e) => {
+    const data = e.detail;
+    updateTacho(data.rpm);
+    
+    document.getElementById('speedVal').textContent = Math.round(data.speed);
+    document.getElementById('tripVal').textContent = data.tripA.toFixed(1);
+    
+    // TPS and ECT
+    document.getElementById('ectVal').innerHTML = Math.round(data.ect) + '<i>°C</i>';
+    document.getElementById('ectFill').style.width = Math.min(data.ect / 120 * 100, 100) + '%';
+    
+    if (data.ect > 105) {
+      document.getElementById('ectBox').classList.add('hot');
+      document.getElementById('ectFill').style.background = 'var(--red)';
+    } else {
+      document.getElementById('ectBox').classList.remove('hot');
+      document.getElementById('ectFill').style.background = 'var(--green)';
+    }
+
+    if (document.getElementById('tpsVal')) {
+      document.getElementById('tpsVal').innerHTML = Math.round(data.tps) + '<i>%</i>';
+    }
+    if (document.getElementById('battVal')) {
+      document.getElementById('battVal').innerHTML = data.battery.toFixed(1) + '<i>V</i>';
+    }
+    
+    // Update fuel logic if UI exists
+    const fuelVal = document.getElementById('fuelInstVal');
+    if(fuelVal) fuelVal.textContent = data.instantL100km.toFixed(1);
+  });
+
   // --- SET Hold Reset ---
-  let setH=null,tripDist=0,currentSpeed=0;
+  let setH=null;
   const btnSet=document.getElementById('btnSet');
   const resetAll=()=>{
     if(lapInt){clearInterval(lapInt);lapInt=null;}
     lapEl.textContent='00:00.0';lapEl2.textContent='00:00.0';
-    tripDist=0;document.getElementById('tripVal').textContent='0.0';
+    if(window.ECUController) window.ECUController.resetTripA();
     document.body.style.opacity=0.3;setTimeout(()=>document.body.style.opacity=1,150);
   };
   btnSet.addEventListener('pointerdown',()=>{setH=setTimeout(resetAll,1200);});
   btnSet.addEventListener('pointerup',()=>{clearTimeout(setH);});
   btnSet.addEventListener('pointerleave',()=>{clearTimeout(setH);});
-
-  // --- BLE ---
-  const BLE={
-    uuid:'4fafc201-1fb5-459e-8fcc-c5c9c331914b',
-    chars:{'beb5483e-36e1-4688-b7f5-ea07361b26a8':'rpm','8b423985-7977-4b72-b2d6-4e5088277be9':'speed','e3b1c67d-94bb-4286-904b-3cc34a4c6a99':'ect','19a28e8d-71b5-4148-84be-97b7cbce39fa':'tps','c19f5615-585a-4712-b062-1bd074a1a5b8':'volt'}
-  };
-  function onBLE(e){
-    const t=BLE.chars[e.target.uuid],v=e.target.value;
-    if(t==='rpm')updateTacho(v.getUint16(0,true));
-    else if(t==='speed'){
-      currentSpeed=v.getUint8(0);
-      document.getElementById('speedVal').textContent=currentSpeed;
-      tripDist+=(currentSpeed/3600);
-      document.getElementById('tripVal').textContent=tripDist.toFixed(1);
-    }
-    else if(t==='ect'){
-      const c=v.getInt8(0);
-      document.getElementById('ectVal').innerHTML=c+'<i>°C</i>';
-      document.getElementById('ectFill').style.width=Math.min(c/120*100,100)+'%';
-      if(c>105){document.getElementById('ectBox').classList.add('hot');document.getElementById('ectFill').style.background='var(--red)';}
-      else{document.getElementById('ectBox').classList.remove('hot');document.getElementById('ectFill').style.background='var(--green)';}
-    }
-    else if(t==='tps')document.getElementById('tpsVal').innerHTML=v.getUint8(0)+'<i>%</i>';
-    else if(t==='volt')document.getElementById('battVal').innerHTML=new TextDecoder().decode(v)+'<i>V</i>';
-  }
 
   // --- Anti-Web Behaviors ---
   document.addEventListener('contextmenu',e=>e.preventDefault());
