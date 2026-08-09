@@ -251,11 +251,20 @@
           box-sizing: border-box !important;
         }
         .leaflet-control-geocoder-alternatives {
-          background: transparent !important;
+          background: rgba(30,30,36,0.95) !important;
           width: 100% !important;
+          border-radius: 0 0 24px 24px !important;
           margin: 0 !important;
           padding: 0 !important;
           list-style: none !important;
+          position: absolute !important;
+          top: 44px !important;
+          left: 0 !important;
+          box-shadow: 0 8px 16px rgba(0,0,0,0.5) !important;
+          overflow: hidden !important;
+        }
+        .leaflet-control-geocoder-alternatives-minimized {
+          display: none !important;
         }
         .leaflet-control-geocoder-alternatives li {
           padding: 12px 16px !important;
