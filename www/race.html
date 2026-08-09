@@ -235,6 +235,7 @@
     left: 0 !important;
     box-shadow: 0 8px 16px rgba(0,0,0,0.5) !important;
     overflow: hidden !important;
+    z-index: 10000 !important;
   }
   .leaflet-control-geocoder-alternatives-minimized {
     display: none !important;
@@ -785,15 +786,51 @@
 
         setTimeout(() => {
           const gcInput = document.querySelector('.leaflet-control-geocoder-form input');
-          if (gcInput) {
+          const alternativesList = document.querySelector('.leaflet-control-geocoder-alternatives');
+          if (gcInput && alternativesList) {
             let typeTimeout;
             gcInput.addEventListener('input', () => {
               clearTimeout(typeTimeout);
               typeTimeout = setTimeout(() => {
                 if (gcInput.value.length >= 2) {
-                  const ev = new Event('keydown', { bubbles: true, cancelable: true });
-                  ev.keyCode = 32;
-                  gcInput.dispatchEvent(ev);
+                  fetch(`https://api.tomtom.com/search/2/search/${encodeURIComponent(gcInput.value)}.json?key=${tomtomKey}&limit=5`)
+                  .then(res => res.json())
+                  .then(data => {
+                    alternativesList.innerHTML = '';
+                    if (data.results && data.results.length > 0) {
+                      alternativesList.style.display = 'block';
+                      alternativesList.classList.remove('leaflet-control-geocoder-alternatives-minimized');
+                      data.results.forEach(r => {
+                        const name = r.address.freeformAddress || r.poi?.name || 'Unknown';
+                        const li = document.createElement('li');
+                        li.innerHTML = `<a href="javascript:void(0)">${name}</a>`;
+                        li.onclick = (e) => {
+                          e.preventDefault();
+                          gcInput.value = name;
+                          alternativesList.style.display = 'none';
+                          const dest = L.latLng(r.position.lat, r.position.lon);
+                          const bbox = L.latLngBounds(
+                            L.latLng(r.viewport.topLeftPoint.lat, r.viewport.topLeftPoint.lon), 
+                            L.latLng(r.viewport.btmRightPoint.lat, r.viewport.btmRightPoint.lon)
+                          );
+                          miniMap.fitBounds(bbox);
+                          if (routingControl) miniMap.removeControl(routingControl);
+                          routingControl = L.Routing.control({
+                            waypoints: [ mapMarker.getLatLng(), dest ],
+                            routeWhileDragging: false,
+                            show: false,
+                            createMarker: function() { return null; },
+                            lineOptions: { styles: [{color: 'var(--cyan, #2BE7FF)', opacity: 0.8, weight: 5}] }
+                          }).addTo(miniMap);
+                        };
+                        alternativesList.appendChild(li);
+                      });
+                    } else {
+                      alternativesList.style.display = 'none';
+                    }
+                  });
+                } else {
+                  alternativesList.style.display = 'none';
                 }
               }, 500);
             });
