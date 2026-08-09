@@ -1,0 +1,654 @@
+<USER_REQUEST>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Moto Dash — Race / Daily / Classic</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;1,600;1,700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#030304;
+    --ink:#f4f5f8;
+    --dim:#5c6270;
+
+    /* Race (BMW) */
+    --race-blue-l:#00b7f0;
+    --race-blue-d:#153a72;
+    --race-red:#ff2130;
+    --race-amber:#ffb703;
+    --race-white:#f4f5f8;
+
+    /* Daily (Winner X) */
+    --daily-cyan:#2be7ff;
+    --daily-cyan-dim:#0d3a44;
+    --daily-navy:#060e16;
+
+    /* Classic */
+    --classic-cream:#ece0c2;
+    --classic-cream-dk:#c9b98c;
+    --classic-amber:#ff8a1e;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{
+    background:var(--bg); color:var(--ink); margin:0; padding:0;
+    height:100vh; width:100vw; overflow:hidden; user-select:none;
+    -webkit-tap-highlight-color:transparent;
+    font-family:'Rajdhani',sans-serif;
+  }
+  #app{width:100%;height:100%;position:relative;}
+  #app::after{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:850;
+    background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
+  }
+
+  .topbar{position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between; align-items:center; padding:14px 18px; z-index:999;}
+  #connectBtn{
+    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); backdrop-filter:blur(6px);
+    color:var(--ink); padding:7px 16px; font-family:'Rajdhani',sans-serif; font-size:12px; font-weight:700;
+    letter-spacing:2px; cursor:pointer; border-radius:20px; transition:.25s;
+  }
+  #connectBtn::before{content:"● "; color:#ff3b3b; font-size:9px;}
+  #connectBtn:hover{background:rgba(255,255,255,0.14);}
+  .help-hint{font-size:11px; color:var(--dim); letter-spacing:1.5px; text-transform:uppercase; pointer-events:none;}
+
+  .theme-layer{
+    width:100%; height:100%; display:none; position:absolute; top:0; left:0;
+  }
+  #app[data-theme="sport"] #theme-sport{display:flex;}
+  #app[data-theme="daily"] #theme-daily{display:flex;}
+  #app[data-theme="classic"] #theme-classic{display:flex;}
+
+  @keyframes shiftFlash{0%{opacity:0;}50%{opacity:.35;}100%{opacity:0;}}
+  .shift-overlay{position:absolute; inset:0; background:var(--race-red); pointer-events:none; opacity:0; z-index:900;}
+  .shift-overlay.flash{animation:shiftFlash .15s ease-in-out 2;}
+
+  /* ==========================================================
+     THEME 1 — RACE (BMW S1000RR style)
+     ========================================================== */
+  #theme-sport{
+    flex-direction:column; justify-content:space-between; align-items:stretch;
+    padding:64px 5vw 34px;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(0,120,180,0.18) 0%, transparent 55%),
+      radial-gradient(circle at 50% 115%, #10141d 0%, #000 65%);
+  }
+
+  .m-badge{position:absolute; top:16px; left:50%; transform:translateX(-50%); display:flex; gap:4px;}
+  .m-stripe{width:12px; height:9px; transform:skew(-25deg);}
+  .m-l{background:var(--race-blue-l);}
+  .m-d{background:var(--race-blue-d);}
+  .m-r{background:var(--race-red);}
+
+  .race-shift-text{
+    position:absolute; top:14vh; left:50%; transform:translate(-50%,0);
+    font-family:'Teko',sans-serif; font-size:34px; font-weight:700; letter-spacing:10px;
+    color:var(--race-red); opacity:0; transition:opacity .08s; text-shadow:0 0 18px rgba(255,33,48,.8);
+  }
+  .race-shift-text.show{opacity:1;}
+
+  .race-tacho{width:100%;}
+  .race-tacho-numbers{
+    display:flex; justify-content:space-between; padding:0 1%;
+    font-family:'Teko',sans-serif; font-size:15px; font-weight:600; color:var(--dim); letter-spacing:1px;
+  }
+  .race-tacho-numbers .hot{color:var(--race-red);}
+  .race-tacho-bar{
+    display:flex; align-items:flex-end; gap:3px; width:100%; height:52px; margin-top:6px;
+  }
+  .race-tacho-bar .seg{flex:1; border-radius:1.5px 1.5px 0 0; transition:background .05s linear, box-shadow .05s linear;}
+  .seg.z-w{background:rgba(244,245,248,0.10);}
+  .seg.z-a{background:rgba(255,183,3,0.12);}
+  .seg.z-r{background:rgba(255,33,48,0.16);}
+  .seg.lit.z-w{background:var(--race-white); box-shadow:0 0 8px rgba(244,245,248,.65);}
+  .seg.lit.z-a{background:var(--race-amber); box-shadow:0 0 10px rgba(255,183,3,.75);}
+  .seg.lit.z-r{background:var(--race-red); box-shadow:0 0 14px rgba(255,33,48,.9);}
+  .seg.strobe.z-r{animation:segStrobe .15s ease-in-out infinite;}
+  @keyframes segStrobe{0%,100%{filter:brightness(1);}50%{filter:brightness(2.2);}}
+  .race-tacho-caption{margin-top:5px; text-align:right; font-size:10px; letter-spacing:3px; color:var(--dim);}
+
+  .race-center{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .race-speed{display:flex; align-items:baseline; gap:10px;}
+  .race-speed span{
+    font-family:'Teko',sans-serif; font-size:min(26vw,240px); font-weight:700; line-height:.78; letter-spacing:-4px;
+    text-shadow:0 0 60px rgba(255,255,255,.06);
+  }
+  .race-speed small{font-size:24px; font-weight:700; color:var(--dim); letter-spacing:2px;}
+
+  .race-vitals{display:flex; justify-content:space-between; align-items:flex-end;}
+  .race-vital{display:flex; flex-direction:column; gap:2px; padding:8px 18px; background:rgba(255,255,255,0.025); border-radius:6px; border-left:3px solid rgba(255,255,255,0.15); min-width:100px;}
+  .race-vital .lbl{font-size:11px; color:var(--dim); font-weight:700; letter-spacing:2.5px; text-transform:uppercase;}
+  .race-vital .val{font-family:'Teko',sans-serif; font-size:38px; line-height:1;}
+  .race-vital .val i{font-style:normal; font-size:16px; color:var(--dim); margin-left:3px;}
+  .race-vital.ect{border-left:3px solid #59d66c; align-items:flex-end;}
+  .race-vital.ect .val{color:#59d66c; font-size:52px;}
+  .race-vital.ect.hot{border-left:3px solid var(--race-red);}
+  .race-vital.ect.hot .val{color:var(--race-red);}
+
+  /* ==========================================================
+     THEME 2 — DAILY (Winner X style)
+     ========================================================== */
+  #theme-daily{
+    flex-direction:column; align-items:center; justify-content:flex-start; padding-top:6vh;
+    background:radial-gradient(ellipse at 50% 0%, #0e1b26 0%, var(--daily-navy) 60%);
+  }
+  .daily-clock{position:absolute; top:16px; right:20px; font-family:'Share Tech Mono',monospace; font-size:22px; color:var(--daily-cyan); letter-spacing:2px; text-shadow:0 0 12px rgba(43,231,255,.5);}
+
+  .daily-cluster{position:relative; width:92vw; max-width:640px;}
+  .daily-cluster svg{width:100%; overflow:visible; display:block;}
+  .daily-track{fill:none; stroke:rgba(255,255,255,0.05); stroke-width:1.5;}
+  .daily-tick{stroke-linecap:round; transition:stroke .05s linear, opacity .05s linear;}
+  .daily-num{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:8px; fill:var(--dim);}
+  .daily-num.hot{fill:var(--race-red);}
+
+  .daily-readout{position:absolute; left:50%; top:58%; transform:translate(-50%,-50%); text-align:center; width:100%;}
+  .daily-speed{display:flex; align-items:baseline; justify-content:center; gap:8px;}
+  .daily-speed span{font-family:'Teko',sans-serif; font-size:min(20vw,150px); font-weight:700; line-height:.8; color:#fff; text-shadow:0 0 30px rgba(43,231,255,.15);}
+  .daily-speed small{font-size:16px; color:var(--daily-cyan); font-weight:700; letter-spacing:2px;}
+  .daily-rpm-line{margin-top:2px; font-family:'Share Tech Mono',monospace; font-size:13px; color:var(--dim); letter-spacing:1px;}
+  .daily-rpm-line b{color:var(--daily-cyan); font-weight:400;}
+
+  .daily-lcd{
+    margin-top:2vh; display:flex; gap:2px; background:linear-gradient(180deg,#0a1b22,#081319);
+    border:1px solid rgba(43,231,255,0.15); border-radius:8px; padding:12px 4px;
+    box-shadow:inset 0 0 20px rgba(0,0,0,.6);
+  }
+  .lcd-item{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:0 10px; border-right:1px solid rgba(43,231,255,0.08); position:relative;}
+  .lcd-item:last-child{border-right:none;}
+  .lcd-lbl{font-size:9px; letter-spacing:2px; color:rgba(43,231,255,.5); font-weight:700;}
+  .lcd-val{font-family:'Share Tech Mono',monospace; font-size:19px; color:var(--daily-cyan); text-shadow:0 0 8px rgba(43,231,255,.55);}
+  .lcd-unit{font-size:9px; color:var(--dim); letter-spacing:1px;}
+  .lcd-item.hot .lcd-val{color:var(--race-red); text-shadow:0 0 8px rgba(255,33,48,.6);}
+
+  /* ==========================================================
+     THEME 3 — CLASSIC (retro analog)
+     ========================================================== */
+  #theme-classic{
+    align-items:center; justify-content:center; gap:6vw;
+    background:#0a0908;
+    background-image:
+      repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,0.012) 0px, transparent 2px),
+      radial-gradient(ellipse at 50% 50%, #16130f 0%, #080706 75%);
+  }
+  .classic-dial-wrap{position:relative; width:38vh; height:38vh; min-width:230px; min-height:230px;}
+  .classic-dial-wrap svg{width:100%; height:100%; display:block; overflow:visible;}
+  .classic-face{fill:url(#faceGrad);}
+  .classic-tick-maj{stroke:var(--classic-cream-dk); stroke-width:2.2;}
+  .classic-tick-min{stroke:rgba(201,185,140,0.45); stroke-width:1;}
+  .classic-tick-maj.hot{stroke:#c23b2c;}
+  .classic-num{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:11px; fill:var(--classic-cream-dk); text-anchor:middle;}
+  .classic-num.hot{fill:#c23b2c;}
+  .classic-brand{font-family:'Playfair Display',serif; font-style:italic; font-weight:600; font-size:9px; fill:rgba(201,185,140,0.6); text-anchor:middle; letter-spacing:1px;}
+  .classic-unit{font-family:'Playfair Display',serif; font-style:italic; font-weight:600; font-size:10px; fill:rgba(236,224,194,0.55); text-anchor:middle;}
+  .classic-value{font-family:'Playfair Display',serif; font-weight:600; font-size:30px; fill:#f2ead6; text-anchor:middle;}
+  .classic-needle-tail{fill:#2b2b2b;}
+  .classic-needle-body{fill:var(--classic-amber);}
+  .classic-cap-outer{fill:url(#capGrad);}
+  .classic-cap-inner{fill:#3a3a3a;}
+  .classic-glass{fill:url(#glassGrad); pointer-events:none;}
+
+  .classic-vitals{position:absolute; bottom:26px; left:50%; transform:translateX(-50%); display:flex; gap:6vw; font-family:'Playfair Display',serif; font-style:italic; color:var(--classic-cream-dk); font-size:15px; white-space:nowrap;}
+  .classic-vitals b{color:#f2ead6; font-weight:600; font-style:normal; margin-left:4px;}
+  .classic-vitals .hot b{color:#c23b2c;}
+</style>
+</head>
+<body>
+
+<div class="shift-overlay" id="shiftOverlay"></div>
+
+<div class="topbar">
+  <button id="connectBtn">CONNECT</button>
+  <div class="help-hint">Double tap · đổi màn hình</div>
+</div>
+
+<div id="app" data-theme="sport">
+
+  <!-- ============ THEME 1: RACE ============ -->
+  <div id="theme-sport" class="theme-layer">
+    <div class="m-badge"><span class="m-stripe m-l"></span><span class="m-stripe m-d"></span><span class="m-stripe m-r"></span></div>
+    <div class="race-shift-text" id="shiftText">SHIFT</div>
+
+    <div class="race-tacho">
+      <div class="race-tacho-numbers">
+        <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span><span class="hot">12</span><span class="hot">14</span>
+      </div>
+      <div class="race-tacho-bar" id="raceBar"></div>
+      <div class="race-tacho-caption">RPM × 1000</div>
+    </div>
+
+    <div class="race-center">
+      <div class="race-speed"><span id="sport-speed">0</span><small>km/h</small></div>
+    </div>
+
+    <div class="race-vitals">
+      <div class="race-vital"><span class="lbl">TPS</span><span class="val" id="sport-tps">0<i>%</i></span></div>
+      <div class="race-vital" style="align-items:center;"><span class="lbl">BATT</span><span class="val" id="sport-volt">12.0<i>V</i></span></div>
+      <div class="race-vital ect" id="sport-ect-box"><span class="lbl">ECT °C</span><span class="val" id="sport-ect">--</span></div>
+    </div>
+  </div>
+
+  <!-- ============ THEME 2: DAILY ============ -->
+  <div id="theme-daily" class="theme-layer">
+    <div class="daily-clock" id="dailyClock">00:00</div>
+
+    <div class="daily-cluster">
+      <svg viewBox="0 0 200 160">
+        <path class="daily-track" d="M 17 148 A 88 88 0 1 1 183 148"/>
+        <g id="dailyTicks"></g>
+        <g id="dailyNums"></g>
+      </svg>
+      <div class="daily-readout">
+        <div class="daily-speed"><span id="daily-speed">0</span><small>km/h</small></div>
+        <div class="daily-rpm-line"><b id="daily-rpm">0</b> RPM</div>
+      </div>
+    </div>
+
+    <div class="daily-lcd">
+      <div class="lcd-item"><span class="lcd-lbl">TRIP</span><span class="lcd-val" id="daily-trip">0.0</span><span class="lcd-unit">km</span></div>
+      <div class="lcd-item"><span class="lcd-lbl">AVG</span><span class="lcd-val" id="daily-fuel">--</span><span class="lcd-unit">km/L</span></div>
+      <div class="lcd-item"><span class="lcd-lbl">TPS</span><span class="lcd-val" id="daily-tps">0</span><span class="lcd-unit">%</span></div>
+      <div class="lcd-item"><span class="lcd-lbl">BATT</span><span class="lcd-val" id="daily-volt">12.0</span><span class="lcd-unit">V</span></div>
+      <div class="lcd-item" id="daily-ect-box"><span class="lcd-lbl">TEMP</span><span class="lcd-val" id="daily-ect">--</span><span class="lcd-unit">°C</span></div>
+    </div>
+  </div>
+
+  <!-- ============ THEME 3: CLASSIC ============ -->
+  <div id="theme-classic" class="theme-layer">
+    <div class="classic-dial-wrap">
+      <svg viewBox="0 0 200 200">
+        <defs>
+          <radialGradient id="faceGrad" cx="42%" cy="38%" r="75%">
+            <stop offset="0%" stop-color="#f4ead0"/>
+            <stop offset="60%" stop-color="#e7d8ac"/>
+            <stop offset="100%" stop-color="#b9a26d"/>
+          </radialGradient>
+          <linearGradient id="chromeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#fdfdfd"/>
+            <stop offset="20%" stop-color="#6b6b6b"/>
+            <stop offset="40%" stop-color="#e8e8e8"/>
+            <stop offset="55%" stop-color="#4a4a4a"/>
+            <stop offset="75%" stop-color="#dcdcdc"/>
+            <stop offset="100%" stop-color="#3a3a3a"/>
+          </linearGradient>
+          <radialGradient id="capGrad" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#eee"/>
+            <stop offset="50%" stop-color="#8a8a8a"/>
+            <stop offset="100%" stop-color="#2c2c2c"/>
+          </radialGradient>
+          <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#fff" stop-opacity="0.16"/>
+            <stop offset="35%" stop-color="#fff" stop-opacity="0.02"/>
+            <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <circle cx="100" cy="100" r="96" fill="none" stroke="url(#chromeGrad)" stroke-width="9"/>
+        <circle cx="100" cy="100" r="88" class="classic-face"/>
+        <text class="classic-brand" x="100" y="62">MOTO · CLASSIC</text>
+        <g id="classicSpeedTicks"></g>
+        <g id="classicSpeedNums"></g>
+        <text class="classic-value" id="classic-speed" x="100" y="128">0</text>
+        <text class="classic-unit" x="100" y="146">km/h</text>
+        <g class="classic-needle-tail"><polygon id="csTail" points="97,100 103,100 101,124 99,124" transform="rotate(-135 100 100)"/></g>
+        <g id="classicSpeedNeedle" transform="rotate(-135 100 100)">
+          <polygon class="classic-needle-body" points="100,22 102.6,96 100,101 97.4,96"/>
+        </g>
+        <circle class="classic-cap-outer" cx="100" cy="100" r="9"/>
+        <circle class="classic-cap-inner" cx="100" cy="100" r="4"/>
+        <ellipse class="classic-glass" cx="80" cy="75" rx="70" ry="55"/>
+      </svg>
+    </div>
+
+    <div class="classic-dial-wrap">
+      <svg viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="96" fill="none" stroke="url(#chromeGrad)" stroke-width="9"/>
+        <circle cx="100" cy="100" r="88" class="classic-face"/>
+        <text class="classic-brand" x="100" y="62">TACHOMETER</text>
+        <g id="classicRpmTicks"></g>
+        <g id="classicRpmNums"></g>
+        <text class="classic-value" id="classic-rpm" x="100" y="128">0</text>
+        <text class="classic-unit" x="100" y="146">× 1000 rpm</text>
+        <g class="classic-needle-tail"><polygon id="crTail" points="97,100 103,100 101,124 99,124" transform="rotate(-135 100 100)"/></g>
+        <g id="classicRpmNeedle" transform="rotate(-135 100 100)">
+          <polygon class="classic-needle-body" points="100,22 102.6,96 100,101 97.4,96"/>
+        </g>
+        <circle class="classic-cap-outer" cx="100" cy="100" r="9"/>
+        <circle class="classic-cap-inner" cx="100" cy="100" r="4"/>
+        <ellipse class="classic-glass" cx="80" cy="75" rx="70" ry="55"/>
+      </svg>
+    </div>
+
+    <div class="classic-vitals">
+      <div>BATT <b id="classic-volt">12.0V</b></div>
+      <div>TPS <b id="classic-tps">0%</b></div>
+      <div id="classic-ect-box">TEMP <b id="classic-ect">--°C</b></div>
+    </div>
+  </div>
+
+</div> <!-- /#app -->
+
+<script>
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function polar(cx, cy, r, angleDeg){
+  const rad = angleDeg * Math.PI / 180;
+  return { x: cx + r * Math.sin(rad), y: cy - r * Math.cos(rad) };
+}
+function svgEl(tag, attrs){
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for(const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+/* ============================================================
+   THEME SWITCHER
+   ============================================================ */
+const themes = ['sport','daily','classic'];
+let currentThemeIdx = 0;
+const appEl = document.getElementById('app');
+document.body.addEventListener('dblclick', (e) => {
+  if (e.target.id === 'connectBtn') return;
+  currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+  appEl.setAttribute('data-theme', themes[currentThemeIdx]);
+  playSweepAnimation();
+});
+
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+const MAX_RPM = 14000;
+const MAX_SPEED = 140;
+const SHIFT_RPM = 11000;
+const SEG_COUNT = 56; // 250 rpm per segment
+let isSweeping = false;
+let isFlashing = false;
+
+/* ============================================================
+   BUILD — RACE BAR (56 graduated segments)
+   ============================================================ */
+const raceBarEl = document.getElementById('raceBar');
+const raceSegs = [];
+for (let i = 0; i < SEG_COUNT; i++){
+  const seg = document.createElement('div');
+  const h = 14 + (i/(SEG_COUNT-1)) * 38; // 14px -> 52px
+  seg.style.height = h.toFixed(1) + 'px';
+  const zone = i < 34 ? 'z-w' : (i < 44 ? 'z-a' : 'z-r');
+  seg.className = 'seg ' + zone;
+  raceBarEl.appendChild(seg);
+  raceSegs.push(seg);
+}
+
+/* ============================================================
+   BUILD — DAILY ARC (56 radial ticks + 8 numbers)
+   ============================================================ */
+const dailyTicksGroup = document.getElementById('dailyTicks');
+const dailyNumsGroup = document.getElementById('dailyNums');
+const DCX = 100, DCY = 118, D_R_OUT = 88, D_R_IN = 74;
+const D_START = -110, D_END = 110;
+const dailyTicks = [];
+for (let i = 0; i < SEG_COUNT; i++){
+  const ang = D_START + (i/(SEG_COUNT-1)) * (D_END - D_START);
+  const p1 = polar(DCX, DCY, D_R_OUT, ang);
+  const p2 = polar(DCX, DCY, D_R_IN, ang);
+  const zone = i < 34 ? 'z-w' : (i < 44 ? 'z-a' : 'z-r');
+  const line = svgEl('line', { x1:p1.x, y1:p1.y, x2:p2.x, y2:p2.y, 'stroke-width': 2.4, class:'daily-tick '+zone });
+  line.setAttribute('stroke', 'rgba(255,255,255,0.08)');
+  dailyTicksGroup.appendChild(line);
+  dailyTicks.push({el: line, zone});
+}
+const DAILY_ZONE_COLOR = {
+  'z-w': {dim:'rgba(255,255,255,0.10)', lit:'#f4f5f8'},
+  'z-a': {dim:'rgba(255,183,3,0.14)', lit:'#ffb703'},
+  'z-r': {dim:'rgba(255,33,48,0.16)', lit:'#ff2130'}
+};
+for (let i = 0; i < SEG_COUNT; i++) dailyTicks[i].el.setAttribute('stroke', DAILY_ZONE_COLOR[dailyTicks[i].zone].dim);
+
+const dailyLabels = ['0','2','4','6','8','10','12','14'];
+for (let i = 0; i < dailyLabels.length; i++){
+  const ang = D_START + (i/(dailyLabels.length-1)) * (D_END - D_START);
+  const p = polar(DCX, DCY, D_R_OUT + 9, ang);
+  const t = svgEl('text', { x:p.x, y:p.y, class:'daily-num' + (i>=6?' hot':''), 'text-anchor':'middle', 'dominant-baseline':'middle' });
+  t.textContent = dailyLabels[i];
+  dailyNumsGroup.appendChild(t);
+}
+
+/* ============================================================
+   BUILD — CLASSIC DIALS (ticks, numbers, needles)
+   ============================================================ */
+function buildClassicDial(ticksGroupId, numsGroupId, majors, redFrom, sweepStart, sweepEnd){
+  const ticksGroup = document.getElementById(ticksGroupId);
+  const numsGroup = document.getElementById(numsGroupId);
+  const total = majors.length - 1;
+  const minorPerGap = 4;
+  for (let seg = 0; seg < total; seg++){
+    for (let m = 0; m <= minorPerGap; m++){
+      const frac = (seg + m/minorPerGap) / total;
+      const ang = sweepStart + frac * (sweepEnd - sweepStart);
+      const isMajor = (m === 0);
+      const rOut = 88;
+      const rIn = isMajor ? 78 : 83;
+      const p1 = polar(100, 100, rOut, ang);
+      const p2 = polar(100, 100, rIn, ang);
+      const hot = frac >= redFrom;
+      const line = svgEl('line', {
+        x1:p1.x, y1:p1.y, x2:p2.x, y2:p2.y,
+        class: (isMajor ? 'classic-tick-maj' : 'classic-tick-min') + (isMajor && hot ? ' hot' : '')
+      });
+      ticksGroup.appendChild(line);
+    }
+  }
+  for (let i = 0; i <= total; i++){
+    const frac = i/total;
+    const ang = sweepStart + frac * (sweepEnd - sweepStart);
+    const p = polar(100, 100, 68, ang);
+    const hot = frac >= redFrom;
+    const t = svgEl('text', { x:p.x, y:p.y, class:'classic-num' + (hot?' hot':''), 'dominant-baseline':'middle' });
+    t.textContent = majors[i];
+    numsGroup.appendChild(t);
+  }
+}
+buildClassicDial('classicSpeedTicks','classicSpeedNums', ['0','20','40','60','80','100','120','140'], 999, -135, 135);
+buildClassicDial('classicRpmTicks','classicRpmNums', ['0','2','4','6','8','10','12','14'], 6/7, -135, 135);
+
+/* ============================================================
+   ELEMENTS
+   ============================================================ */
+const shiftOverlay = document.getElementById('shiftOverlay');
+const shiftText = document.getElementById('shiftText');
+const classicSpeedNeedle = document.getElementById('classicSpeedNeedle');
+const classicRpmNeedle = document.getElementById('classicRpmNeedle');
+const csTail = document.getElementById('csTail');
+const crTail = document.getElementById('crTail');
+
+/* ============================================================
+   UPDATE FUNCTIONS
+   ============================================================ */
+function updateRPM(val){
+  if (isSweeping) return;
+  if (val > MAX_RPM) val = MAX_RPM;
+  const ratio = val / MAX_RPM;
+
+  // Race bar
+  const lit = Math.round(ratio * SEG_COUNT);
+  for (let i = 0; i < SEG_COUNT; i++){
+    raceSegs[i].classList.toggle('lit', i < lit);
+  }
+
+  // Daily arc
+  const dLit = Math.round(ratio * SEG_COUNT);
+  for (let i = 0; i < SEG_COUNT; i++){
+    const on = i < dLit;
+    dailyTicks[i].el.setAttribute('stroke', on ? DAILY_ZONE_COLOR[dailyTicks[i].zone].lit : DAILY_ZONE_COLOR[dailyTicks[i].zone].dim);
+    dailyTicks[i].el.style.opacity = on ? '1' : '0.55';
+  }
+  document.getElementById('daily-rpm').innerText = val;
+
+  // Classic
+  const classicDeg = -135 + ratio * 270;
+  classicRpmNeedle.setAttribute('transform', `rotate(${classicDeg} 100 100)`);
+  document.getElementById('classic-rpm').textContent = (val/1000).toFixed(1);
+
+  if (val >= SHIFT_RPM && !isFlashing && currentThemeIdx === 0) triggerShiftFlash();
+}
+
+function triggerShiftFlash(){
+  isFlashing = true;
+  shiftOverlay.classList.add('flash');
+  shiftText.classList.add('show');
+  for (let i = 44; i < SEG_COUNT; i++) raceSegs[i].classList.add('strobe');
+  setTimeout(() => {
+    shiftOverlay.classList.remove('flash');
+    shiftText.classList.remove('show');
+    for (let i = 44; i < SEG_COUNT; i++) raceSegs[i].classList.remove('strobe');
+    isFlashing = false;
+  }, 300);
+}
+
+function updateSpeed(val){
+  document.getElementById('sport-speed').innerText = val;
+  document.getElementById('daily-speed').innerText = val;
+  document.getElementById('classic-speed').textContent = val;
+  const spd = val > MAX_SPEED ? MAX_SPEED : val;
+  const deg = -135 + (spd / MAX_SPEED) * 270;
+  classicSpeedNeedle.setAttribute('transform', `rotate(${deg} 100 100)`);
+}
+
+function updateECT(val){
+  document.getElementById('sport-ect').innerText = val;
+  document.getElementById('daily-ect').innerText = val;
+  document.getElementById('classic-ect').innerText = val + '°C';
+  const isHot = val > 105;
+  document.getElementById('sport-ect-box').classList.toggle('hot', isHot);
+  document.getElementById('daily-ect-box').classList.toggle('hot', isHot);
+  document.getElementById('classic-ect-box').classList.toggle('hot', isHot);
+}
+
+function updateTPS(val){
+  document.getElementById('sport-tps').innerHTML = val + '<i>%</i>';
+  document.getElementById('daily-tps').innerText = val;
+  document.getElementById('classic-tps').innerText = val + '%';
+}
+
+function updateVolt(voltStr){
+  document.getElementById('sport-volt').innerHTML = voltStr + '<i>V</i>';
+  document.getElementById('daily-volt').innerText = voltStr;
+  document.getElementById('classic-volt').innerText = voltStr + 'V';
+}
+
+/* ============================================================
+   BOOT SWEEP ANIMATION
+   ============================================================ */
+async function playSweepAnimation(){
+  isSweeping = true;
+
+  raceSegs.forEach((s,i) => setTimeout(()=>s.classList.add('lit'), i*4));
+  dailyTicks.forEach((d,i) => setTimeout(()=>{
+    d.el.setAttribute('stroke', DAILY_ZONE_COLOR[d.zone].lit); d.el.style.opacity='1';
+  }, i*4));
+  classicRpmNeedle.style.transition = 'transform 1s cubic-bezier(.1,1,.2,1)';
+  classicSpeedNeedle.style.transition = 'transform 1s cubic-bezier(.1,1,.2,1)';
+  classicRpmNeedle.setAttribute('transform','rotate(135 100 100)');
+  classicSpeedNeedle.setAttribute('transform','rotate(135 100 100)');
+
+  await new Promise(r => setTimeout(r, 900));
+
+  raceSegs.forEach((s,i) => setTimeout(()=>s.classList.remove('lit'), i*3));
+  dailyTicks.forEach((d,i) => setTimeout(()=>{
+    d.el.setAttribute('stroke', DAILY_ZONE_COLOR[d.zone].dim); d.el.style.opacity='0.55';
+  }, i*3));
+  classicRpmNeedle.style.transition = 'transform 0.8s cubic-bezier(.1,1,.2,1)';
+  classicSpeedNeedle.style.transition = 'transform 0.8s cubic-bezier(.1,1,.2,1)';
+  classicRpmNeedle.setAttribute('transform','rotate(-135 100 100)');
+  classicSpeedNeedle.setAttribute('transform','rotate(-135 100 100)');
+
+  await new Promise(r => setTimeout(r, 850));
+
+  classicRpmNeedle.style.transition = 'transform 0.1s linear';
+  classicSpeedNeedle.style.transition = 'transform 0.1s linear';
+  isSweeping = false;
+}
+
+/* ============================================================
+   BLE CONNECTION
+   ============================================================ */
+const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+const UUID_MAP = {
+  "beb5483e-36e1-4688-b7f5-ea07361b26a8": "rpm",
+  "8b423985-7977-4b72-b2d6-4e5088277be9": "speed",
+  "e3b1c67d-94bb-4286-904b-3cc34a4c6a99": "ect",
+  "19a28e8d-71b5-4148-84be-97b7cbce39fa": "tps",
+  "c19f5615-585a-4712-b062-1bd074a1a5b8": "volt"
+};
+
+document.getElementById('connectBtn').addEventListener('click', async () => {
+  try {
+    const device = await navigator.bluetooth.requestDevice({
+      filters: [{ name: 'Honda_AB2025_Dash' }],
+      optionalServices: [SERVICE_UUID]
+    });
+    document.getElementById('connectBtn').innerText = "CONNECTING...";
+    const server = await device.gatt.connect();
+    const service = await server.getPrimaryService(SERVICE_UUID);
+    for (let uuid in UUID_MAP) {
+      const characteristic = await service.getCharacteristic(uuid);
+      await characteristic.startNotifications();
+      characteristic.addEventListener('characteristicvaluechanged', handleNotifications);
+    }
+    document.getElementById('connectBtn').style.display = "none";
+  } catch(error) {
+    alert('Lỗi: ' + error);
+    document.getElementById('connectBtn').innerText = "CONNECT";
+  }
+});
+
+function handleNotifications(event){
+  const type = UUID_MAP[event.target.uuid];
+  const value = event.target.value;
+  if (type === "rpm") updateRPM(value.getUint16(0, true));
+  else if (type === "speed") updateSpeed(value.getUint8(0));
+  else if (type === "ect") updateECT(value.getInt8(0));
+  else if (type === "tps") updateTPS(value.getUint8(0));
+  else if (type === "volt") updateVolt(new TextDecoder().decode(value));
+}
+
+/* ============================================================
+   TRIP COMPUTER & CLOCK
+   ============================================================ */
+let tripDistance = 0.0;
+let lastTime = Date.now();
+setInterval(() => {
+  const now = new Date();
+  document.getElementById('dailyClock').innerText = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  const currentMs = Date.now();
+  const deltaHours = (currentMs - lastTime) / 3600000;
+  lastTime = currentMs;
+
+  const currentSpeed = parseInt(document.getElementById('daily-speed').innerText) || 0;
+  const currentTps = parseInt(document.getElementById('daily-tps').innerText) || 0;
+
+  tripDistance += currentSpeed * deltaHours;
+  document.getElementById('daily-trip').innerText = tripDistance.toFixed(1);
+
+  if (currentSpeed > 0 && currentTps > 0) {
+    let kmL = (currentSpeed / currentTps) * 12;
+    if (kmL > 99) kmL = 99.9;
+    document.getElementById('daily-fuel').innerText = kmL.toFixed(1);
+  } else if (currentSpeed > 0 && currentTps === 0) {
+    document.getElementById('daily-fuel').innerText = "99.9";
+  } else {
+    document.getElementById('daily-fuel').innerText = "--";
+  }
+}, 1000);
+
+window.onload = () => { setTimeout(playSweepAnimation, 500); };
+</script>
+</body>
+</html>
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-08-08T17:13:58+07:00.
+</ADDITIONAL_METADATA>

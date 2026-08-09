@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Daily Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <style>
+        :root {
+            --cyan: #2BE7FF;
+            --cyan-glow: 0 0 10px #2BE7FF, 0 0 20px #2BE7FF;
+            --bg-grad: radial-gradient(circle at center, #061924 0%, #02080d 100%);
+        }
+        html.light-theme {
+            --cyan: #008eb3;
+            --cyan-glow: none;
+            --bg-grad: radial-gradient(circle at center, #f4f6f8 0%, #e5e7eb 100%);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0;
+            -webkit-user-select: none; user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: none;
+        }
+        html { overflow: hidden; position: fixed; width: 100%; height: 100%; }
+        body {
+            background: var(--bg-grad);
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: row;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding-left: env(safe-area-inset-left, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+            touch-action: none;
+            overscroll-behavior: none;
+            position: fixed; top: 0; left: 0;
+        }
+        .app-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding-top: 40px;
+        }
+        .vignette {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
+            pointer-events: none; z-index: 10;
+        }
+        .top-bar {
+            width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 8px 20px;
+            position: absolute; top: 0; z-index: 5;
+        }
+        #clock {
+            font-size: 24px; font-weight: 700; color: var(--cyan); text-shadow: var(--cyan-glow);
+            font-family: 'Share Tech Mono';
+        }
+        .cluster {
+            position: relative;
+            width: 100vw;
+            max-width: 800px;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+        }
+        .svg-container {
+            width: 100%; height: 100%;
+        }
+        .arc-bg {
+            fill: none; stroke: rgba(43,231,255,0.1); stroke-width: 2;
+        }
+        .daily-readout {
+            position: absolute; left: 50%; top: 55%; transform: translate(-50%, -50%);
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .daily-speed {
+            display: flex; align-items: baseline;
+        }
+        .daily-speed span {
+            font-family: 'Share Tech Mono'; font-size: min(16vh, 90px);
+            color: var(--cyan); text-shadow: var(--cyan-glow); line-height: 1;
+        }
+        .daily-speed small {
+            font-size: 20px; color: var(--cyan); margin-left: 5px; opacity: 0.8;
+        }
+        .daily-rpm-val {
+            font-family: 'Share Tech Mono'; font-size: 24px; color: var(--cyan);
+            text-shadow: var(--cyan-glow); margin-top: 5px;
+        }
+        .lcd-panel {
+            display: flex;
+            padding: 6px 0;
+            z-index: 5;
+            flex: 1;
+        }
+        .lcd-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-right: 1px solid rgba(43,231,255,0.2);
+        }
+        .lcd-box:last-child { border-right: none; }
+        .lcd-lbl {
+            font-family: 'Share Tech Mono'; font-size: 10px; color: var(--cyan); opacity: 0.6;
+        }
+        .lcd-val {
+            font-family: 'Share Tech Mono'; font-size: min(26px, 5vh); color: var(--cyan); text-shadow: var(--cyan-glow);
+        }
+        .bottom-bar {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            display: flex; align-items: stretch;
+            z-index: 5;
+            background: rgba(0,8,13,0.9);
+            border-top: 1px solid rgba(43,231,255,0.15);
+        }
+        .btn-bottom {
+            background: none; border: none; color: var(--cyan); opacity: 0.5; font-family: 'Share Tech Mono';
+            font-size: 14px; font-weight: 600; letter-spacing: 2px;
+            padding: 10px 16px; cursor: pointer; flex-shrink: 0;
+        }
+        .btn-bottom:active { opacity: 1; }
+        .btn-gear {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1);
+          color: rgba(255,255,255,0.5);
+          font-size: 16px;
+          cursor: pointer;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .btn-gear:active { background: rgba(43,231,255,0.15); color: #2BE7FF; }
+
+        /* === SIDE WIDGET (Album Art / Map) === */
+        .side-widget{display:none;flex-shrink:0;overflow:hidden;z-index:5;position:relative;
+          background:#0a0a0f;border-left:1px solid rgba(43,231,255,0.1);
+        }
+        .side-widget.show{display:flex;flex-direction:column;align-items:center;justify-content:center;}
+        .album-art-wrap{position:relative;width:100%;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+        .album-art{width:100%;height:100%;object-fit:cover;opacity:0.85;}
+        .album-art-overlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,0.8) 0%,transparent 50%);
+          display:flex;flex-direction:column;justify-content:flex-end;padding:6px;
+        }
+        .album-art-title{font-family:'Share Tech Mono';font-size:10px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .album-art-artist{font-family:'Share Tech Mono';font-size:8px;color:var(--cyan);opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .album-play-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+          width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.5);border:2px solid var(--cyan);
+          color:var(--cyan);font-size:16px;display:flex;align-items:center;justify-content:center;
+          cursor:pointer;opacity:0;transition:opacity 0.2s;
+        }
+        .album-art-wrap:active .album-play-btn{opacity:1;}
+        .no-art-icon{font-size:32px;color:var(--cyan);opacity:0.3;}
+        #minimap{width:100%;height:100%;background:#0d1117;}
+
+        /* === MAP CONTROLS & FULLSCREEN === */
+        .map-controls { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
+        .map-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--cyan); background: rgba(10,12,16,0.8); color: var(--cyan); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; box-shadow: 0 0 8px rgba(0,0,0,0.5); transition: transform 0.1s; }
+        .map-btn:active { transform: scale(0.9); }
+        #mapContainer.map-fullscreen { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 900 !important; }
+        html:not(.light-theme) #minimap:not(.satellite-mode) .leaflet-layer { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        
+        /* === MAP GEOCODER (GOOGLE STYLE) === */
+        .leaflet-control-geocoder { 
+          position: relative !important;
+          border-radius: 24px !important; 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important; 
+          background: rgba(30,30,36,0.95) !important;
+          margin-top: 12px !important; 
+          width: calc(100% - 24px) !important; 
+          max-width: 320px !important;
+          height: 44px !important;
+          padding: 0 !important;
+          border: 1px solid rgba(255,255,255,0.1) !important;
+          box-sizing: border-box !important;
+          overflow: hidden !important;
+        }
+        .leaflet-control-geocoder-icon { 
+          position: absolute !important;
+          left: 12px !important;
+          top: 50% !important;
+          transform: translateY(-50%) !important;
+          width: 24px !important; 
+          height: 24px !important; 
+          background-color: transparent !important; 
+          border: none !important; 
+          margin: 0 !important;
+          padding: 0 !important;
+          filter: invert(1) brightness(0.8);
+          box-shadow: none !important;
+          z-index: 2 !important;
+        }
+        .leaflet-control-geocoder-form { 
+          display: block !important; 
+          width: 100% !important; 
+          height: 100% !important; 
+          margin: 0 !important; 
+          padding: 0 16px 0 44px !important; /* space for icon */
+          box-sizing: border-box !important;
+        }
+        .leaflet-control-geocoder-form input { 
+          font-family: sans-serif !important; font-size: 14px !important; color: #fff !important;
+          width: 100% !important; height: 100% !important; 
+          padding: 0 !important; margin: 0 !important;
+          border: none !important; outline: none !important; 
+          background: transparent !important; font-weight: normal;
+          box-shadow: none !important;
+        }
+        html.light-theme .leaflet-control-geocoder { background: rgba(255,255,255,0.95) !important; border-color: rgba(0,0,0,0.1) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important; }
+        html.light-theme .leaflet-control-geocoder-form input { color: #111 !important; font-weight: 600; }
+        html.light-theme .leaflet-control-geocoder-icon { filter: none !important; opacity: 0.6; }
+        
+        /* === SPEED OVERLAYS (TRAFFIC SIGN STYLE) === */
+        .map-speed-container {
+          position: absolute !important; bottom: 16px !important; left: 16px !important; z-index: 1000 !important;
+          width: 52px !important; height: 52px !important; pointer-events: none !important; display: block !important;
+        }
+        .gps-speed-box {
+          position: absolute !important; top: 0 !important; left: 0 !important;
+          width: 100% !important; height: 100% !important; border-radius: 50% !important;
+          background: #fff !important; 
+          display: flex !important; align-items: center !important; justify-content: center !important;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+          padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;
+          border: 4px solid #111 !important; transition: border-color 0.3s !important;
+        }
+        .limit-speed-box {
+          position: absolute !important; top: -10px !important; right: -10px !important; z-index: 2 !important;
+          width: 32px !important; height: 32px !important; border-radius: 50% !important;
+          background: #fff !important; 
+          display: flex !important; align-items: center !important; justify-content: center !important;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+          padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;
+          border: 3px solid #ff2130 !important;
+        }
+        .gps-speed-val { font-size: 24px !important; font-weight: 900 !important; color: #111 !important; line-height: 1 !important; margin: 0 !important; padding: 0 !important; text-shadow: none !important; }
+        .limit-speed-val { font-size: 14px !important; font-weight: 900 !important; color: #111 !important; line-height: 1 !important; margin: 0 !important; padding: 0 !important; text-shadow: none !important; }
+        .gps-speed-unit { display: none !important; }
+
+        /* === MUSIC FAB & POPUP === */
+        .music-fab {
+          position: absolute; bottom: 20px; right: 20px;
+          width: 48px; height: 48px; border-radius: 50%;
+          background: rgba(10,12,16,0.8); border: 2px solid var(--cyan);
+          color: var(--cyan); font-size: 20px;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 0 12px rgba(43,231,255,0.4);
+          cursor: pointer; z-index: 100; transition: all 0.2s;
+        }
+        .music-fab:active { transform: scale(0.9); }
+        .music-fab.hidden { display: none; }
+
+        .music-popup-overlay {
+          position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+          backdrop-filter: blur(4px); z-index: 999;
+          display: flex; align-items: center; justify-content: center;
+          opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .music-popup-overlay.show { opacity: 1; pointer-events: auto; }
+        
+        .music-popup {
+          background: rgba(10,12,16,0.95);
+          border: 1px solid var(--cyan);
+          border-radius: 16px; padding: 20px;
+          width: 280px; max-width: 90vw;
+          box-shadow: 0 0 20px rgba(43,231,255,0.3);
+          display: flex; flex-direction: column; align-items: center;
+          transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .music-popup-overlay.show .music-popup { transform: translateY(0); }
+        
+        .mp-art {
+          width: 160px; height: 160px; border-radius: 12px;
+          object-fit: cover; border: 1px solid rgba(255,255,255,0.1);
+          margin-bottom: 16px; background: #111;
+        }
+        .mp-title {
+          font-family: 'Share Tech Mono', monospace; font-size: 16px;
+          color: var(--cyan); text-align: center; margin-bottom: 4px;
+          width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .mp-artist {
+          font-family: 'Share Tech Mono', monospace; font-size: 12px;
+          color: var(--dim); text-align: center; margin-bottom: 20px;
+          width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .mp-controls {
+          display: flex; align-items: center; gap: 24px;
+        }
+        .mp-btn {
+          width: 44px; height: 44px; border-radius: 50%;
+          background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+          color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: all 0.2s;
+        }
+        .mp-btn:active { background: rgba(255,255,255,0.15); transform: scale(0.9); }
+        .mp-btn.play {
+          width: 56px; height: 56px; background: var(--cyan); color: #000; font-size: 24px;
+          box-shadow: 0 0 15px rgba(43,231,255,0.5); border: none;
+        }
+        .mp-btn.play:active { background: #fff; }
+
+        /* Responsive adjustments */
+        @media (orientation: landscape) {
+            .app-main { padding-top: 36px; }
+            .top-bar { padding: 4px 16px; }
+            #clock { font-size: 18px; }
+            .cluster { max-width: 500px; margin-top: -10px; }
+            .daily-speed span { font-size: min(14vh, 80px); }
+            .daily-rpm-val { font-size: 18px; margin-top: 2px; }
+            .daily-speed small { font-size: 16px; }
+            .btn-bottom { padding: 6px 14px; font-size: 12px; }
+            .lcd-lbl { font-size: 8px; }
+            .lcd-val { font-size: min(18px, 4vw); }
+            .side-widget.show{display:flex;width:25vw;height:100%;}
+        }
+        @media (orientation: portrait) {
+            .app-main { padding-top: 50px; flex: none; height: 60vh; }
+            .cluster { max-width: 100vw; }
+            .side-widget.show{display:flex !important; width:100%; height:40vh; border-left:none; border-top:1px solid rgba(43,231,255,0.1); flex-shrink:0;}
+            .daily-speed span { font-size: min(80px, 22vw); }
+            .lcd-panel {
+                width: 88vw;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                padding: 15px;
+            }
+            .lcd-box { border-right: none; border-bottom: 1px solid rgba(43,231,255,0.2); padding-bottom: 10px; }
+            .lcd-box:nth-child(even) { border-right: none; }
+            .lcd-box:nth-last-child(-n+2) { border-bottom: none; padding-bottom: 0; }
+            /* Handling the 5th item elegantly in grid */
+            .lcd-box:last-child { grid-column: span 2; border-bottom: none; }
+        }
+
+
+        html.light-theme .music-fab { background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        html.light-theme .music-popup { background: rgba(255,255,255,0.95); border-color: rgba(0,0,0,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        html.light-theme .mp-title { color: #111; }
+        html.light-theme .mp-artist { color: #555; }
+        html.light-theme .mp-btn { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); color: #333; }
+        html.light-theme .mp-btn.play { background: var(--cyan); color: #fff; }
+        html.light-theme #clock { color: #111; text-shadow: none; }
+    </style>
+    <script>
+        if (localStorage.getItem('light_mode') === 'true') {
+            document.documentElement.classList.add('light-theme');
+        }
+    </script>
+</head>
+<body>
+    <div class="app-main">
+    <div class="vignette"></div>
+    
+    <div class="top-bar">
+        <div style="width: 32px;"></div>
+        <div id="clock">12:00</div>
+        <button class="btn-gear" id="btnGear">⚙</button>
+    </div>
+
+    <div class="cluster">
+        <svg class="svg-container" viewBox="0 0 200 160" preserveAspectRatio="xMidYMid meet">
+            <path class="arc-bg" d="M 17 148 A 88 88 0 1 1 183 148"></path>
+            <g id="ticks"></g>
+        </svg>
+        <div class="daily-readout">
+            <div class="daily-speed">
+                <span id="speed">0</span>
+                <small>km/h</small>
+            </div>
+            <div class="daily-rpm-val">
+                <span id="rpm">0</span> RPM
+            </div>
+        </div>
+    </div>
+
+    <!-- MUSIC FAB -->
+    <div class="music-fab hidden" id="musicFab">🎵</div>
+
+    <!-- MUSIC POPUP -->
+    <div class="music-popup-overlay" id="musicOverlay">
+        <div class="music-popup" id="musicPopup">
+            <img class="mp-art" id="mpArt" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Art"/>
+            <div class="mp-title" id="mpTitle">No music playing</div>
+            <div class="mp-artist" id="mpArtist"></div>
+            <div class="mp-controls">
+                <button class="mp-btn" id="mpPrev">⏮</button>
+                <button class="mp-btn play" id="mpPlayPause">▶</button>
+                <button class="mp-btn" id="mpNext">⏭</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <button class="btn-bottom" id="btnSel">SEL</button>
+        <div class="lcd-panel">
+            <div class="lcd-box">
+                <div class="lcd-lbl">TRIP</div>
+                <div class="lcd-val" id="trip">0.0</div>
+            </div>
+            <div class="lcd-box">
+                <div class="lcd-lbl">AVG km/L</div>
+                <div class="lcd-val" id="avg">0.0</div>
+            </div>
+            <div class="lcd-box">
+                <div class="lcd-lbl">TPS %</div>
+                <div class="lcd-val" id="tps">0</div>
+            </div>
+            <div class="lcd-box">
+                <div class="lcd-lbl">BATT V</div>
+                <div class="lcd-val" id="volt">12.4</div>
+            </div>
+            <div class="lcd-box">
+                <div class="lcd-lbl">TEMP °C</div>
+                <div class="lcd-val" id="temp">--</div>
+            </div>
+        </div>
+        <button class="btn-bottom" id="btnSet">SET</button>
+    </div>
+    </div><!-- End app-main -->
+
+    <!-- SIDE WIDGET (Map Only) -->
+    <div class="side-widget show" id="sideWidget">
+        <div id="mapContainer" style="flex:1;width:100%;height:100%;position:relative;">
+            <div class="map-controls">
+                <button class="map-btn" id="btnMapExpand">⛶</button>
+            </div>
+            <div class="map-speed-container">
+                <div class="gps-speed-box" id="gpsSpeedBox" title="Tốc độ GPS">
+                    <div class="gps-speed-val" id="gpsSpeedVal">0</div>
+                </div>
+                <div class="limit-speed-box" id="limitSpeedBox" style="display:none;" title="Giới hạn tốc độ">
+                    <div class="limit-speed-val" id="limitSpeedVal">50</div>
+                </div>
+            </div>
+            <div id="minimap" style="width:100%;height:100%;"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('btnGear').addEventListener('click', (e) => {
+          e.stopPropagation();
+          window.location.href = 'settings.html';
+        });
+
+
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').innerText = `${h}:${m}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Helper functions
+        function polar(cx, cy, r, angleDeg){
+            const rad = angleDeg * Math.PI / 180;
+            return { x: cx + r * Math.sin(rad), y: cy - r * Math.cos(rad) };
+        }
+        function svgEl(tag, attrs){
+            const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+            for(const k in attrs) el.setAttribute(k, attrs[k]);
+            return el;
+        }
+
+        // Ticks generation
+        const ticksGroup = document.getElementById('ticks');
+        const numTicks = 56;
+        const startAngle = -110;
+        const endAngle = 110;
+        const cx = 100, cy = 118;
+        const innerR = 74, outerR = 88;
+        const angleStep = (endAngle - startAngle) / (numTicks - 1);
+        const ticks = [];
+
+        const isLight = document.documentElement.classList.contains('light-theme');
+        for(let i=0; i<numTicks; i++){
+            let angle = startAngle + i * angleStep;
+            let p1 = polar(cx, cy, innerR, angle);
+            let p2 = polar(cx, cy, outerR, angle);
+            
+            let dimColor, litColor;
+            if(i < 34) {
+                dimColor = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.10)'; 
+                litColor = isLight ? '#008eb3' : '#f4f5f8';
+            } else if (i < 44) {
+                dimColor = isLight ? 'rgba(255,183,3,0.3)' : 'rgba(255,183,3,0.14)'; 
+                litColor = isLight ? '#d49600' : '#ffb703';
+            } else {
+                dimColor = isLight ? 'rgba(255,33,48,0.2)' : 'rgba(255,33,48,0.16)'; 
+                litColor = isLight ? '#d61b27' : '#ff2130';
+            }
+
+            let line = svgEl('line', {
+                x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+                stroke: dimColor, 'stroke-width': 2,
+                'stroke-linecap': 'round'
+            });
+            ticksGroup.appendChild(line);
+            ticks.push({ el: line, dimColor, litColor });
+        }
+
+        // Update logic
+        let currentRPM = 0;
+        let currentSpeed = 0;
+        let currentTPS = 0;
+        let distanceTrip = 0;
+        let lastTime = performance.now();
+
+        function updateTachometer(rpm) {
+            currentRPM = rpm;
+            document.getElementById('rpm').innerText = rpm;
+            let maxRPM = 12000;
+            let ratio = Math.min(1, Math.max(0, rpm / maxRPM));
+            let activeTicks = Math.round(ratio * numTicks);
+
+            for(let i=0; i<numTicks; i++) {
+                ticks[i].el.setAttribute('stroke', i < activeTicks ? ticks[i].litColor : ticks[i].dimColor);
+                if(i < activeTicks) {
+                    ticks[i].el.style.filter = `drop-shadow(0 0 3px ${ticks[i].litColor})`;
+                } else {
+                    ticks[i].el.style.filter = 'none';
+                }
+            }
+        }
+
+        function updateSpeedValue(speed) {
+            currentSpeed = speed;
+            document.getElementById('speed').innerText = speed;
+            
+            // Trip calculation
+            let now = performance.now();
+            let dt = (now - lastTime) / 1000 / 3600; // hours
+            distanceTrip += speed * dt;
+            document.getElementById('trip').innerText = distanceTrip.toFixed(1);
+            lastTime = now;
+
+            // Fuel avg calculation
+            let avg = 0;
+            if(currentTPS > 0) {
+                avg = (speed / currentTPS) * 12;
+            }
+            document.getElementById('avg').innerText = avg.toFixed(1);
+        }
+
+        // Boot Sweep Animation
+        setTimeout(() => {
+            let sweepRPM = 0;
+            let interval = setInterval(() => {
+                sweepRPM += 300;
+                updateTachometer(sweepRPM);
+                if(sweepRPM >= 12000) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        let downInterval = setInterval(() => {
+                            sweepRPM -= 300;
+                            updateTachometer(sweepRPM);
+                            if(sweepRPM <= 0) clearInterval(downInterval);
+                        }, 10);
+                    }, 200);
+                }
+            }, 10);
+        }, 500);
+
+  // --- Anti-Web Behaviors ---
+  document.addEventListener('contextmenu',e=>e.preventDefault());
+  document.addEventListener('touchmove',e=>{
+    // Allow map touch if map is visible
+    if(e.target.closest('#minimap')) return;
+    e.preventDefault();
+  },{passive:false});
+  document.addEventListener('dragstart',e=>e.preventDefault());
+  document.addEventListener('gesturestart',e=>e.preventDefault());
+  document.addEventListener('gesturechange',e=>e.preventDefault());
+
+  // --- MUSIC CONTROLS ---
+  const musicFab = document.getElementById('musicFab');
+  const musicOverlay = document.getElementById('musicOverlay');
+  
+  const mpTitle = document.getElementById('mpTitle');
+  const mpArtist = document.getElementById('mpArtist');
+  const mpArt = document.getElementById('mpArt');
+  const mpPlayPause = document.getElementById('mpPlayPause');
+  
+  const sideWidget = document.getElementById('sideWidget');
+
+  musicFab.addEventListener('click', () => { musicOverlay.classList.add('show'); });
+  musicOverlay.addEventListener('click', (e) => { if (e.target === musicOverlay) musicOverlay.classList.remove('show'); });
+
+  async function pollMusic(){
+    try{
+      if(!window.Capacitor||!Capacitor.Plugins.MediaControlPlugin) return;
+      const info=await Capacitor.Plugins.MediaControlPlugin.getPlayingInfo();
+      if(info.title){
+        mpTitle.textContent=info.title;
+        mpArtist.textContent=info.artist||'';
+        mpPlayPause.textContent=info.isPlaying?'⏸':'▶';
+        
+        if(info.albumArt){
+          const src=`data:image/jpeg;base64,${info.albumArt}`;
+          mpArt.src=src;
+        }
+        musicFab.classList.remove('hidden');
+      }else{
+        musicFab.classList.add('hidden');
+      }
+    }catch(e){}
+  }
+  setInterval(pollMusic,2000);pollMusic();
+
+  // Play/Pause handlers
+  async function togglePlay() {
+    try {
+      const info = await Capacitor.Plugins.MediaControlPlugin.getPlayingInfo();
+      if(info.isPlaying) await Capacitor.Plugins.MediaControlPlugin.pause();
+      else await Capacitor.Plugins.MediaControlPlugin.play();
+      setTimeout(pollMusic,300);
+    } catch(e){}
+  }
+  mpPlayPause.addEventListener('click', togglePlay);
+
+  document.getElementById('mpPrev').addEventListener('click', async () => {
+    try{await Capacitor.Plugins.MediaControlPlugin.prev();}catch(e){}
+  });
+  document.getElementById('mpNext').addEventListener('click', async () => {
+    try{await Capacitor.Plugins.MediaControlPlugin.next();}catch(e){}
+  });
+
+  // --- TOMTOM SETUP ---
+    const tomtomKey = 'TNsjEBPR6I6MSu4Lwq1O3YO8udmg5aU3';
+    const tomtomGeocoder = {
+      geocode: function(query, cb, context) {
+        fetch(`https://api.tomtom.com/search/2/search/${encodeURIComponent(query)}.json?key=${tomtomKey}&limit=5`)
+        .then(res => res.json())
+        .then(data => {
+          let results = [];
+          if (data.results) {
+            results = data.results.map(r => ({
+              name: r.address.freeformAddress || r.poi?.name,
+              bbox: L.latLngBounds(L.latLng(r.viewport.topLeftPoint.lat, r.viewport.topLeftPoint.lon), L.latLng(r.viewport.btmRightPoint.lat, r.viewport.btmRightPoint.lon)),
+              center: L.latLng(r.position.lat, r.position.lon)
+            }));
+          }
+          cb.call(context, results);
+        });
+      },
+      suggest: function(query, cb, context) { this.geocode(query, cb, context); },
+      reverse: function(location, scale, cb, context) {
+        fetch(`https://api.tomtom.com/search/2/reverseGeocode/${location.lat},${location.lng}.json?key=${tomtomKey}`)
+        .then(res => res.json())
+        .then(data => {
+          let results = [];
+          if(data.addresses && data.addresses.length > 0) {
+            let r = data.addresses[0];
+            results.push({
+              name: r.address.freeformAddress,
+              center: L.latLng(location.lat, location.lng),
+              bbox: L.latLngBounds(L.latLng(location.lat, location.lng), L.latLng(location.lat, location.lng))
+            });
+          }
+          cb.call(context, results);
+        });
+      }
+    };
+
+    // --- MINI MAP ---
+    let miniMap=null,mapMarker=null,routingControl=null;
+    let lastSpeedLimitCheck = 0;
+    let currentSpeedLimit = 0;
+
+    function initMap(){
+      try{
+        const showMap = localStorage.getItem('show_map') !== 'false';
+        if (!showMap) {
+          document.getElementById('mapContainer').style.display = 'none';
+          return;
+        }
+        
+        const mapStyle = localStorage.getItem('map_style') || 'dark';
+        const mapEl = document.getElementById('minimap');
+        
+        let currentTheme = localStorage.getItem('theme') || 'dark-theme';
+        let tomtomStyle = currentTheme === 'light-theme' ? 'main' : 'night';
+        let tileUrl = `https://api.tomtom.com/map/1/tile/basic/${tomtomStyle}/{z}/{x}/{y}.png?key=${tomtomKey}`;
+
+        if (mapStyle === 'satellite') {
+          tileUrl = `https://api.tomtom.com/map/1/tile/sat/main/{z}/{x}/{y}.jpg?key=${tomtomKey}`;
+          mapEl.classList.add('satellite-mode');
+        } else {
+          mapEl.classList.remove('satellite-mode');
+        }
+
+        const mapIconType = localStorage.getItem('map_icon') || 'moto';
+        const iconPaths = {
+          'moto': '<svg viewBox="0 0 24 24" width="32" height="32"><defs><filter id="glow"><feGaussianBlur stdDeviation="1.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path filter="url(#glow)" fill="var(--cyan, #2BE7FF)" stroke="#fff" stroke-width="1.5" d="M12,2 L22,20 L12,16 L2,20 Z" /></svg>',
+          'car': '<svg viewBox="0 0 24 24" width="28" height="28"><defs><filter id="glow"><feGaussianBlur stdDeviation="1.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path filter="url(#glow)" fill="var(--cyan, #2BE7FF)" stroke="#fff" stroke-width="1.5" d="M12,2 L20,8 L20,16 L12,22 L4,16 L4,8 Z" /></svg>',
+          'boat': '<svg viewBox="0 0 24 24" width="28" height="28"><defs><filter id="glow"><feGaussianBlur stdDeviation="1.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path filter="url(#glow)" fill="var(--cyan, #2BE7FF)" stroke="#fff" stroke-width="1.5" d="M12,2 L18,12 L12,22 L6,12 Z" /></svg>'
+        };
+
+        const customIcon = L.divIcon({
+          className: 'custom-map-icon',
+          html: `<div style="transform:translate(-50%,-50%);">${iconPaths[mapIconType]||iconPaths['moto']}</div>`,
+          iconSize: [0, 0]
+        });
+
+        miniMap=L.map('minimap',{
+          zoomControl:false,attributionControl:false,
+          dragging:true,scrollWheelZoom:false,doubleClickZoom:false,
+          touchZoom:true
+        }).setView([10.8,106.65],15);
+        
+        L.tileLayer(tileUrl,{maxZoom:19, attribution: '© TomTom'}).addTo(miniMap);
+      
+        // Add Traffic Flow Layer
+        let trafficUrl = `https://api.tomtom.com/traffic/map/4/tile/flow/relative0/{z}/{x}/{y}.png?key=${tomtomKey}`;
+        L.tileLayer(trafficUrl, {maxZoom: 19, opacity: 0.8, attribution: '© TomTom Traffic'}).addTo(miniMap);
+      
+        mapMarker=L.marker([10.8,106.65], {icon: customIcon}).addTo(miniMap);
+
+        // Add Geocoder (Search) using TomTom
+        if (L.Control.geocoder) {
+          L.Control.geocoder({
+            geocoder: tomtomGeocoder,
+            defaultMarkGeocode: false,
+            collapsed: false,
+            position: 'topright',
+            placeholder: 'Tìm địa điểm, tuyến đường...'
+          }).on('markgeocode', function(e) {
+            const dest = e.geocode.center;
+            miniMap.fitBounds(e.geocode.bbox);
+            if (routingControl) miniMap.removeControl(routingControl);
+            
+            routingControl = L.Routing.control({
+              waypoints: [ mapMarker.getLatLng(), dest ],
+              routeWhileDragging: false,
+              show: false,
+              createMarker: function() { return null; },
+              lineOptions: { styles: [{color: 'var(--cyan, #2BE7FF)', opacity: 0.8, weight: 5}] }
+            }).addTo(miniMap);
+          }).addTo(miniMap);
+        }
+
+      // GPS watch
+      if(window.Capacitor&&Capacitor.Plugins.Geolocation){
+        Capacitor.Plugins.Geolocation.watchPosition({
+          enableHighAccuracy:true,timeout:10000,maximumAge:0
+        },(pos,err)=>{
+          if(pos){
+            const lat=pos.coords.latitude,lng=pos.coords.longitude;
+            const newLatLng = new L.LatLng(lat, lng);
+            mapMarker.setLatLng(newLatLng);
+            
+            // Update GPS Speed
+            let speed = pos.coords.speed;
+            const speedBox = document.getElementById('gpsSpeedBox');
+            if (speed !== null && speed >= 0) {
+              let speedKmh = Math.round(speed * 3.6);
+              speedBox.style.display = 'flex';
+              speedBox.style.flexDirection = 'column';
+              document.getElementById('gpsSpeedVal').textContent = speedKmh;
+              
+              if (currentSpeedLimit > 0) {
+                  if (speedKmh >= currentSpeedLimit) {
+                      speedBox.style.setProperty('border-color', '#ff2130', 'important');
+                  } else if (speedKmh >= currentSpeedLimit - 5) {
+                      speedBox.style.setProperty('border-color', '#ffb300', 'important');
+                  } else {
+                      speedBox.style.setProperty('border-color', '#00c853', 'important');
+                  }
+              } else {
+                  speedBox.style.setProperty('border-color', '#111', 'important');
+              }
+            }
+              
+            // Check TomTom Speed Limit
+            const now = Date.now();
+            if (now - lastSpeedLimitCheck > 10000) {
+                 lastSpeedLimitCheck = now;
+                 fetch(`https://api.tomtom.com/search/2/reverseGeocode/${lat},${lng}.json?key=${tomtomKey}&returnSpeedLimit=true`)
+                   .then(r => r.json())
+                   .then(data => {
+                      const limitBox = document.getElementById('limitSpeedBox');
+                      if (data && data.addresses && data.addresses.length > 0) {
+                          const addr = data.addresses[0].address;
+                          if (addr && addr.speedLimit) {
+                              let sl = addr.speedLimit;
+                              let limitNum = parseInt(sl.replace(/\D/g,''));
+                              if (!isNaN(limitNum) && limitNum > 0) {
+                                  limitBox.style.display = 'flex';
+                                  limitBox.style.flexDirection = 'column';
+                                  document.getElementById('limitSpeedVal').textContent = limitNum;
+                                  currentSpeedLimit = limitNum;
+                              } else {
+                                  limitBox.style.display = 'none';
+                                  currentSpeedLimit = 0;
+                              }
+                          } else { limitBox.style.display = 'none'; currentSpeedLimit = 0; }
+                      } else { limitBox.style.display = 'none'; currentSpeedLimit = 0; }
+                   }).catch(e => console.log(e));
+            }
+
+            if (!routingControl) {
+               miniMap.setView([lat,lng],16,{animate:true,duration:0.5});
+            } else {
+               const waypoints = routingControl.getWaypoints();
+               waypoints[0].latLng = newLatLng;
+               routingControl.setWaypoints(waypoints);
+            }
+          }
+        });
+      }
+      
+      // Map Control Events
+      const mapContainer = document.getElementById('mapContainer');
+      const btnMapExpand = document.getElementById('btnMapExpand');
+      if(btnMapExpand) {
+        btnMapExpand.addEventListener('click', (e) => {
+          e.stopPropagation();
+          mapContainer.classList.toggle('map-fullscreen');
+          setTimeout(() => miniMap.invalidateSize(), 300);
+        });
+      }
+      
+      // Auto-fullscreen on search focus
+      setTimeout(() => {
+        const geocoderInput = document.querySelector('.leaflet-control-geocoder-form input');
+        if (geocoderInput) {
+          geocoderInput.addEventListener('focus', () => {
+            mapContainer.classList.add('map-fullscreen');
+            setTimeout(() => miniMap.invalidateSize(), 300);
+          });
+        }
+      }, 2000);
+
+      setTimeout(()=>miniMap.invalidateSize(),500);
+    }catch(e){console.log('Map init error:',e);}
+  }
+  setTimeout(initMap,1000);
+  window.addEventListener('resize',()=>{if(miniMap)setTimeout(()=>miniMap.invalidateSize(),200);});
+    </script>
+</body>
+</html>

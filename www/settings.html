@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Settings - Moto Dash</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #2BE7FF;
+    --red: #ff2130;
+    --green: #59d66c;
+    --amber: #ffb703;
+    --bg: #0a0c10;
+    --card: rgba(255,255,255,0.04);
+    --card-border: rgba(255,255,255,0.08);
+    --text: #e8eaf0;
+    --text-dim: rgba(255,255,255,0.45);
+    --accent: var(--cyan);
+  }
+  html.light-theme {
+    --cyan: #008eb3;
+    --bg: #f4f6f8;
+    --card: #fff;
+    --card-border: rgba(0,0,0,0.1);
+    --text: #111827;
+    --text-dim: rgba(0,0,0,0.5);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-user-select:none; user-select:none; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Header */
+  .header {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: rgba(10,12,16,0.95);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--card-border);
+  }
+  .header h1 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 18px; font-weight: 400; letter-spacing: 3px;
+    color: var(--cyan);
+    text-shadow: 0 0 12px rgba(43,231,255,0.4);
+    margin-left: 50px;
+  }
+
+  /* --- UNIFIED BUTTON STANDARDS --- */
+  .btn {
+    border-radius: 10px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    color: var(--text-dim);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s ease;
+    user-select: none;
+    text-decoration: none;
+  }
+  .btn:active {
+    background: rgba(43,231,255,0.15);
+    border-color: rgba(43,231,255,0.4);
+    color: var(--cyan);
+    transform: scale(0.95);
+  }
+  .btn.primary, .btn.active {
+    background: rgba(43,231,255,0.12);
+    border-color: rgba(43,231,255,0.3);
+    color: var(--cyan);
+    text-shadow: 0 0 8px rgba(43,231,255,0.4);
+  }
+
+  /* Specific Button Overrides */
+  .back-btn {
+    width: 44px; height: 44px; font-size: 20px;
+    position: absolute; left: 16px;
+  }
+  .tab-btn { flex: 1; padding: 10px 0; font-size: 13px; }
+  .sel-btn { padding: 6px 14px; font-size: 12px; font-family: 'Share Tech Mono', monospace; border-radius: 0; }
+  .num-btn { width: 34px; height: 34px; font-size: 18px; }
+  .scan-btn { padding: 8px 18px; font-size: 13px; }
+  
+  /* Tabs Navigation */
+  .tabs {
+    display: flex; gap: 8px; padding: 0 16px 12px;
+    background: rgba(10,12,16,0.95);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--card-border);
+    position: sticky; top: 61px; z-index: 40;
+  }
+  html.light-theme .tabs { background: rgba(244,246,248,0.95); }
+  html.light-theme .header { background: rgba(244,246,248,0.95); }
+
+  /* Content */
+  .content { padding: 16px 16px 80px; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; animation: fade-in 0.3s; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Section */
+  .section {
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-size: 11px; font-weight: 600; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 8px; padding-left: 4px;
+  }
+  .section-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  /* Row */
+  .row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--card-border);
+    min-height: 52px;
+  }
+  .row:last-child { border-bottom: none; }
+  .row-left { display: flex; align-items: center; gap: 12px; flex: 1; }
+  .row-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .row-icon.blue { background: rgba(43,231,255,0.12); color: var(--cyan); }
+  .row-icon.red { background: rgba(255,33,48,0.12); color: var(--red); }
+  .row-icon.green { background: rgba(89,214,108,0.12); color: var(--green); }
+  .row-icon.amber { background: rgba(255,183,3,0.12); color: var(--amber); }
+  .row-label { font-size: 15px; font-weight: 600; }
+  .row-desc { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+  .row-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; color: var(--cyan);
+    text-align: right;
+  }
+
+  /* Toggle Switch */
+  .toggle {
+    position: relative; width: 46px; height: 26px;
+    background: rgba(255,255,255,0.1); border-radius: 13px;
+    cursor: pointer; transition: background 0.25s;
+    flex-shrink: 0;
+  }
+  .toggle.on { background: rgba(43,231,255,0.35); }
+  .toggle::after {
+    content: ''; position: absolute;
+    top: 3px; left: 3px;
+    width: 20px; height: 20px; border-radius: 10px;
+    background: #666; transition: all 0.25s;
+  }
+  .toggle.on::after {
+    left: 23px; background: var(--cyan);
+    box-shadow: 0 0 8px rgba(43,231,255,0.6);
+  }
+
+  /* Radio Options (Theme selector) */
+  .theme-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px; padding: 14px 16px;
+  }
+  .theme-option {
+    position: relative;
+    border-radius: 12px;
+    border: 2px solid var(--card-border);
+    padding: 12px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+  .theme-option.active {
+    border-color: var(--cyan);
+    background: rgba(43,231,255,0.06);
+    box-shadow: 0 0 16px rgba(43,231,255,0.15);
+  }
+  .theme-icon { font-size: 28px; margin-bottom: 4px; }
+  .theme-name { font-size: 12px; font-weight: 700; letter-spacing: 1px; }
+  .theme-option.active .theme-name { color: var(--cyan); }
+  .theme-check {
+    display: none;
+    position: absolute; top: 6px; right: 6px;
+    width: 18px; height: 18px; border-radius: 9px;
+    background: var(--cyan); color: #000;
+    font-size: 11px; font-weight: bold;
+    align-items: center; justify-content: center;
+  }
+  .theme-option.active .theme-check { display: flex; }
+
+  /* Selector buttons */
+  .selector {
+    display: flex; gap: 0;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px; overflow: hidden;
+    flex-shrink: 0; border: 1px solid var(--card-border);
+  }
+
+  /* Number Input */
+  .num-input {
+    display: flex; align-items: center; gap: 8px;
+    flex-shrink: 0;
+  }
+  .num-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 18px; color: var(--cyan); min-width: 50px;
+    text-align: center;
+    text-shadow: 0 0 8px rgba(43,231,255,0.4);
+  }
+
+  /* BLE Status */
+  .ble-status {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ble-dot {
+    width: 8px; height: 8px; border-radius: 4px;
+    background: var(--red);
+    box-shadow: 0 0 6px var(--red);
+  }
+  .ble-dot.connected {
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
+  .ble-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; letter-spacing: 1px;
+  }
+
+  /* Version footer */
+  .footer {
+    text-align: center; padding: 20px;
+    font-size: 11px; color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+  .footer span { color: var(--cyan); }
+
+  /* Landscape optimization */
+  @media (orientation: landscape) {
+    .content { padding: 8px 20%; }
+    .theme-grid { gap: 16px; }
+  }
+
+  /* === LIGHT THEME (SILVER METALLIC) === */
+  html.light-theme body { background: #e0e5ec; color: #2d3748; }
+  html.light-theme .header { background: linear-gradient(135deg, #f6f8fa 0%, #e0e5ec 100%); border-bottom: 1px solid #ffffff; box-shadow: 0 4px 10px rgba(163,177,198,0.2); }
+  html.light-theme .header h1 { color: #1a202c; text-shadow: 1px 1px 0 rgba(255,255,255,0.8); }
+  html.light-theme .btn { background: linear-gradient(135deg, #e0e5ec 0%, #ffffff 100%); border: 1px solid #ffffff; color: #4a5568; box-shadow: 2px 2px 5px rgba(163,177,198,0.5), -2px -2px 5px rgba(255,255,255,0.8); }
+  html.light-theme .btn:active { box-shadow: inset 2px 2px 5px rgba(163,177,198,0.5), inset -2px -2px 5px rgba(255,255,255,0.8); transform: scale(0.95); color: var(--cyan); }
+  html.light-theme .tab-btn { background: transparent; box-shadow: none; border: none; color: rgba(45,55,72,0.6); }
+  html.light-theme .tab-btn.active { background: linear-gradient(135deg, #e0e5ec 0%, #ffffff 100%); color: var(--cyan); box-shadow: 2px 2px 5px rgba(163,177,198,0.5), -2px -2px 5px rgba(255,255,255,0.8); }
+  html.light-theme .tabs { border-bottom: 1px solid #ffffff; box-shadow: 0 2px 5px rgba(163,177,198,0.2); }
+  html.light-theme .section-title { color: rgba(45,55,72,0.8); }
+  html.light-theme .section-card { background: linear-gradient(135deg, #ffffff 0%, #e0e5ec 100%); border: 1px solid #ffffff; box-shadow: 4px 4px 10px rgba(163,177,198,0.4), -4px -4px 10px rgba(255,255,255,0.8); }
+  html.light-theme .row { border-bottom: 1px solid rgba(163,177,198,0.3); }
+  html.light-theme .row-label { color: #1a202c; }
+  html.light-theme .row-desc { color: rgba(45,55,72,0.7); }
+  html.light-theme .toggle { background: rgba(163,177,198,0.3); }
+  html.light-theme .toggle::after { background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+  html.light-theme .theme-option { border-color: rgba(163,177,198,0.3); background: #e0e5ec; box-shadow: inset 2px 2px 5px rgba(163,177,198,0.3), inset -2px -2px 5px rgba(255,255,255,0.8); }
+  html.light-theme .theme-option.active { border-color: var(--cyan); }
+  html.light-theme .selector { background: transparent; border: 1px solid #ffffff; box-shadow: inset 2px 2px 5px rgba(163,177,198,0.3), inset -2px -2px 5px rgba(255,255,255,0.8); }
+  html.light-theme .num-val { color: #1a202c; text-shadow: 1px 1px 0 rgba(255,255,255,0.8); font-weight: 700; }
+  html.light-theme .ble-text { color: #1a202c; font-weight: 700; }
+  html.light-theme .footer { color: rgba(45,55,72,0.6); }
+</style>
+<script>
+  if (localStorage.getItem('light_mode') === 'true') {
+    document.documentElement.classList.add('light-theme');
+  }
+</script>
+</head>
+<body>
+
+<div class="header">
+  <div class="btn back-btn" id="backBtn">←</div>
+  <h1>⚙ SETTINGS</h1>
+</div>
+
+<div class="tabs">
+  <div class="btn tab-btn active" data-tab="tab-general">CHUNG</div>
+  <div class="btn tab-btn" data-tab="tab-map">BẢN ĐỒ</div>
+  <div class="btn tab-btn" data-tab="tab-music">NHẠC</div>
+</div>
+
+<div class="content">
+
+  <!-- TAB CHUNG -->
+  <div id="tab-general" class="tab-content active">
+    <!-- BLUETOOTH -->
+    <div class="section">
+    <div class="section-title">BLUETOOTH</div>
+    <div class="section-card">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon blue">📡</div>
+          <div>
+            <div class="row-label">Trạng thái kết nối</div>
+            <div class="row-desc">Honda_AB2025_Dash</div>
+          </div>
+        </div>
+        <div class="ble-status">
+          <div class="ble-dot" id="bleDot"></div>
+          <div class="ble-text" id="bleText">CHƯA KẾT NỐI</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon blue">🔍</div>
+          <div>
+            <div class="row-label">Quét thiết bị</div>
+            <div class="row-desc">Tìm module Bluetooth BLE</div>
+          </div>
+        </div>
+        <button class="btn primary scan-btn" id="scanBtn">SCAN</button>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon blue">🔄</div>
+          <div>
+            <div class="row-label">Tự động kết nối</div>
+            <div class="row-desc">Kết nối lại khi mở app</div>
+          </div>
+        </div>
+        <div class="toggle on" id="toggleAutoConnect" data-key="auto_connect"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THEME -->
+  <div class="section">
+    <div class="section-title">MÀN HÌNH</div>
+    <div class="section-card">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon amber">☀️</div>
+          <div>
+            <div class="row-label">Chế độ Sáng (Light Mode)</div>
+            <div class="row-desc">Nền sáng để dễ nhìn khi ra nắng</div>
+          </div>
+        </div>
+        <div class="toggle" id="toggleLightMode" data-key="light_mode"></div>
+      </div>
+      <div class="theme-grid" style="border-top:1px solid var(--card-border);">
+        <div class="theme-option" data-theme="sport" id="themeRace">
+          <div class="theme-check">✓</div>
+          <div class="theme-icon">🏁</div>
+          <div class="theme-name">RACE</div>
+        </div>
+        <div class="theme-option" data-theme="daily" id="themeDaily">
+          <div class="theme-check">✓</div>
+          <div class="theme-icon">🌙</div>
+          <div class="theme-name">DAILY</div>
+        </div>
+        <div class="theme-option" data-theme="classic" id="themeClassic">
+          <div class="theme-check">✓</div>
+          <div class="theme-icon">⏱️</div>
+          <div class="theme-name">CLASSIC</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNITS -->
+  <div class="section">
+    <div class="section-title">ĐƠN VỊ ĐO LƯỜNG</div>
+    <div class="section-card">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon green">🚀</div>
+          <div>
+            <div class="row-label">Tốc độ</div>
+          </div>
+        </div>
+        <div class="selector" id="unitSpeed">
+          <button class="btn sel-btn active" data-val="kmh">KM/H</button>
+          <button class="btn sel-btn" data-val="mph">MPH</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon amber">🌡️</div>
+          <div>
+            <div class="row-label">Nhiệt độ</div>
+          </div>
+        </div>
+        <div class="selector" id="unitTemp">
+          <button class="btn sel-btn active" data-val="c">°C</button>
+          <button class="btn sel-btn" data-val="f">°F</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPEED WARNING -->
+  <div class="section">
+    <div class="section-title">CẢNH BÁO TỐC ĐỘ</div>
+    <div class="section-card">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon red">⚠️</div>
+          <div>
+            <div class="row-label">Cảnh báo quá tốc</div>
+            <div class="row-desc">Rung + flash khi vượt giới hạn</div>
+          </div>
+        </div>
+        <div class="toggle" id="toggleSpeedWarn" data-key="speed_warn_enabled"></div>
+      </div>
+      <div class="row" id="speedWarnRow" style="opacity:0.4;">
+        <div class="row-left">
+          <div class="row-icon red">⚠️</div>
+          <div>
+            <div class="row-label">Giới hạn <span id="speedWarnUnit">km/h</span></div>
+          </div>
+        </div>
+        <div class="num-input">
+          <button class="btn num-btn" id="speedWarnDown">-</button>
+          <div class="num-val" id="speedWarnVal">80</div>
+          <button class="btn num-btn" id="speedWarnUp">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RPM WARNING -->
+  <div class="section">
+    <div class="section-title">CẢNH BÁO VÒNG TUA</div>
+    <div class="section-card">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon amber">💨</div>
+          <div>
+            <div class="row-label">Cảnh báo shift (đổi số)</div>
+            <div class="row-desc">Flash đỏ khi RPM cao</div>
+          </div>
+        </div>
+        <div class="toggle on" id="toggleShiftWarn" data-key="shift_warn_enabled"></div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon amber">🔥</div>
+          <div>
+            <div class="row-label">Ngưỡng Shift Light</div>
+          </div>
+        </div>
+        <div class="num-input">
+          <button class="btn num-btn" id="rpmWarnDown">-</button>
+          <div class="num-val" id="rpmWarnVal">11k</div>
+          <button class="btn num-btn" id="rpmWarnUp">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISPLAY -->
+  <div class="section">
+    <div class="section-title">HIỂN THỊ</div>
+    <div class="section-card">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon green">💡</div>
+          <div>
+            <div class="row-label">Giữ màn hình sáng</div>
+            <div class="row-desc">Không tắt màn khi đang chạy</div>
+          </div>
+        </div>
+        <div class="toggle on" id="toggleWakeLock" data-key="wake_lock"></div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon green">🖥️</div>
+          <div>
+            <div class="row-label">Toàn màn hình</div>
+            <div class="row-desc">Ẩn thanh trạng thái</div>
+          </div>
+        </div>
+        <div class="toggle on" id="toggleFullscreen" data-key="fullscreen"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="section">
+    <div class="section-title">THÔNG TIN</div>
+    <div class="section-card">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon blue">🏍️</div>
+          <div>
+            <div class="row-label">Xe</div>
+          </div>
+        </div>
+        <div class="row-value">Honda Air Blade 125</div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon blue">📟</div>
+          <div>
+            <div class="row-label">Giao thức</div>
+          </div>
+        </div>
+        <div class="row-value">ISO 9141-2 K-Line</div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-icon blue">📦</div>
+          <div>
+            <div class="row-label">Phiên bản</div>
+          </div>
+        </div>
+        <div class="row-value">v1.0.0</div>
+      </div>
+    </div>
+  </div>
+  </div> <!-- end tab-general -->
+
+  <!-- TAB MAP -->
+  <div id="tab-map" class="tab-content">
+    <div class="section">
+      <div class="section-title">BẢN ĐỒ MINI</div>
+      <div class="section-card">
+        <div class="row">
+          <div class="row-left">
+            <div class="row-icon blue">🗺️</div>
+            <div>
+              <div class="row-label">Hiển thị bản đồ</div>
+              <div class="row-desc">Hiển thị bản đồ ở góc màn hình ngang</div>
+            </div>
+          </div>
+          <div class="toggle on" id="toggleMap" data-key="show_map"></div>
+        </div>
+        <div class="row">
+          <div class="row-left">
+            <div class="row-icon green">🎨</div>
+            <div>
+              <div class="row-label">Kiểu nền (Style)</div>
+            </div>
+          </div>
+          <div class="selector" id="mapStyle">
+            <button class="sel-btn active" data-val="dark">Tối</button>
+            <button class="sel-btn" data-val="light">Sáng</button>
+            <button class="sel-btn" data-val="satellite">Vệ tinh</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="row-left">
+            <div class="row-icon amber">📍</div>
+            <div>
+              <div class="row-label">Biểu tượng định vị</div>
+            </div>
+          </div>
+          <div class="selector" id="mapIcon">
+            <button class="sel-btn active" data-val="moto">🏍️</button>
+            <button class="sel-btn" data-val="car">🚗</button>
+            <button class="sel-btn" data-val="boat">🚤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> <!-- end tab-map -->
+
+  <!-- TAB MUSIC -->
+  <div id="tab-music" class="tab-content">
+    <div class="section">
+      <div class="section-title">TRÌNH PHÁT NHẠC</div>
+      <div class="section-card">
+        <div class="row">
+          <div class="row-left">
+            <div class="row-icon blue">🎵</div>
+            <div>
+              <div class="row-label">Tự động ẩn</div>
+              <div class="row-desc">Ẩn trình phát khi không có nhạc</div>
+            </div>
+          </div>
+          <div class="toggle on" id="toggleMusicAuto" data-key="auto_hide_music"></div>
+        </div>
+      </div>
+    </div>
+  </div> <!-- end tab-music -->
+
+  <div class="footer">
+    MOTO DASH <span>by AB2025</span>
+  </div>
+</div>
+
+<script>
+  // --- Load Settings ---
+  const settings = {
+    theme: localStorage.getItem('theme') || 'sport',
+    unit_speed: localStorage.getItem('unit_speed') || 'kmh',
+    unit_temp: localStorage.getItem('unit_temp') || 'c',
+    speed_warn_enabled: localStorage.getItem('speed_warn_enabled') === 'true',
+    speed_warn_val: parseInt(localStorage.getItem('speed_warn_val') || '80'),
+    shift_warn_enabled: localStorage.getItem('shift_warn_enabled') !== 'false',
+    rpm_warn_val: parseInt(localStorage.getItem('rpm_warn_val') || '11'),
+    auto_connect: localStorage.getItem('auto_connect') !== 'false',
+    wake_lock: localStorage.getItem('wake_lock') !== 'false',
+    fullscreen: localStorage.getItem('fullscreen') !== 'false',
+    light_mode: localStorage.getItem('light_mode') === 'true',
+    show_map: localStorage.getItem('show_map') !== 'false',
+    map_style: localStorage.getItem('map_style') || 'dark',
+    map_icon: localStorage.getItem('map_icon') || 'moto',
+    auto_hide_music: localStorage.getItem('auto_hide_music') !== 'false'
+  };
+
+  function save(key, val) {
+    settings[key] = val;
+    localStorage.setItem(key, val);
+  }
+
+  // --- Back button ---
+  document.getElementById('backBtn').addEventListener('click', () => {
+    const pages = { sport:'race.html', daily:'daily.html', classic:'classic.html' };
+    window.location.href = pages[settings.theme] || 'race.html';
+  });
+
+  // --- Tabs logic ---
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // --- Theme selector ---
+  const themeMap = { sport:'themeRace', daily:'themeDaily', classic:'themeClassic' };
+  document.getElementById(themeMap[settings.theme])?.classList.add('active');
+  
+  document.querySelectorAll('.theme-option').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('.theme-option').forEach(e => e.classList.remove('active'));
+      el.classList.add('active');
+      save('theme', el.dataset.theme);
+    });
+  });
+
+  // --- Toggle switches ---
+  function initToggle(id, key) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (settings[key]) el.classList.add('on');
+    else el.classList.remove('on');
+    
+    el.addEventListener('click', () => {
+      el.classList.toggle('on');
+      save(key, el.classList.contains('on'));
+      
+      // Special handling
+      if (key === 'speed_warn_enabled') {
+        document.getElementById('speedWarnRow').style.opacity = settings[key] ? '1' : '0.4';
+      }
+      if (key === 'light_mode') {
+        if (settings[key]) {
+          document.documentElement.classList.add('light-theme');
+        } else {
+          document.documentElement.classList.remove('light-theme');
+        }
+      }
+    });
+  }
+  initToggle('toggleAutoConnect', 'auto_connect');
+  initToggle('toggleSpeedWarn', 'speed_warn_enabled');
+  initToggle('toggleShiftWarn', 'shift_warn_enabled');
+  initToggle('toggleWakeLock', 'wake_lock');
+  initToggle('toggleFullscreen', 'fullscreen');
+  initToggle('toggleLightMode', 'light_mode');
+  initToggle('toggleMap', 'show_map');
+  initToggle('toggleMusicAuto', 'auto_hide_music');
+
+  // Speed warning row opacity
+  document.getElementById('speedWarnRow').style.opacity = settings.speed_warn_enabled ? '1' : '0.4';
+
+  // --- Unit & Selectors ---
+  function initSelector(id, key) {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.querySelectorAll('.sel-btn').forEach(btn => {
+      if (btn.dataset.val === settings[key]) {
+        container.querySelectorAll('.sel-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      btn.addEventListener('click', () => {
+        container.querySelectorAll('.sel-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        save(key, btn.dataset.val);
+        if (key === 'unit_speed') {
+          const u = document.getElementById('speedWarnUnit');
+          if (u) u.textContent = btn.dataset.val === 'kmh' ? 'km/h' : 'mph';
+        }
+      });
+    });
+  }
+  initSelector('unitSpeed', 'unit_speed');
+  initSelector('unitTemp', 'unit_temp');
+  initSelector('mapStyle', 'map_style');
+  initSelector('mapIcon', 'map_icon');
+
+  // --- Number inputs ---
+  function initNumInput(upId, downId, valId, key, min, max, step) {
+    const valEl = document.getElementById(valId);
+    valEl.textContent = settings[key];
+    
+    document.getElementById(upId).addEventListener('click', () => {
+      let v = settings[key] + step;
+      if (v > max) v = max;
+      save(key, v);
+      valEl.textContent = v;
+    });
+    document.getElementById(downId).addEventListener('click', () => {
+      let v = settings[key] - step;
+      if (v < min) v = min;
+      save(key, v);
+      valEl.textContent = v;
+    });
+  }
+  initNumInput('speedWarnUp', 'speedWarnDown', 'speedWarnVal', 'speed_warn_val', 20, 140, 5);
+  initNumInput('rpmWarnUp', 'rpmWarnDown', 'rpmWarnVal', 'rpm_warn_val', 5, 14, 1);
+
+  // --- BLE Scan ---
+  document.getElementById('scanBtn').addEventListener('click', async () => {
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        filters: [{ name: 'Honda_AB2025_Dash' }],
+        optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b']
+      });
+      document.getElementById('bleDot').classList.add('connected');
+      document.getElementById('bleText').textContent = device.name || 'ĐÃ TÌM THẤY';
+      document.getElementById('scanBtn').textContent = '✓ OK';
+    } catch(e) {
+      document.getElementById('bleText').textContent = 'LỖI: ' + e.message;
+    }
+  });
+</script>
+</body>
+</html>

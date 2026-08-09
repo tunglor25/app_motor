@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Classic Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <style>
+        * {
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: none;
+        }
+        html { overflow: hidden; position: fixed; width: 100%; height: 100%; }
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #0a0908;
+            color: #c9b98c;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Playfair Display', serif;
+            touch-action: none;
+            overscroll-behavior: none;
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding-left: env(safe-area-inset-left, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+        }
+        
+        .bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #1a1815 0%, #0a0908 100%);
+            z-index: -2;
+        }
+        
+        .vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .topbar {
+            position: absolute;
+            top: 1.5vh;
+            right: 2vw;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        
+        .dashboard {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        
+        .dial-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+        
+        @media (orientation: landscape) {
+            .dashboard {
+                flex-direction: row;
+                gap: 6vw;
+            }
+            .app-main { flex:1; display:flex; justify-content:center; align-items:center; gap: 6vw; position:relative; }
+            .side-widget.show { width: 25vw; height: 100vh; display:flex; flex-direction:column; }
+            .dial-container {
+                width: 38vh;
+                height: 38vh;
+                min-width: 230px;
+                min-height: 230px;
+            }
+            .vitals {
+                bottom: 26px;
+            }
+        }
+        
+        @media (orientation: landscape) and (max-height: 499px) {
+            .dial-container {
+                width: 32vh;
+                height: 32vh;
+                min-width: 180px;
+                min-height: 180px;
+            }
+        }
+        
+        @media (orientation: portrait) {
+            .dashboard {
+                flex-direction: column;
+                gap: 2vh;
+            }
+            .app-main { flex:none; display:flex; flex-direction:column; justify-content:center; align-items:center; gap: 2vh; position:relative; height: 60vh;}
+            .side-widget.show { display:flex !important; width:100%; height:40vh; border-left:none; border-top:1px solid rgba(201,185,140,0.1); flex-shrink:0;}
+            .dial-container {
+                width: 65vw;
+                height: 65vw;
+                max-width: 320px;
+                max-height: 320px;
+            }
+            .vitals {
+                bottom: 12vh;
+            }
+        }
+        
+        /* Spec CSS Classes */
+        .classic-tick-maj { stroke: #c9b98c; stroke-width: 2.2; }
+        .classic-tick-min { stroke: rgba(201,185,140,0.45); stroke-width: 1; }
+        .classic-tick-maj.hot { stroke: #c23b2c; }
+        .classic-num { font-family: 'Rajdhani', sans-serif; font-size: 11px; fill: #332d25; text-anchor: middle; }
+        .classic-num.hot { fill: #c23b2c; }
+        .classic-brand { font-family: 'Playfair Display', serif; font-style: italic; font-size: 9px; fill: rgba(51,45,37,0.7); text-anchor: middle; }
+        .classic-value { font-family: 'Playfair Display', serif; font-size: 30px; fill: #1a1815; text-anchor: middle; }
+        .classic-unit { font-family: 'Playfair Display', serif; font-size: 9px; fill: rgba(51,45,37,0.7); text-anchor: middle; }
+        
+        .classic-needle-body { fill: #ff8a1e; }
+        .classic-needle-tail { fill: #2b2b2b; }
+        .classic-cap-outer { fill: url(#capGrad); }
+        .classic-cap-inner { fill: #111; }
+        .classic-glass { fill: url(#glassGrad); pointer-events: none; }
+        
+        /* Vitals */
+        .vitals {
+            position: absolute;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 4vw;
+            font-size: 15px;
+            font-style: italic;
+            z-index: 10;
+        }
+        .vitals div {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+        }
+        .vitals span {
+            font-weight: bold;
+            color: #f2ead6;
+            font-style: normal;
+        }
+        .vitals span.hot {
+            color: #c23b2c;
+        }
+        
+        /* Buttons */
+        .btn-gear {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1);
+          color: rgba(255,255,255,0.5);
+          font-size: 16px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        }
+        .btn-gear:active { background: rgba(43,231,255,0.15); color: #2BE7FF; }
+
+        /* === SIDE WIDGET (Album Art / Map) === */
+        .side-widget{display:none;flex-shrink:0;overflow:hidden;z-index:5;position:relative;
+          background:#0a0a0f;border-left:1px solid rgba(201,185,140,0.1);
+        }
+        .side-widget.show{display:flex;flex-direction:column;align-items:center;justify-content:center;}
+        .album-art-wrap{position:relative;width:100%;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+        .album-art{width:100%;height:100%;object-fit:cover;opacity:0.85;}
+        .album-art-overlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,0.8) 0%,transparent 50%);
+          display:flex;flex-direction:column;justify-content:flex-end;padding:6px;
+        }
+        .album-art-title{font-family:'Share Tech Mono';font-size:10px;color:#f2ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .album-art-artist{font-family:'Share Tech Mono';font-size:8px;color:#c9b98c;opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .album-play-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+          width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.5);border:2px solid #c9b98c;
+          color:#c9b98c;font-size:16px;display:flex;align-items:center;justify-content:center;
+          cursor:pointer;opacity:0;transition:opacity 0.2s;
+        }
+        .album-art-wrap:active .album-play-btn{opacity:1;}
+        .no-art-icon{font-size:32px;color:#c9b98c;opacity:0.3;}
+        #minimap{width:100%;height:100%;background:#0d1117;}
+
+        /* === MAP CONTROLS & FULLSCREEN === */
+        .map-controls { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
+        .map-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--cyan, #c9b98c); background: rgba(10,12,16,0.8); color: var(--cyan, #c9b98c); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; box-shadow: 0 0 8px rgba(0,0,0,0.5); transition: transform 0.1s; }
+        .map-btn:active { transform: scale(0.9); }
+        #mapContainer.map-fullscreen { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 900 !important; }
+        html:not(.light-theme) #minimap:not(.satellite-mode) .leaflet-layer { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        
+        /* === MAP GEOCODER (GOOGLE STYLE) === */
+        .leaflet-control-geocoder { 
+          position: relative !important;
+          border-radius: 24px !important; 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important; 
+          background: rgba(30,30,36,0.95) !important;
+          margin-top: 12px !important; 
+          width: calc(100% - 24px) !important; 
+          max-width: 320px !important;
+          height: 44px !important;
+          padding: 0 !important;
+          border: 1px solid rgba(255,255,255,0.1) !important;
+          box-sizing: border-box !important;
+          overflow: hidden !important;
+        }
+        .leaflet-control-geocoder-icon { 
+          position: absolute !important;
+          left: 12px !important;
+          top: 50% !important;
+          transform: translateY(-50%) !important;
+          width: 24px !important; 
+          height: 24px !important; 
+          background-color: transparent !important; 
+          border: none !important; 
+          margin: 0 !important;
+          padding: 0 !important;
+          filter: invert(1) brightness(0.8);
+          box-shadow: none !important;
+          z-index: 2 !important;
+        }
+        .leaflet-control-geocoder-form { 
+          display: block !important; 
+          width: 100% !important; 
+          height: 100% !important; 
+          margin: 0 !important; 
+          padding: 0 16px 0 44px !important; /* space for icon */
+          box-sizing: border-box !important;
+        }
+        .leaflet-control-geocoder-form input { 
+          font-family: sans-serif !important; font-size: 14px !important; color: #fff !important;
+          width: 100% !important; height: 100% !important; 
+          padding: 0 !important; margin: 0 !important;
+          border: none !important; outline: none !important; 
+          background: transparent !important; font-weight: normal;
+          box-shadow: none !important;
+        }
+        html.light-theme .leaflet-control-geocoder { background: rgba(255,255,255,0.95) !important; border-color: rgba(0,0,0,0.1) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important; }
+        html.light-theme .leaflet-control-geocoder-form input { color: #111 !important; font-weight: 600; }
+        html.light-theme .leaflet-control-geocoder-icon { filter: none !important; opacity: 0.6; }
+        
+        /* === SPEED OVERLAYS (TRAFFIC SIGN STYLE) === */
+        .map-speed-container {
+          position: absolute !important; bottom: 16px !important; left: 16px !important; z-index: 1000 !important;
+          width: 52px !important; height: 52px !important; pointer-events: none !important; display: block !important;
+        }
+        .gps-speed-box {
+          position: absolute !important; top: 0 !important; left: 0 !important;
+          width: 100% !important; height: 100% !important; border-radius: 50% !important;
+          background: #fff !important; 
+          display: flex !important; align-items: center !important; justify-content: center !important;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+          padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;
+          border: 4px solid #111 !important; transition: border-color 0.3s !important;
+        }
+        .limit-speed-box {
+          position: absolute !important; top: -10px !important; right: -10px !important; z-index: 2 !important;
+          width: 32px !important; height: 32px !important; border-radius: 50% !important;
+          background: #fff !important; 
+          display: flex !important; align-items: center !important; justify-content: center !important;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+          padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;
+          border: 3px solid #ff2130 !important;
+        }
+        .gps-speed-val { font-family: 'Rajdhani', sans-serif !important; font-size: 26px !important; font-weight: 700 !important; color: #111 !important; line-height: 1 !important; margin: 0 !important; padding: 0 !important; text-shadow: none !important; }
+        .limit-speed-val { font-family: 'Rajdhani', sans-serif !important; font-size: 14px !important; font-weight: 700 !important; color: #111 !important; line-height: 1 !important; margin: 0 !important; padding: 0 !important; text-shadow: none !important; }
+        .gps-speed-unit { display: none !important; }
+
+        /* === MUSIC FAB & POPUP === */
+        .music-fab {
+          position: absolute; bottom: 20px; right: 20px;
+          width: 48px; height: 48px; border-radius: 50%;
+          background: rgba(10,12,16,0.8); border: 2px solid var(--cyan, #c9b98c);
+          color: var(--cyan, #c9b98c); font-size: 20px;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 0 12px rgba(201,185,140,0.4);
+          cursor: pointer; z-index: 100; transition: all 0.2s;
+        }
+        .music-fab:active { transform: scale(0.9); }
+        .music-fab.hidden { display: none; }
+
+        .music-popup-overlay {
+          position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+          backdrop-filter: blur(4px); z-index: 999;
+          display: flex; align-items: center; justify-content: center;
+          opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .music-popup-overlay.show { opacity: 1; pointer-events: auto; }
+        
+        .music-popup {
+          background: rgba(10,12,16,0.95);
+          border: 1px solid var(--cyan, #c9b98c);
+          border-radius: 16px; padding: 20px;
+          width: 280px; max-width: 90vw;
+          box-shadow: 0 0 20px rgba(201,185,140,0.3);
+          display: flex; flex-direction: column; align-items: center;
+          transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .music-popup-overlay.show .music-popup { transform: translateY(0); }
+        
+        .mp-art {
+          width: 160px; height: 160px; border-radius: 12px;
+          object-fit: cover; border: 1px solid rgba(255,255,255,0.1);
+          margin-bottom: 16px; background: #111;
+        }
+        .mp-title {
+          font-family: 'Share Tech Mono', monospace; font-size: 16px;
+          color: var(--cyan, #c9b98c); text-align: center; margin-bottom: 4px;
+          width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .mp-artist {
+          font-family: 'Share Tech Mono', monospace; font-size: 12px;
+          color: #f2ead6; opacity:0.6; text-align: center; margin-bottom: 20px;
+          width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .mp-controls {
+          display: flex; align-items: center; gap: 24px;
+        }
+        .mp-btn {
+          width: 44px; height: 44px; border-radius: 50%;
+          background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+          color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: all 0.2s;
+        }
+        .mp-btn:active { background: rgba(255,255,255,0.15); transform: scale(0.9); }
+        .mp-btn.play {
+          width: 56px; height: 56px; background: var(--cyan, #c9b98c); color: #000; font-size: 24px;
+          box-shadow: 0 0 15px rgba(201,185,140,0.5); border: none;
+        }
+        .mp-btn.play:active { background: #fff; }
+
+        /* === LIGHT THEME (SILVER METALLIC) === */
+        html.light-theme body { background: #e0e5ec; color: #2d3748; }
+        html.light-theme .bg { background: linear-gradient(135deg, #f6f8fa 0%, #e0e5ec 50%, #d1d8e0 100%); }
+        html.light-theme .vignette { box-shadow: inset 0 0 40px rgba(255,255,255,0.8), inset 0 0 15px rgba(0,0,0,0.05); }
+        html.light-theme .vitals { color: rgba(45,55,72,0.6); }
+        html.light-theme .vitals span { color: #1a202c; text-shadow: none; font-weight: 700; }
+        html.light-theme .btn-gear { background: linear-gradient(135deg, #e0e5ec 0%, #ffffff 100%); border: 1px solid #ffffff; color: #4a5568; box-shadow: 2px 2px 5px rgba(163,177,198,0.5), -2px -2px 5px rgba(255,255,255,0.8); }
+        html.light-theme .btn-gear:active { box-shadow: inset 2px 2px 5px rgba(163,177,198,0.5), inset -2px -2px 5px rgba(255,255,255,0.8); transform: scale(0.95); color: var(--cyan, #c9b98c); }
+        html.light-theme .side-widget { background: #e0e5ec; border-left: 1px solid #ffffff; box-shadow: inset 4px 0 10px rgba(163,177,198,0.2); }
+        html.light-theme .map-btn { background: linear-gradient(135deg, #ffffff 0%, #e0e5ec 100%); border: 1px solid #ffffff; color: #4a5568; box-shadow: 2px 2px 5px rgba(163,177,198,0.5), -2px -2px 5px rgba(255,255,255,0.8); }
+        html.light-theme .classic-brand { fill: rgba(45,55,72,0.6); }
+        html.light-theme .classic-unit { fill: rgba(45,55,72,0.6); }
+        html.light-theme .classic-value { fill: #1a202c; }
+        
+        html.light-theme .music-fab { background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-color: #e0e5ec; color: #4a5568; }
+        html.light-theme .music-popup { background: rgba(255,255,255,0.95); border-color: rgba(0,0,0,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        html.light-theme .mp-title { color: #111; }
+        html.light-theme .mp-artist { color: #555; }
+        html.light-theme .mp-btn { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); color: #333; }
+        html.light-theme .mp-btn.play { background: var(--cyan, #c9b98c); color: #fff; }
+    </style>
+    <script>
+        if (localStorage.getItem('light_mode') === 'true') {
+            document.documentElement.classList.add('light-theme');
+        }
+    </script>
+</head>
+<body>
+    <div class="bg"></div>
+    <div class="vignette"></div>
+
+    <div class="topbar">
+        <button class="btn-gear" id="btnGear">⚙</button>
+    </div>
+
+    <div class="dashboard" id="dashboard">
+      <div class="app-main">
+        <!-- Speed Dial -->
+        <div class="dial-container">
+            <svg viewBox='0 0 200 200'>
+              <defs>
+                <radialGradient id='faceGrad' cx='42%' cy='38%' r='75%'>
+                  <stop offset='0%' stop-color='#f4ead0'/>
+                  <stop offset='60%' stop-color='#e7d8ac'/>
+                  <stop offset='100%' stop-color='#b9a26d'/>
+                </radialGradient>
+                <linearGradient id='chromeGrad' x1='0%' y1='0%' x2='100%' y2='100%'>
+                  <stop offset='0%' stop-color='#fdfdfd'/>
+                  <stop offset='20%' stop-color='#6b6b6b'/>
+                  <stop offset='40%' stop-color='#e8e8e8'/>
+                  <stop offset='55%' stop-color='#4a4a4a'/>
+                  <stop offset='75%' stop-color='#dcdcdc'/>
+                  <stop offset='100%' stop-color='#3a3a3a'/>
+                </linearGradient>
+                <radialGradient id='capGrad' cx='35%' cy='30%' r='70%'>
+                  <stop offset='0%' stop-color='#eee'/>
+                  <stop offset='100%' stop-color='#444'/>
+                </radialGradient>
+                <radialGradient id='glassGrad' cx='45%' cy='35%' r='80%'>
+                  <stop offset='0%' stop-color='rgba(255,255,255,0.18)'/>
+                  <stop offset='100%' stop-color='rgba(255,255,255,0)'/>
+                </radialGradient>
+              </defs>
+              <circle fill='url(#chromeGrad)' cx='100' cy='100' r='98'/>
+              <circle fill='url(#faceGrad)' cx='100' cy='100' r='92'/>
+              
+              <text class='classic-brand' x='100' y='65'>MOTO · CLASSIC</text>
+              <text class='classic-value' x='100' y='110' id='classic-speed'>0</text>
+              <text class='classic-unit' x='100' y='138'>km/h</text>
+              
+              <g id='classicSpeedTicks'></g>
+              <g id='classicSpeedNums'></g>
+              
+              <g id='classicSpeedNeedle' style='transform-origin:100px 100px; transform:rotate(-135deg); transition:transform 0.1s linear;'>
+                <polygon class='classic-needle-tail' points='98,100 102,100 101,120 99,120'/>
+                <polygon class='classic-needle-body' points='99.2,100 100.8,100 100,25'/>
+              </g>
+              
+              <circle class='classic-cap-outer' cx='100' cy='100' r='9'/>
+              <circle class='classic-cap-inner' cx='100' cy='100' r='4'/>
+              <ellipse class='classic-glass' cx='80' cy='75' rx='70' ry='55'/>
+            </svg>
+        </div>
+
+        <!-- RPM Dial -->
+        <div class="dial-container">
+            <svg viewBox='0 0 200 200'>
+              <!-- Reusing defs from speed dial where possible, unique IDs for distinct elements not needed as they are identical -->
+              <circle fill='url(#chromeGrad)' cx='100' cy='100' r='98'/>
+              <circle fill='url(#faceGrad)' cx='100' cy='100' r='92'/>
+              
+              <text class='classic-brand' x='100' y='65'>TACHOMETER</text>
+              <text class='classic-value' x='100' y='110' id='classic-rpm'>0.0</text>
+              <text class='classic-unit' x='100' y='138'>×1000 RPM</text>
+              
+              <g id='classicRpmTicks'></g>
+              <g id='classicRpmNums'></g>
+              
+              <g id='classicRpmNeedle' style='transform-origin:100px 100px; transform:rotate(-135deg); transition:transform 0.1s linear;'>
+                <polygon class='classic-needle-tail' points='98,100 102,100 101,120 99,120'/>
+                <polygon class='classic-needle-body' points='99.2,100 100.8,100 100,25'/>
+              </g>
+              
+              <circle class='classic-cap-outer' cx='100' cy='100' r='9'/>
+              <circle class='classic-cap-inner' cx='100' cy='100' r='4'/>
+              <ellipse class='classic-glass' cx='80' cy='75' rx='70' ry='55'/>
+            </svg>
+        </div>
+        
+        <!-- MUSIC FAB -->
+        <div class="music-fab hidden" id="musicFab">🎵</div>
+
+        <!-- MUSIC POPUP -->
+        <div class="music-popup-overlay" id="musicOverlay">
+            <div class="music-popup" id="musicPopup">
+                <img class="mp-art" id="mpArt" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Art"/>
+                <div class="mp-title" id="mpTitle">No music playing</div>
+                <div class="mp-artist" id="mpArtist"></div>
+                <div class="mp-controls">
+                    <button class="mp-btn" id="mpPrev">⏮</button>
+                    <button class="mp-btn play" id="mpPlayPause">▶</button>
+                    <button class="mp-btn" id="mpNext">⏭</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SIDE WIDGET (Map Only) -->
+        <div class="side-widget show" id="sideWidget">
+            <div id="mapContainer" style="flex:1;width:100%;height:100%;position:relative;">
+                <div class="map-controls">
+                    <button class="map-btn" id="btnMapExpand">⛶</button>
+                </div>
+                <div class="map-speed-container">
+                    <div class="gps-speed-box" id="gpsSpeedBox" title="Tốc độ GPS">
+                        <div class="gps-speed-val" id="gpsSpeedVal">0</div>
+                    </div>
+                    <div class="limit-speed-box" id="limitSpeedBox" style="display:none;" title="Giới hạn tốc độ">
+                        <div class="limit-speed-val" id="limitSpeedVal">50</div>
+                    </div>
+                </div>
+                <div id="minimap" style="width:100%;height:100%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vitals -->
+    <div class="vitals">
+        <div>BATT <span id="val-batt">0.0V</span></div>
+        <div>TPS <span id="val-tps">0%</span></div>
+        <div>TEMP <span id="val-temp">0°C</span></div>
+    </div>
+
+    <script>
+        // --- SVG Drawing Utils ---
+        function polar(cx, cy, r, angle) {
+            const rad = (angle - 90) * Math.PI / 180;
+            return {
+                x: cx + r * Math.cos(rad),
+                y: cy + r * Math.sin(rad)
+            };
+        }
+
+        function svgEl(tag, attrs) {
+            const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+            for (let k in attrs) el.setAttribute(k, attrs[k]);
+            return el;
+        }
+
+        function buildClassicDial(ticksGroupId, numsGroupId, majors, redFrom, sweepStart, sweepEnd) {
+            const ticksGroup = document.getElementById(ticksGroupId);
+            const numsGroup = document.getElementById(numsGroupId);
+            const total = majors.length - 1;
+            const minorPerGap = 4;
+            
+            for (let seg = 0; seg < total; seg++) {
+                for (let m = 0; m <= minorPerGap; m++) {
+                    // Avoid duplicating the major tick at the end of the segment
+                    if (seg > 0 && m === 0) continue;
+                    
+                    const frac = (seg + m/minorPerGap) / total;
+                    const ang = sweepStart + frac * (sweepEnd - sweepStart);
+                    const isMajor = (m === 0 || m === minorPerGap);
+                    const rOut = 88, rIn = isMajor ? 78 : 83;
+                    const p1 = polar(100, 100, rOut, ang);
+                    const p2 = polar(100, 100, rIn, ang);
+                    const hot = frac >= redFrom;
+                    
+                    const line = svgEl('line', {
+                        x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+                        class: (isMajor ? 'classic-tick-maj' : 'classic-tick-min') + (isMajor && hot ? ' hot' : '')
+                    });
+                    ticksGroup.appendChild(line);
+                }
+            }
+            
+            for (let i = 0; i <= total; i++) {
+                const frac = i/total;
+                const ang = sweepStart + frac * (sweepEnd - sweepStart);
+                const p = polar(100, 100, 68, ang);
+                const hot = frac >= redFrom;
+                
+                const t = svgEl('text', { 
+                    x: p.x, 
+                    y: p.y, 
+                    class: 'classic-num' + (hot ? ' hot' : ''), 
+                    'dominant-baseline': 'middle' 
+                });
+                t.textContent = majors[i];
+                numsGroup.appendChild(t);
+            }
+        }
+
+        // Initialize Dials
+        buildClassicDial('classicSpeedTicks', 'classicSpeedNums', ['0','20','40','60','80','100','120','140'], 999, -135, 135);
+        buildClassicDial('classicRpmTicks', 'classicRpmNums', ['0','2','4','6','8','10','12','14'], 6/7, -135, 135);
+
+        // --- Navigation ---
+        let lastTap = 0;
+        document.getElementById('dashboard').addEventListener('touchend', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            const now = Date.now();
+            if (now - lastTap < 300) {
+                localStorage.setItem('theme', 'sport');
+                window.location.href = 'race.html';
+            }
+            lastTap = now;
+        });
+        document.getElementById('dashboard').addEventListener('dblclick', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            localStorage.setItem('theme', 'sport');
+            window.location.href = 'race.html';
+        });
+
+        document.getElementById('btnGear').addEventListener('click', (e) => {
+          e.stopPropagation();
+          window.location.href = 'settings.html';
+        });
+
+        // --- DOM Elements ---
+        const speedNeedle = document.getElementById('classicSpeedNeedle');
+        const rpmNeedle = document.getElementById('classicRpmNeedle');
+        const speedText = document.getElementById('classic-speed');
+        const rpmText = document.getElementById('classic-rpm');
+        const battText = document.getElementById('val-batt');
+        const tpsText = document.getElementById('val-tps');
+        const tempText = document.getElementById('val-temp');
+
+        // --- Animation Utils ---
+        function setDialValue(type, value) {
+            let angle = -135;
+            if (type === 'speed') {
+                const clamped = Math.min(Math.max(value, 0), 140);
+                angle = -135 + (clamped / 140) * 270;
+                speedNeedle.style.transform = `rotate(${angle}deg)`;
+                speedText.textContent = Math.round(value);
+            } else if (type === 'rpm') {
+                const clamped = Math.min(Math.max(value, 0), 14000);
+                angle = -135 + (clamped / 14000) * 270;
+                rpmNeedle.style.transform = `rotate(${angle}deg)`;
+                rpmText.textContent = (clamped / 1000).toFixed(1);
+            }
+        }
+
+        // Boot Animation
+        window.addEventListener('DOMContentLoaded', () => {
+            // Sweep to max
+            speedNeedle.style.transition = 'transform 1s ease-in-out';
+            rpmNeedle.style.transition = 'transform 1s ease-in-out';
+            speedNeedle.style.transform = 'rotate(135deg)';
+            rpmNeedle.style.transform = 'rotate(135deg)';
+            
+            setTimeout(() => {
+                // Sweep back
+                speedNeedle.style.transition = 'transform 0.8s ease-in-out';
+                rpmNeedle.style.transition = 'transform 0.8s ease-in-out';
+                speedNeedle.style.transform = 'rotate(-135deg)';
+                rpmNeedle.style.transform = 'rotate(-135deg)';
+                
+                setTimeout(() => {
+                    // Reset transitions for normal operation
+                    speedNeedle.style.transition = 'transform 0.1s linear';
+                    rpmNeedle.style.transition = 'transform 0.1s linear';
+                }, 800);
+            }, 1000);
+        });
+
+        // --- BLE Data Handling ---
+        const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+        const CHAR_UUIDS = {
+            RPM: 'beb5483e-36e1-4688-b7f5-ea07361b26a8',
+            SPEED: '8b423985-7977-4b72-b2d6-4e5088277be9',
+            ECT: 'e3b1c67d-94bb-4286-904b-3cc34a4c6a99',
+            TPS: '19a28e8d-71b5-4148-84be-97b7cbce39fa',
+            VOLT: 'c19f5615-585a-4712-b062-1bd074a1a5b8'
+        };
+
+        function handleBLEData(uuid, value) {
+            if (uuid === CHAR_UUIDS.RPM) {
+                const val = value.getUint16(0, true);
+                setDialValue('rpm', val);
+            } else if (uuid === CHAR_UUIDS.SPEED) {
+                const val = value.getUint8(0);
+                setDialValue('speed', val);
+            } else if (uuid === CHAR_UUIDS.ECT) {
+                const val = value.getInt8(0);
+                tempText.textContent = val + '°C';
+                if (val > 105) {
+                    tempText.classList.add('hot');
+                } else {
+                    tempText.classList.remove('hot');
+                }
+            } else if (uuid === CHAR_UUIDS.TPS) {
+                const val = value.getUint8(0);
+                tpsText.textContent = val + '%';
+            } else if (uuid === CHAR_UUIDS.VOLT) {
+                const decoder = new TextDecoder('utf-8');
+                const val = decoder.decode(value);
+                battText.textContent = val + 'V';
+            }
+        }
+
+        async function setupBLEService(service) {
+            const subscribeChar = async (uuid, handler) => {
+                try {
+                    const characteristic = await service.getCharacteristic(uuid);
+                    await characteristic.startNotifications();
+                    characteristic.addEventListener('characteristicvaluechanged', handler);
+                } catch (e) {
+                    console.error('Error subscribing to ' + uuid, e);
+                }
+            };
+
+            await subscribeChar(CHAR_UUIDS.RPM, (e) => handleBLEData(CHAR_UUIDS.RPM, e.target.value));
+            await subscribeChar(CHAR_UUIDS.SPEED, (e) => handleBLEData(CHAR_UUIDS.SPEED, e.target.value));
+            await subscribeChar(CHAR_UUIDS.ECT, (e) => handleBLEData(CHAR_UUIDS.ECT, e.target.value));
+            await subscribeChar(CHAR_UUIDS.TPS, (e) => handleBLEData(CHAR_UUIDS.TPS, e.target.value));
+            await subscribeChar(CHAR_UUIDS.VOLT, (e) => handleBLEData(CHAR_UUIDS.VOLT, e.target.value));
+        }
+
+  // --- Anti-Web Behaviors ---
+  document.addEventListener('contextmenu',e=>e.preventDefault());
+  document.addEventListener('touchmove',e=>{
+    if(e.target.closest('#minimap')) return;
+    e.preventDefault();
+  },{passive:false});
+  document.addEventListener('dragstart',e=>e.preventDefault());
+  document.addEventListener('gesturestart',e=>e.preventDefault());
+  document.addEventListener('gesturechange',e=>e.preventDefault());
+
+  // --- MUSIC CONTROLS ---
+  const musicFab = document.getElementById('musicFab');
+  const musicOverlay = document.getElementById('musicOverlay');
+  
+  const mpTitle = document.getElementById('mpTitle');
+  const mpArtist = document.getElementById('mpArtist');
+  const mpArt = document.getElementById('mpArt');
+  const mpPlayPause = document.getElementById('mpPlayPause');
+  
+  const sideWidget = document.getElementById('sideWidget');
+
+  if(musicFab) musicFab.addEventListener('click', () => { musicOverlay.classList.add('show'); });
+  if(musicOverlay) musicOverlay.addEventListener('click', (e) => { if (e.target === musicOverlay) musicOverlay.classList.remove('show'); });
+
+  async function pollMusic(){
+    try{
+      if(!window.Capacitor||!Capacitor.Plugins.MediaControlPlugin) return;
+      const info=await Capacitor.Plugins.MediaControlPlugin.getPlayingInfo();
+      if(info.title){
+        if(mpTitle) mpTitle.textContent=info.title;
+        if(mpArtist) mpArtist.textContent=info.artist||'';
+        if(mpPlayPause) mpPlayPause.textContent=info.isPlaying?'⏸':'▶';
+        
+        if(info.albumArt && mpArt){
+          mpArt.src=`data:image/jpeg;base64,${info.albumArt}`;
+        }
+        if(musicFab) musicFab.classList.remove('hidden');
+      }else{
+        if(musicFab) musicFab.classList.add('hidden');
+      }
+    }catch(e){}
+  }
+  setInterval(pollMusic,2000);pollMusic();
+
+  async function togglePlay() {
+    try {
+      const info = await Capacitor.Plugins.MediaControlPlugin.getPlayingInfo();
+      if(info.isPlaying) await Capacitor.Plugins.MediaControlPlugin.pause();
+      else await Capacitor.Plugins.MediaControlPlugin.play();
+      setTimeout(pollMusic,300);
+    } catch(e){}
+  }
+  if(mpPlayPause) mpPlayPause.addEventListener('click', togglePlay);
+
+  const btnPrev = document.getElementById('mpPrev');
+  const btnNext = document.getElementById('mpNext');
+  if(btnPrev) btnPrev.addEventListener('click', async () => {
+    try{await Capacitor.Plugins.MediaControlPlugin.prev();}catch(e){}
+  });
+  if(btnNext) btnNext.addEventListener('click', async () => {
+    try{await Capacitor.Plugins.MediaControlPlugin.next();}catch(e){}
+  });
+
+  // --- TOMTOM SETUP ---
+  const tomtomKey = 'TNsjEBPR6I6MSu4Lwq1O3YO8udmg5aU3';
+  const tomtomGeocoder = {
+    geocode: function(query, cb, context) {
+      fetch(`https://api.tomtom.com/search/2/search/${encodeURIComponent(query)}.json?key=${tomtomKey}&limit=5`)
+      .then(res => res.json())
+      .then(data => {
+        let results = [];
+        if (data.results) {
+          results = data.results.map(r => ({
+            name: r.address.freeformAddress || r.poi?.name,
+            bbox: L.latLngBounds(L.latLng(r.viewport.topLeftPoint.lat, r.viewport.topLeftPoint.lon), L.latLng(r.viewport.btmRightPoint.lat, r.viewport.btmRightPoint.lon)),
+            center: L.latLng(r.position.lat, r.position.lon)
+          }));
+        }
+        cb.call(context, results);
+      });
+    },
+    suggest: function(query, cb, context) { this.geocode(query, cb, context); },
+    reverse: function(location, scale, cb, context) {
+      fetch(`https://api.tomtom.com/search/2/reverseGeocode/${location.lat},${location.lng}.json?key=${tomtomKey}`)
+      .then(res => res.json())
+      .then(data => {
+        let results = [];
+        if(data.addresses && data.addresses.length > 0) {
+          let r = data.addresses[0];
+          results.push({
+            name: r.address.freeformAddress,
+            center: L.latLng(location.lat, location.lng),
+            bbox: L.latLngBounds(L.latLng(location.lat, location.lng), L.latLng(location.lat, location.lng))
+          });
+        }
+        cb.call(context, results);
+      });
+    }
+  };
+
+  // --- MINI MAP ---
+  let miniMap=null,mapMarker=null,routingControl=null;
+  let lastSpeedLimitCheck = 0;
+  let currentSpeedLimit = 0;
+
+  function initMap(){
+    try{
+      const showMap = localStorage.getItem('show_map') !== 'false';
+      if (!showMap) {
+        document.getElementById('mapContainer').style.display = 'none';
+        return;
+      }
+      
+      const mapStyle = localStorage.getItem('map_style') || 'dark';
+      const mapEl = document.getElementById('minimap');
+      
+      let currentTheme = localStorage.getItem('theme') || 'dark-theme';
+      let tomtomStyle = currentTheme === 'light-theme' ? 'main' : 'night';
+      let tileUrl = `https://api.tomtom.com/map/1/tile/basic/${tomtomStyle}/{z}/{x}/{y}.png?key=${tomtomKey}`;
+
+      if (mapStyle === 'satellite') {
+        tileUrl = `https://api.tomtom.com/map/1/tile/sat/main/{z}/{x}/{y}.jpg?key=${tomtomKey}`;
+        mapEl.classList.add('satellite-mode');
+      } else {
+        mapEl.classList.remove('satellite-mode');
+      }
+
+      const mapIconType = localStorage.getItem('map_icon') || 'moto';
+      const iconPaths = {
+        'moto': '<svg viewBox="0 0 24 24" width="32" height="32"><defs><filter id="glow"><feGaussianBlur stdDeviation="1.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path filter="url(#glow)" fill="var(--cyan, #c9b98c)" stroke="#fff" stroke-width="1.5" d="M12,2 L22,20 L12,16 L2,20 Z" /></svg>',
+        'car': '<svg viewBox="0 0 24 24" width="28" height="28"><defs><filter id="glow"><feGaussianBlur stdDeviation="1.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path filter="url(#glow)" fill="var(--cyan, #c9b98c)" stroke="#fff" stroke-width="1.5" d="M12,2 L20,8 L20,16 L12,22 L4,16 L4,8 Z" /></svg>',
+        'boat': '<svg viewBox="0 0 24 24" width="28" height="28"><defs><filter id="glow"><feGaussianBlur stdDeviation="1.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path filter="url(#glow)" fill="var(--cyan, #c9b98c)" stroke="#fff" stroke-width="1.5" d="M12,2 L18,12 L12,22 L6,12 Z" /></svg>'
+      };
+
+      const customIcon = L.divIcon({
+        className: 'custom-map-icon',
+        html: `<div style="transform:translate(-50%,-50%);">${iconPaths[mapIconType]||iconPaths['moto']}</div>`,
+        iconSize: [0, 0]
+      });
+
+      miniMap=L.map('minimap',{
+        zoomControl:false,attributionControl:false,
+        dragging:true,scrollWheelZoom:false,doubleClickZoom:false,
+        touchZoom:true
+      }).setView([10.8,106.65],15);
+      
+      L.tileLayer(tileUrl,{maxZoom:19, attribution: '© TomTom'}).addTo(miniMap);
+      
+      // Add Traffic Flow Layer
+      let trafficUrl = `https://api.tomtom.com/traffic/map/4/tile/flow/relative0/{z}/{x}/{y}.png?key=${tomtomKey}`;
+      L.tileLayer(trafficUrl, {maxZoom: 19, opacity: 0.8, attribution: '© TomTom Traffic'}).addTo(miniMap);
+      
+      mapMarker=L.marker([10.8,106.65], {icon: customIcon}).addTo(miniMap);
+
+      // Add Geocoder (Search) using TomTom
+      if (L.Control.geocoder) {
+        L.Control.geocoder({
+          geocoder: tomtomGeocoder,
+          defaultMarkGeocode: false,
+          collapsed: false,
+          position: 'topright',
+          placeholder: 'Tìm địa điểm, tuyến đường...'
+        }).on('markgeocode', function(e) {
+          const dest = e.geocode.center;
+          miniMap.fitBounds(e.geocode.bbox);
+          if (routingControl) miniMap.removeControl(routingControl);
+          
+          routingControl = L.Routing.control({
+            waypoints: [ mapMarker.getLatLng(), dest ],
+            routeWhileDragging: false,
+            show: false,
+            createMarker: function() { return null; },
+            lineOptions: { styles: [{color: '#c9b98c', opacity: 0.8, weight: 5}] }
+          }).addTo(miniMap);
+        }).addTo(miniMap);
+      }
+
+      // GPS watch
+      if(window.Capacitor&&Capacitor.Plugins.Geolocation){
+        Capacitor.Plugins.Geolocation.watchPosition({
+          enableHighAccuracy:true,timeout:10000,maximumAge:0
+        },(pos,err)=>{
+          if(pos){
+            const lat=pos.coords.latitude,lng=pos.coords.longitude;
+            const newLatLng = new L.LatLng(lat, lng);
+            mapMarker.setLatLng(newLatLng);
+            
+            // Update GPS Speed
+            let speed = pos.coords.speed;
+            const speedBox = document.getElementById('gpsSpeedBox');
+            if (speed !== null && speed >= 0) {
+              let speedKmh = Math.round(speed * 3.6);
+              speedBox.style.display = 'flex';
+              document.getElementById('gpsSpeedVal').textContent = speedKmh;
+              
+              if (currentSpeedLimit > 0) {
+                  if (speedKmh >= currentSpeedLimit) {
+                      speedBox.style.setProperty('border-color', '#ff2130', 'important');
+                  } else if (speedKmh >= currentSpeedLimit - 5) {
+                      speedBox.style.setProperty('border-color', '#ffb300', 'important');
+                  } else {
+                      speedBox.style.setProperty('border-color', '#00c853', 'important');
+                  }
+              } else {
+                  speedBox.style.setProperty('border-color', '#111', 'important');
+              }
+            }
+              
+            // Check TomTom Speed Limit
+            const now = Date.now();
+            if (now - lastSpeedLimitCheck > 10000) {
+               lastSpeedLimitCheck = now;
+               fetch(`https://api.tomtom.com/search/2/reverseGeocode/${lat},${lng}.json?key=${tomtomKey}&returnSpeedLimit=true`)
+                 .then(r => r.json())
+                 .then(data => {
+                    const limitBox = document.getElementById('limitSpeedBox');
+                    if (data && data.addresses && data.addresses.length > 0) {
+                        const addr = data.addresses[0].address;
+                        if (addr && addr.speedLimit) {
+                            let sl = addr.speedLimit;
+                            let limitNum = parseInt(sl.replace(/\D/g,''));
+                            if (!isNaN(limitNum) && limitNum > 0) {
+                                limitBox.style.display = 'flex';
+                                document.getElementById('limitSpeedVal').textContent = limitNum;
+                                currentSpeedLimit = limitNum;
+                            } else {
+                                limitBox.style.display = 'none';
+                                currentSpeedLimit = 0;
+                            }
+                        } else { limitBox.style.display = 'none'; currentSpeedLimit = 0; }
+                    } else { limitBox.style.display = 'none'; currentSpeedLimit = 0; }
+                 }).catch(e => console.log(e));
+            }
+
+            if (!routingControl) {
+               miniMap.setView([lat,lng],16,{animate:true,duration:0.5});
+            } else {
+               const waypoints = routingControl.getWaypoints();
+               waypoints[0].latLng = newLatLng;
+               routingControl.setWaypoints(waypoints);
+            }
+          }
+        });
+      }
+      
+      // Map Control Events
+      const mapContainer = document.getElementById('mapContainer');
+      const btnMapExpand = document.getElementById('btnMapExpand');
+      if(btnMapExpand) {
+        btnMapExpand.addEventListener('click', (e) => {
+          e.stopPropagation();
+          mapContainer.classList.toggle('map-fullscreen');
+          setTimeout(() => miniMap.invalidateSize(), 300);
+        });
+      }
+      
+      // Auto-fullscreen on search focus
+      setTimeout(() => {
+        const geocoderInput = document.querySelector('.leaflet-control-geocoder-form input');
+        if (geocoderInput) {
+          geocoderInput.addEventListener('focus', () => {
+            mapContainer.classList.add('map-fullscreen');
+            setTimeout(() => miniMap.invalidateSize(), 300);
+          });
+        }
+      }, 2000);
+
+      setTimeout(()=>miniMap.invalidateSize(),500);
+    }catch(e){console.log('Map init error:',e);}
+  }
+  setTimeout(initMap,1000);
+  window.addEventListener('resize',()=>{if(miniMap)setTimeout(()=>miniMap.invalidateSize(),200);});
+    </script>
+</body>
+</html>

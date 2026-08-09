@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Moto Dash</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<script>
+  // Clear old caches
+  if ('caches' in window) caches.keys().then(n => n.forEach(k => caches.delete(k)));
+  if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(r => r.forEach(x => x.unregister()));
+  
+  // Redirect to saved theme or default to race
+  const theme = localStorage.getItem('theme') || 'sport';
+  const pages = { sport: 'race.html', daily: 'daily.html', classic: 'classic.html' };
+  window.location.replace(pages[theme] || 'race.html');
+</script>
+</head>
+<body style="background:#000;"></body>
+</html>

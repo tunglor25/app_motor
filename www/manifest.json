@@ -1,0 +1,16 @@
+{
+  "name": "AirBlade Smart Dashboard",
+  "short_name": "AB Dash",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "background_color": "#050505",
+  "theme_color": "#00e5ff",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/10053/10053229.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
