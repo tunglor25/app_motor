@@ -8,6 +8,11 @@
     "overrideUserAgent": "MotoDash/1.0",
     "webContentsDebuggingEnabled": false
   },
+  "ios": {
+    "backgroundColor": "#030304",
+    "preferredContentMode": "mobile",
+    "webContentsDebuggingEnabled": false
+  },
   "plugins": {
     "SplashScreen": {
       "launchAutoHide": true,

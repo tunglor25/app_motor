@@ -355,6 +355,7 @@
     document.documentElement.classList.add('light-theme');
   }
 </script>
+<script src="js/ios_statusbar.js"></script>
 </head>
 <body>
 <div id="app">
@@ -934,6 +935,12 @@
   const brand = localStorage.getItem('brand_logo') || 'bmw';
   if (ECUData && ECUData.brands && ECUData.brands[brand]) {
     document.getElementById('brandLogoContainer').innerHTML = ECUData.brands[brand];
+  }
+
+  // Hide iOS status bar
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar) {
+    window.Capacitor.Plugins.StatusBar.hide();
+    window.Capacitor.Plugins.StatusBar.setOverlaysWebView({ overlay: true });
   }
 
 </script>

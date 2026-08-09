@@ -1,0 +1,121 @@
+{
+  "total_count": 1,
+  "jobs": [
+    {
+      "id": 93221613419,
+      "run_id": 31304129534,
+      "workflow_name": "iOS Build",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/tunglor25/app_motor/actions/runs/31304129534",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOTyIURc8AAAAVtHDvaw",
+      "head_sha": "03d372649c19670732963dce100e3c813408df9a",
+      "url": "https://api.github.com/repos/tunglor25/app_motor/actions/jobs/93221613419",
+      "html_url": "https://github.com/tunglor25/app_motor/actions/runs/31304129534/job/93221613419",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-08-09T08:41:46Z",
+      "started_at": "2026-08-09T08:41:48Z",
+      "completed_at": "2026-08-09T08:42:03Z",
+      "name": "Build Unsigned iOS IPA",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-08-09T08:41:49Z",
+          "completed_at": "2026-08-09T08:41:50Z"
+        },
+        {
+          "name": "Checkout Code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-08-09T08:41:50Z",
+          "completed_at": "2026-08-09T08:41:52Z"
+        },
+        {
+          "name": "Setup Node.js",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-08-09T08:41:52Z",
+          "completed_at": "2026-08-09T08:41:57Z"
+        },
+        {
+          "name": "Install NPM Dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-08-09T08:41:57Z",
+          "completed_at": "2026-08-09T08:41:59Z"
+        },
+        {
+          "name": "Sync Capacitor iOS",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 5,
+          "started_at": "2026-08-09T08:41:59Z",
+          "completed_at": "2026-08-09T08:41:59Z"
+        },
+        {
+          "name": "Build iOS App (Unsigned)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6,
+          "started_at": "2026-08-09T08:41:59Z",
+          "completed_at": "2026-08-09T08:41:59Z"
+        },
+        {
+          "name": "Package into Unsigned IPA",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7,
+          "started_at": "2026-08-09T08:41:59Z",
+          "completed_at": "2026-08-09T08:41:59Z"
+        },
+        {
+          "name": "Upload IPA Artifact",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8,
+          "started_at": "2026-08-09T08:41:59Z",
+          "completed_at": "2026-08-09T08:41:59Z"
+        },
+        {
+          "name": "Post Setup Node.js",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 15,
+          "started_at": "2026-08-09T08:41:59Z",
+          "completed_at": "2026-08-09T08:41:59Z"
+        },
+        {
+          "name": "Post Checkout Code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-08-09T08:41:59Z",
+          "completed_at": "2026-08-09T08:41:59Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-08-09T08:41:59Z",
+          "completed_at": "2026-08-09T08:42:00Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/tunglor25/app_motor/check-runs/93221613419",
+      "labels": [
+        "macos-latest"
+      ],
+      "runner_id": 1000000492,
+      "runner_name": "GitHub Actions 1000000492",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}
