@@ -66,10 +66,9 @@ const ECUController = {
         const bootStart = Date.now();
         const bootDuration = 1800; // 1.8s sweep
         
-        const bootInterval = setInterval(() => {
+        const tick = () => {
             const elapsed = Date.now() - bootStart;
             if (elapsed >= bootDuration) {
-                clearInterval(bootInterval);
                 ECUData.isBooting = false;
                 
                 // Start Mock Data if enabled in settings
@@ -99,7 +98,9 @@ const ECUController = {
             };
             this.dispatchUpdate('ecu_data', bootData);
             
-        }, 33);
+            requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
     },
 
     updateComputed() {
