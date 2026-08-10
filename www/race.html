@@ -398,6 +398,7 @@
   <div class="ect-bar"><div class="ect-fill" id="ectFill"></div></div>
 
   <div class="btn-row">
+    <button class="btn" id="btnSel">SEL</button>
     <button class="btn btn-trip" id="btnTrip">▶ TRIP<div class="btn-progress" id="btnTripProgress"></div></button>
     <button class="btn" id="btnSet">SET</button>
   </div>
@@ -506,14 +507,25 @@
     e.stopPropagation();window.location.href='settings.html';
   });
 
-  // --- Lap Timer (using SET button now) ---
+  // --- Lap Timer (using SEL button) ---
   let lapStart=null,lapInt=null;
   const lapEl=document.getElementById('lapVal');
+  const lapEl2=document.getElementById('lapVal2');
   function fmtLap(ms){
     const m=String(Math.floor(ms/60000)).padStart(2,'0');
     const s=String(Math.floor((ms%60000)/1000)).padStart(2,'0');
     return `${m}:${s}.${Math.floor((ms%1000)/100)}`;
   }
+  document.getElementById('btnSel').addEventListener('click',()=>{
+    if(lapInt){clearInterval(lapInt);lapInt=null;}
+    else{
+      lapStart=Date.now();
+      lapInt=setInterval(()=>{
+        const t=fmtLap(Date.now()-lapStart);
+        lapEl.textContent=t;
+      },100);
+    }
+  });
 
   // --- ECU Engine Integration ---
   let lastECUSpeed = 0;
