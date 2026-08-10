@@ -50,11 +50,12 @@
         .topbar {
             position: absolute;
             top: 1.5vh;
+            left: 2vw;
             right: 2vw;
             z-index: 100;
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: space-between;
         }
         
         .dashboard {
@@ -265,10 +266,15 @@
         }
 
         .btn-trip {
-            background: none; border: none; color: #c9b98c; opacity: 0.8; font-family: 'Share Tech Mono';
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(201,185,140,0.3);
+            border-radius: 8px;
+            color: #c9b98c; opacity: 0.8; font-family: 'Share Tech Mono';
             font-size: 14px; font-weight: 600; letter-spacing: 2px;
-            padding: 10px 16px; cursor: pointer; flex-shrink: 0;
+            padding: 8px 16px; cursor: pointer; flex-shrink: 0;
             position: relative; overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: all 0.2s;
         }
         .btn-trip:active { opacity: 1; }
         .btn-trip.recording {
@@ -358,6 +364,8 @@
         html.light-theme .btn-gear:active { box-shadow: inset 2px 2px 5px rgba(163,177,198,0.5), inset -2px -2px 5px rgba(255,255,255,0.8); transform: scale(0.95); color: var(--cyan, #c9b98c); }
         html.light-theme .side-widget { background: #e0e5ec; border-left: 1px solid #ffffff; box-shadow: inset 4px 0 10px rgba(163,177,198,0.2); }
         html.light-theme .map-btn { background: linear-gradient(135deg, #ffffff 0%, #e0e5ec 100%); border: 1px solid #ffffff; color: #4a5568; box-shadow: 2px 2px 5px rgba(163,177,198,0.5), -2px -2px 5px rgba(255,255,255,0.8); }
+        html.light-theme .btn-trip { background: linear-gradient(135deg, #e0e5ec 0%, #ffffff 100%); border: 1px solid #ffffff; color: #4a5568; box-shadow: 2px 2px 5px rgba(163,177,198,0.5), -2px -2px 5px rgba(255,255,255,0.8); }
+        html.light-theme .btn-trip.recording { color: #c23b2c; box-shadow: inset 2px 2px 5px rgba(163,177,198,0.5), inset -2px -2px 5px rgba(255,255,255,0.8); }
         html.light-theme .classic-brand { fill: rgba(45,55,72,0.6); }
         html.light-theme .classic-unit { fill: rgba(45,55,72,0.6); }
         html.light-theme .classic-value { fill: #1a202c; }
@@ -381,6 +389,7 @@
     <div class="vignette"></div>
 
     <div class="topbar">
+        <button class="btn-trip" id="btnTrip">▶ TRIP<div class="btn-progress" id="btnTripProgress"></div></button>
         <button class="btn-gear" id="btnGear">⚙</button>
     </div>
 
@@ -511,9 +520,6 @@
         </div>
     </div>
 
-    <div class="bottom-bar">
-        <button class="btn-trip" id="btnTrip">▶ TRIP<div class="btn-progress" id="btnTripProgress"></div></button>
-    </div>
 
     <script src="js/data_engine.js"></script>
     <script src="js/trip_tracker.js"></script>
