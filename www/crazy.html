@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Telemetry Dashboard</title>
+<title>Crazy Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -11,10 +11,9 @@
     --red: #ff003c;
     --amber: #ffb703;
     --green: #00ff66;
-    --bg-dark: #0a0b10;
-    --bg-panel: rgba(20, 22, 28, 0.85);
+    --bg-dark: #050608;
+    --bg-panel: rgba(10, 12, 16, 0.85);
     --dim: rgba(255,255,255,0.45);
-    --hud-border: 1px solid rgba(255, 255, 255, 0.15);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; 
       -webkit-user-select: none; user-select: none;
@@ -22,243 +21,230 @@
       -webkit-tap-highlight-color: transparent; }
   body {
     background: var(--bg-dark); color: #fff; font-family: 'Share Tech Mono', monospace;
-    overflow: hidden; touch-action: none; width: 100vw; height: 100vh;
+    overflow: hidden; width: 100vw; height: 100vh;
   }
   
-  #app {
-    position: relative; width: 100%; height: 100%; display: flex; flex-direction: column;
-    padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 15px) env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 15px);
+  .ambient-glow {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;
+    background: radial-gradient(circle at 35% 50%, rgba(0,229,255,0.1) 0%, transparent 55%),
+                radial-gradient(circle at 65% 50%, rgba(255,0,60,0.1) 0%, transparent 55%);
   }
 
-  /* Radial Glows */
-  .bg-glow {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;
-    background: radial-gradient(circle at 35% 50%, rgba(0,229,255,0.15) 0%, transparent 50%),
-                radial-gradient(circle at 65% 50%, rgba(255,0,60,0.15) 0%, transparent 50%);
+  .hud-wrapper {
+    position: relative; z-index: 10; width: 100%; height: 100%; display: flex; flex-direction: column;
+    padding: env(safe-area-inset-top, 8px) env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 16px);
   }
 
-  /* TOP BAR */
-  .top-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0 20px; z-index: 10; height: 30px; margin-bottom: 5px;
+  /* TOP / BOTTOM BARS */
+  .top-bar, .bottom-bar {
+    display: flex; justify-content: space-between; align-items: center; height: 26px;
   }
-  .tb-title {
-    font-size: 14px; font-weight: bold; letter-spacing: 2px; color: #fff; font-family: 'Orbitron', sans-serif;
-  }
-  .tb-center {
-    display: flex; gap: 20px; align-items: center; font-size: 11px; color: var(--dim);
-  }
-  .tb-redline { color: var(--red); font-family: 'Orbitron', sans-serif; }
-  
-  /* MAIN CONTENT AREA */
-  .main-content {
-    flex: 1; display: flex; position: relative; z-index: 10;
+  .tb-group { display: flex; gap: 15px; align-items: center; font-size: 11px; color: var(--dim); }
+  .tb-title { font-family: 'Orbitron', sans-serif; font-size: 14px; color: #fff; font-weight: bold; letter-spacing: 1px; }
+
+  .bb-connection { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--dim); }
+  .bb-connection span { color: var(--green); font-weight: bold; }
+  .bb-settings { color: var(--dim); cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 11px; text-transform: uppercase;}
+
+  /* MAIN LAYOUT */
+  .hud-main {
+    flex: 1; display: flex; justify-content: space-between; align-items: center; position: relative;
+    margin: 8px 0;
   }
   
   /* PANELS */
   .side-panel {
-    width: 250px; display: flex; flex-direction: column; gap: 10px;
-    z-index: 5; justify-content: space-between;
+    width: 250px; height: 100%; display: flex; flex-direction: column; gap: 8px; z-index: 5;
   }
-  .panel-box {
-    background: var(--bg-panel); border: var(--hud-border); border-radius: 8px;
-    padding: 12px; position: relative; display: flex; flex-direction: column;
+  .hud-box {
+    background: linear-gradient(135deg, rgba(20,24,32,0.95), rgba(8,10,14,0.95));
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+    padding: 12px; position: relative; flex: 1; display: flex; flex-direction: column;
+    border: 1px solid rgba(255,255,255,0.08);
   }
-  /* Chamfered corners style */
-  .panel-box.left { clip-path: polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px)); }
-  .panel-box.right { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%); }
   
-  .panel-title { font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
+  /* Chamfers */
+  .chamfer-tl { clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px); border-top: 2px solid var(--cyan); border-left: 2px solid rgba(0,229,255,0.3); border-top-left-radius: 0; }
+  .chamfer-tr { clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%); border-top: 2px solid var(--red); border-right: 2px solid rgba(255,0,60,0.3); }
+  .chamfer-bl { clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px)); border-bottom: 2px solid var(--cyan); border-left: 2px solid rgba(0,229,255,0.3); }
+  .chamfer-br { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%); border-bottom: 2px solid var(--cyan); border-right: 2px solid rgba(0,229,255,0.3); }
   
-  /* LEFT PANEL - ECT */
-  .ect-layout { display: flex; align-items: flex-start; justify-content: space-between; }
-  .ect-val-box { display: flex; flex-direction: column; }
-  .ect-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; color: #fff; display: flex; align-items: baseline; gap: 2px; }
-  .ect-unit { font-size: 12px; }
+  .box-title { font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; font-family: 'Share Tech Mono'; display: flex; justify-content: space-between;}
   
-  /* Segmented Bar Chart - ECT */
-  .ect-bars { display: flex; flex-direction: column-reverse; gap: 2px; height: 60px; }
-  .ect-segment { width: 12px; height: 4px; background: rgba(255,255,255,0.1); }
-  .ect-segment.active { background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
-  
-  /* LEFT PANEL - TPS */
-  .tps-layout { display: flex; flex-direction: column; gap: 8px; }
-  .tps-val-box { display: flex; align-items: baseline; gap: 6px; }
-  .tps-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; color: #fff; }
-  
-  /* Stepped Bar Chart - TPS */
-  .tps-bars { display: flex; align-items: flex-end; gap: 2px; height: 35px; }
-  .tps-segment { width: 8px; background: rgba(255,255,255,0.1); }
-  .tps-segment.active { background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
-  
-  /* LEFT PANEL - TRIP */
-  .trip-list { display: flex; flex-direction: column; gap: 4px; font-size: 11px; }
-  .trip-item { display: flex; justify-content: space-between; }
-  .trip-lbl { color: var(--dim); }
-  .trip-v { font-family: 'Orbitron', sans-serif; font-weight: 500; }
+  /* --- LEFT PANEL --- */
+  .ect-layout { display: flex; gap: 12px; align-items: stretch; flex: 1; }
+  .ect-graph { display: flex; flex-direction: column-reverse; width: 14px; justify-content: space-between; }
+  .ect-graph div { height: 4px; background: rgba(0,229,255,0.15); }
+  .ect-graph div.active { background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
+  .ect-graph div.warn { background: var(--amber); box-shadow: 0 0 5px var(--amber); }
+  .ect-graph div.alert { background: var(--red); box-shadow: 0 0 5px var(--red); }
+  .ect-info { display: flex; flex-direction: column; justify-content: center; }
+  .ect-val { font-family: 'Orbitron', sans-serif; font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+  .ect-icons { display: flex; gap: 8px; font-size: 16px; color: rgba(255,0,60,0.3); }
 
-  /* RIGHT PANEL - BATT */
-  .batt-layout { display: flex; flex-direction: column; gap: 8px; }
-  .batt-val-box { display: flex; align-items: baseline; justify-content: flex-end; gap: 6px; }
-  .batt-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; color: #fff; }
-  .batt-status-txt { font-size: 12px; color: var(--green); }
-  
-  /* Segmented Bar Chart - BATT */
-  .batt-bars { display: flex; align-items: flex-end; justify-content: space-between; height: 40px; }
-  .batt-segment { width: 6px; background: rgba(255,255,255,0.1); }
-  .batt-segment.active { background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
-  
-  /* RIGHT PANEL - DIAGNOSTICS */
-  .diag-list { display: flex; flex-direction: column; gap: 6px; }
-  .diag-item { display: flex; justify-content: space-between; font-size: 11px; align-items: center; }
-  .diag-icon { font-size: 14px; width: 20px; text-align: center; }
-  .diag-ok { color: var(--green); }
-  .diag-fault { color: var(--red); animation: blink 1s infinite; }
+  .tps-layout { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; }
+  .tps-val { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; }
+  .tps-graph { display: flex; align-items: flex-end; gap: 3px; height: 40px; }
+  .tps-graph div { flex: 1; background: rgba(0,229,255,0.15); transform: skewX(-15deg); }
+  .tps-graph div.active { background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
+
+  .trip-layout { display: flex; flex-direction: column; justify-content: space-around; flex: 1; font-size: 12px;}
+  .trip-row { display: flex; justify-content: space-between; }
+  .trip-row span:last-child { font-weight: bold; color: #fff; }
+
+  /* --- RIGHT PANEL --- */
+  .batt-layout { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; }
+  .batt-val { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; text-align: right; display: flex; justify-content: flex-end; align-items: baseline; gap: 8px;}
+  .batt-status { font-size: 12px; font-family: 'Share Tech Mono'; color: var(--green); }
+  .batt-graph { display: flex; align-items: flex-end; gap: 3px; height: 40px; justify-content: center;}
+  .batt-graph div { width: 8px; background: rgba(0,229,255,0.15); }
+  .batt-graph div.active { background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
+
+  .diag-list { display: flex; flex-direction: column; justify-content: space-around; flex: 1; font-size: 12px; }
+  .diag-row { display: flex; align-items: center; gap: 8px; }
+  .diag-icon { font-size: 14px; width: 20px; text-align: center; color: var(--green); }
+  .diag-text { flex: 1; color: var(--dim); }
+  .diag-stat { font-weight: bold; color: var(--green); }
+  .diag-stat.alert { color: var(--red); animation: blink 1s infinite; }
+  .diag-icon.alert { color: var(--red); animation: blink 1s infinite; }
   @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
-  
-  /* RIGHT PANEL - TIME */
-  .time-layout { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-  .time-date { font-size: 10px; color: var(--dim); text-transform: uppercase; }
-  .time-clock { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; color: #fff; }
 
-  .center-gauge-container {
-    flex: 1; display: flex; justify-content: center; align-items: center; position: relative; z-index: 10;
+  .time-layout { display: flex; flex-direction: column; justify-content: center; align-items: flex-end; flex: 1; }
+  .time-date { font-size: 11px; color: var(--dim); margin-bottom: 4px; text-transform: uppercase; }
+  .time-clock { font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 700; }
+
+  /* --- CENTER GAUGE --- */
+  .center-gauge {
+    position: relative; width: 440px; height: 440px; display: flex; justify-content: center; align-items: center; z-index: 10;
   }
-  .gauge-svg { width: min(100%, 85vh); height: auto; overflow: visible; }
+  .svg-gauge { width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: visible;}
   
-  /* Warning Icons */
-  .warning-icons { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
-  .w-icon-box { width: 44px; height: 34px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; display: flex; justify-content: center; align-items: center; }
-  .w-icon { width: 22px; height: 22px; color: rgba(255,255,255,0.15); transition: color 0.3s, filter 0.3s; }
-  .w-icon.alert-red { color: var(--red); filter: drop-shadow(0 0 8px var(--red)); animation: blink 1s infinite; }
-  .w-icon.alert-amber { color: var(--amber); filter: drop-shadow(0 0 8px var(--amber)); }
+  .speed-container { display: flex; flex-direction: column; align-items: center; position: absolute; top: 50%; transform: translateY(-50%); }
+  .speed-lbl { font-size: 12px; color: var(--dim); letter-spacing: 2px; margin-bottom: -5px; }
+  .speed-val { font-family: 'Orbitron', sans-serif; font-size: 110px; font-weight: 900; line-height: 0.9; color: var(--cyan); text-shadow: 0 0 25px rgba(0,229,255,0.6); letter-spacing: -2px; }
+  .speed-unit { font-size: 16px; color: var(--cyan); margin-top: -5px; }
+  
+  .gear-container { position: absolute; bottom: 26%; display: flex; flex-direction: column; align-items: center; }
+  .gear-val { font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 700; color: var(--red); text-shadow: 0 0 15px rgba(255,0,60,0.6); line-height: 1; border: 1px solid rgba(255,0,60,0.3); padding: 2px 16px; border-radius: 4px; background: rgba(255,0,60,0.1); }
+  .gear-lbl { font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-top: 4px; }
 
-  /* SPEED LIMIT SIGN */
+  .bottom-info { position: absolute; bottom: 12%; width: 55%; display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); }
+  .bottom-info span { color: #fff; font-weight: bold;}
+
+  /* Speed limit sign */
   .speed-limit-sign {
-    position: absolute; top: 20px; left: 20px;
-    width: 48px; height: 48px; border-radius: 50%;
-    border: 4px solid var(--red); background: #ffffff;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 15px rgba(255,0,60,0.6); z-index: 20;
-    transition: opacity 0.3s; opacity: 0;
+    position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%;
+    border: 4px solid var(--red); background: #ffffff; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 15px rgba(255,0,60,0.6); z-index: 20; transition: opacity 0.3s; opacity: 0;
   }
-  .speed-limit-val { font-family: 'Share Tech Mono', monospace; font-size: 20px; font-weight: bold; color: #000; }
+  .speed-limit-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: #000; }
 
-  /* BOTTOM BAR */
-  .bottom-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0 20px; z-index: 10; height: 30px; margin-top: 5px; font-size: 11px;
-  }
-  .bb-connection { color: var(--green); display: flex; align-items: center; gap: 8px; }
-  .bb-settings { color: var(--dim); cursor: pointer; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 4px;}
-  
-  /* RESPONSIVE SCALING */
-  @media (max-width: 700px) {
-    .side-panel { width: 180px; }
-    .speed-val { font-size: 80px; }
-    .panel-box { padding: 8px; }
+  @media (max-width: 800px) {
+    .side-panel { width: 210px; }
+    .center-gauge { width: 360px; height: 360px; }
+    .speed-val { font-size: 90px; }
+    .hud-box { padding: 8px; }
   }
 
 </style>
 </head>
 <body>
 
-<div id="app">
-  <div class="bg-glow"></div>
+<div class="ambient-glow"></div>
+<div class="hud-wrapper">
   
-  <!-- TOP BAR -->
   <div class="top-bar">
     <div class="tb-title">STATUS</div>
-    <div class="tb-center">
+    <div class="tb-group">
       <span>LEAN ANGLE: <span style="color:#fff">0°</span></span>
-      <span>REDLINE: <span class="tb-redline">11,500</span></span>
+      <span>O2: <span style="color:#fff">0.98</span></span>
+      <span style="color:var(--red); font-family:'Orbitron',sans-serif; font-weight:bold;">REDLINE: 11,500</span>
     </div>
     <div class="tb-title">TELEMETRY</div>
   </div>
   
-  <div class="main-content">
+  <div class="hud-main">
     
     <!-- LEFT PANEL -->
     <div class="side-panel">
       <!-- ECT -->
-      <div class="panel-box left" style="flex: 1.2;">
-        <div class="panel-title">ENGINE COOLANT TEMP</div>
+      <div class="hud-box chamfer-tl" style="flex: 1.2;">
+        <div class="box-title">ENGINE COOLANT TEMP <span>ECT</span></div>
         <div class="ect-layout">
-          <div class="ect-bars" id="ectBars">
-            <!-- segments -->
-          </div>
-          <div class="ect-val-box">
-            <span class="ect-val"><span id="ectVal">--</span><span class="ect-unit">°C</span></span>
+          <div class="ect-graph" id="ectBars"></div>
+          <div class="ect-info">
+            <div class="ect-val"><span id="ectVal">--</span><span style="font-size:14px; margin-left:2px;">°C</span></div>
+            <div class="ect-icons">
+              <span id="ectIconThermo">🌡</span>
+              <span id="ectIconWarn">⚠</span>
+            </div>
           </div>
         </div>
       </div>
       
       <!-- TPS -->
-      <div class="panel-box left" style="flex: 1;">
-        <div class="panel-title">THROTTLE POSITION</div>
+      <div class="hud-box" style="flex: 1;">
+        <div class="box-title">THROTTLE POSITION <span>TPS</span></div>
         <div class="tps-layout">
-          <div class="tps-val-box">
-            <span class="tps-val">TPS: <span id="tpsVal">--</span>%</span>
-          </div>
-          <div class="tps-bars" id="tpsBars">
-            <!-- segments -->
-          </div>
+          <div class="tps-val">TPS: <span id="tpsVal">--</span>%</div>
+          <div class="tps-graph" id="tpsBars"></div>
         </div>
       </div>
       
       <!-- TRIP -->
-      <div class="panel-box left" style="flex: 1;">
-        <div class="trip-list">
-          <div class="trip-item"><span class="trip-lbl">Trip A:</span><span class="trip-v"><span id="tripVal">0.0</span> km</span></div>
-          <div class="trip-item"><span class="trip-lbl">Avg Fuel:</span><span class="trip-v"><span id="fuelVal">0.0</span> L/100</span></div>
-          <div class="trip-item"><span class="trip-lbl">Fuel:</span><span class="trip-v">100%</span></div>
+      <div class="hud-box chamfer-bl" style="flex: 0.8;">
+        <div class="trip-layout">
+          <div class="trip-row"><span>Trip 1:</span><span id="tripVal">0.0 km</span></div>
+          <div class="trip-row"><span>Avg Fuel:</span><span id="fuelVal">0.0 L/100km</span></div>
+          <div class="trip-row"><span>Fuel:</span><span>100%</span></div>
         </div>
       </div>
     </div>
     
     <!-- CENTER GAUGE -->
-    <div class="center-gauge-container">
-      <svg class="gauge-svg" viewBox="-160 -160 320 320" id="gaugeSvg">
+    <div class="center-gauge">
+      <svg class="svg-gauge" viewBox="-200 -200 400 400">
         <defs>
-          <linearGradient id="gaugeGrad" x1="0%" y1="100%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#00e5ff" />
-            <stop offset="70%" stop-color="#00e5ff" />
-            <stop offset="85%" stop-color="#ffb703" />
-            <stop offset="100%" stop-color="#ff003c" />
+          <linearGradient id="glowGrad" x1="0%" y1="100%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#00e5ff"/>
+            <stop offset="60%" stop-color="#00e5ff"/>
+            <stop offset="85%" stop-color="#ffb703"/>
+            <stop offset="100%" stop-color="#ff003c"/>
           </linearGradient>
-          <mask id="gaugeMask">
-            <path id="gaugePathMask" d="M -98.99 98.99 A 140 140 0 1 1 98.99 98.99" fill="none" stroke="white" stroke-width="32" stroke-linecap="butt" />
-          </mask>
-          <filter id="glow">
-             <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-             <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-             </feMerge>
+          <filter id="neonGlow">
+            <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
         </defs>
-        
-        <!-- Thin outer decoration ring -->
-        <path d="M -109.6 109.6 A 155 155 0 1 1 109.6 109.6" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="2" />
 
-        <!-- Background segmented track -->
-        <path d="M -98.99 98.99 A 140 140 0 1 1 98.99 98.99" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="22" stroke-dasharray="8 5" stroke-linecap="butt" />
+        <!-- Dynamic elements generated in JS -->
+        <g id="outerTicks"></g>
+        <g id="rpmLabels"></g>
         
-        <!-- Filled segmented track with gradient and mask -->
-        <path d="M -98.99 98.99 A 140 140 0 1 1 98.99 98.99" fill="none" stroke="url(#gaugeGrad)" stroke-width="22" stroke-dasharray="8 5" stroke-linecap="butt" mask="url(#gaugeMask)" filter="url(#glow)" />
+        <!-- Inner thin decorative border -->
+        <path d="M -134.35 134.35 A 190 190 0 1 1 134.35 134.35" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="2" />
+        <path d="M -115.26 115.26 A 163 163 0 1 1 115.26 115.26" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="22" stroke-linecap="butt" />
         
-        <g id="gaugeLabels"></g>
-        
-        <!-- Speed text inside SVG -->
-        <text x="0" y="-20" fill="rgba(255,255,255,0.4)" font-family="Share Tech Mono" font-size="14" letter-spacing="2" text-anchor="middle">SPEED</text>
-        <text id="speedVal" x="0" y="45" fill="#00e5ff" font-family="Share Tech Mono" font-size="84" font-weight="bold" letter-spacing="-4" text-anchor="middle" filter="url(#glow)">0</text>
-        <text x="0" y="65" fill="rgba(255,255,255,0.4)" font-family="Share Tech Mono" font-size="14" letter-spacing="2" text-anchor="middle">km/h</text>
-        
-        <!-- RPM & ODO -->
-        <text x="-45" y="125" fill="rgba(255,255,255,0.7)" font-family="Share Tech Mono" font-size="12" font-weight="bold" text-anchor="middle">RPM <tspan id="rpmBotVal" fill="#fff">0</tspan></text>
-        <text x="45" y="125" fill="rgba(255,255,255,0.7)" font-family="Share Tech Mono" font-size="12" font-weight="bold" text-anchor="middle">ODO <tspan fill="#fff">12,450</tspan></text>
+        <!-- Active RPM arc -->
+        <path id="rpmArc" d="M -115.26 115.26 A 163 163 0 1 1 115.26 115.26" fill="none" stroke="url(#glowGrad)" stroke-width="22" stroke-linecap="butt" filter="url(#neonGlow)" />
       </svg>
       
+      <div class="speed-container">
+        <div class="speed-lbl">SPEED</div>
+        <div class="speed-val" id="speedVal">0</div>
+        <div class="speed-unit">km/h</div>
+      </div>
+      
+      <div class="gear-container">
+        <div class="gear-val">AUTO</div>
+        <div class="gear-lbl">GEAR</div>
+      </div>
+      
+      <div class="bottom-info">
+        <div>RPM <span id="rpmBotVal">0</span></div>
+        <div>ODO <span>12,875 km</span></div>
+      </div>
+
       <div class="speed-limit-sign" id="speedLimitSign">
         <span class="speed-limit-val" id="speedLimitVal">--</span>
       </div>
@@ -267,35 +253,30 @@
     <!-- RIGHT PANEL -->
     <div class="side-panel">
       <!-- BATT -->
-      <div class="panel-box right" style="flex: 1.2;">
-        <div class="panel-title" style="text-align: right;">BATTERY VOLTAGE</div>
+      <div class="hud-box chamfer-tr" style="flex: 1.2;">
+        <div class="box-title">BATTERY VOLTAGE <span>BATT</span></div>
         <div class="batt-layout">
-          <div class="batt-val-box">
-            <span class="batt-val"><span id="battVal">--</span>V</span>
-            <span class="batt-status-txt" id="battStatus">GOOD</span>
-          </div>
-          <div class="batt-bars" id="battBars">
-            <!-- segments -->
-          </div>
+          <div class="batt-val"><span id="battVal">--</span><span style="font-size:16px;">V</span> <span class="batt-status" id="battStatus">GOOD</span></div>
+          <div class="batt-graph" id="battBars"></div>
         </div>
       </div>
       
       <!-- DIAGNOSTICS -->
-      <div class="panel-box right" style="flex: 1.2;">
-        <div class="panel-title" style="text-align: right;">SYSTEM ALERTS</div>
-        <div class="warning-icons" id="warningIcons">
-          <div class="w-icon-box"><svg viewBox="0 0 24 24" class="w-icon" id="icon-engine"><path fill="currentColor" d="M19 9V7H17V6.5C17 5.67 16.33 5 15.5 5H13V3H11V5H8.5C7.67 5 7 5.67 7 6.5V7H5V9H7V10H5V12H7V13H5V15H7V17.5C7 18.33 7.67 19 8.5 19H15.5C16.33 19 17 18.33 17 17.5V17H19V15H17V14H19V12H17V11H19V9M10 15H8V13H10V15M10 11H8V9H10V11M16 15H14V13H16V15M16 11H14V9H16V11Z"/></svg></div>
-          <div class="w-icon-box"><svg viewBox="0 0 24 24" class="w-icon" id="icon-temp"><path fill="currentColor" d="M15 13V5C15 3.34 13.66 2 12 2S9 3.34 9 5V13C7.18 14.36 6.54 16.92 7.9 18.74C9.26 20.56 11.82 21.2 13.64 19.84C14.7 19.05 15.34 17.85 15.34 16.5C15.34 15.19 14.66 13.93 13.5 13.15V5C13.5 4.17 12.83 3.5 12 3.5S10.5 4.17 10.5 5V13.15C9.34 13.93 8.66 15.19 8.66 16.5C8.66 18.34 10.16 19.84 12 19.84S15.34 18.34 15.34 16.5C15.34 15.19 14.66 13.93 13.5 13.15H15Z"/></svg></div>
-          <div class="w-icon-box"><svg viewBox="0 0 24 24" class="w-icon" id="icon-batt"><path fill="currentColor" d="M16.67 4H15V2H9V4H7.33C6.6 4 6 4.6 6 5.33V20.67C6 21.4 6.6 22 7.33 22H16.67C17.4 22 18 21.4 18 20.67V5.33C18 4.6 17.4 4 16.67 4M11 16H9V14H11V16M15 16H13V14H15V16M11 12H9V10H11V12M15 12H13V10H15V12Z"/></svg></div>
-          <div class="w-icon-box"><svg viewBox="0 0 24 24" class="w-icon" id="icon-abs"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M8 7.5H10.5C11.3 7.5 12 8.2 12 9V11.5C12 12.3 11.3 13 10.5 13H8V7.5M9.5 9V11.5H10.5V9H9.5M13.5 7.5H16C16.8 7.5 17.5 8.2 17.5 9V10.5C17.5 11.3 16.8 12 16 12V14.5C16 15.3 15.3 16 14.5 16H12V7.5H13.5M13.5 9V11.5H14.5V9H13.5M13.5 13V14.5H14.5V13H13.5Z"/></svg></div>
+      <div class="hud-box" style="flex: 1;">
+        <div class="box-title" style="margin-bottom:2px;">ENGINE DIAGNOSTICS <span>DTCs: <span id="dtcCount" style="color:var(--green)">0</span></span></div>
+        <div class="diag-list">
+          <div class="diag-row"><span class="diag-icon" id="iconEng">⚙</span><span class="diag-text">Engine:</span><span class="diag-stat" id="statEng">OK</span></div>
+          <div class="diag-row"><span class="diag-icon" id="iconAbs">◉</span><span class="diag-text">ABS:</span><span class="diag-stat" id="statAbs">OK</span></div>
+          <div class="diag-row"><span class="diag-icon" id="iconFuel">⛽</span><span class="diag-text">Fuel Sys:</span><span class="diag-stat" id="statFuel">OK</span></div>
+          <div class="diag-row"><span class="diag-icon" id="iconFault">⚠</span><span class="diag-text">Faults:</span><span class="diag-stat" id="statFault">NONE</span></div>
         </div>
       </div>
       
       <!-- TIME -->
-      <div class="panel-box right" style="flex: 0.8; justify-content: center;">
+      <div class="hud-box chamfer-br" style="flex: 0.8;">
         <div class="time-layout">
-          <span class="time-date" id="dateStr">SAT, 26 OCT</span>
-          <span class="time-clock" id="clock">00:00:00</span>
+          <div class="time-date" id="dateStr">SAT, 26 OCT</div>
+          <div class="time-clock" id="clock">00:00:00</div>
         </div>
       </div>
     </div>
@@ -305,7 +286,7 @@
   <!-- BOTTOM BAR -->
   <div class="bottom-bar">
     <div class="bb-connection">
-      <span style="font-size: 14px;">🔌</span> DIAGNOSTIC CONNECTION: <span style="font-weight:bold;">CONNECTED</span>
+      🔌 DIAGNOSTIC CONNECTION: <span>CONNECTED</span>
     </div>
     <div class="bb-settings" id="btnGear">
       PROFILE SETTINGS ⚙
@@ -327,7 +308,12 @@
     
     const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
     const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    document.getElementById('dateStr').textContent = days[n.getDay()] + ', ' + n.getDate() + ' ' + months[n.getMonth()];
+    
+    let ampm = n.getHours() >= 12 ? 'PM' : 'AM';
+    let h12 = n.getHours() % 12; h12 = h12 ? h12 : 12;
+    let timeStr = String(h12).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0') + ' ' + ampm;
+    
+    document.getElementById('dateStr').textContent = timeStr + ' | ' + days[n.getDay()] + ', ' + n.getDate() + ' ' + months[n.getMonth()];
   }
   setInterval(updateClock, 1000); updateClock();
 
@@ -336,12 +322,83 @@
     window.location.href = 'settings.html';
   });
 
-  // --- BUILD CHARTS ---
+  // --- SVG GAUGE LOGIC ---
+  function polar(cx, cy, r, angleDeg){
+    const rad = angleDeg * Math.PI / 180;
+    return { x: cx + r * Math.sin(rad), y: cy - r * Math.cos(rad) };
+  }
+  
+  const START_ANGLE = -135;
+  const END_ANGLE = 135;
+  const MAX_RPM = 14000;
+  
+  // 1. Generate Outer Ticks
+  const outerTicks = document.getElementById('outerTicks');
+  const numTicks = 60;
+  for(let i=0; i<=numTicks; i++) {
+    const ratio = i / numTicks;
+    const angle = START_ANGLE + (END_ANGLE - START_ANGLE) * ratio;
+    
+    // Gradient coloring for ticks based on position
+    let color = 'rgba(0,229,255,0.6)';
+    if(ratio > 0.7) color = '#ffb703';
+    if(ratio > 0.85) color = '#ff003c';
+    
+    const inner = polar(0, 0, 180, angle);
+    const outer = polar(0, 0, i%5===0 ? 195 : 188, angle);
+    
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', inner.x); line.setAttribute('y1', inner.y);
+    line.setAttribute('x2', outer.x); line.setAttribute('y2', outer.y);
+    line.setAttribute('stroke', color);
+    line.setAttribute('stroke-width', i%5===0 ? '3' : '2');
+    outerTicks.appendChild(line);
+  }
+  
+  // 2. Generate RPM Labels
+  const rpmLabels = document.getElementById('rpmLabels');
+  for(let i=1; i<=14; i++) {
+    const ratio = i / 14;
+    const angle = START_ANGLE + (END_ANGLE - START_ANGLE) * ratio;
+    
+    let color = '#fff';
+    if(i >= 10) color = '#ffb703';
+    if(i >= 12) color = '#ff003c';
+    
+    const pos = polar(0, 0, 160, angle); // slightly inside the thin line
+    
+    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txt.setAttribute('x', pos.x);
+    txt.setAttribute('y', pos.y + 6);
+    txt.setAttribute('fill', color);
+    txt.setAttribute('font-family', 'Orbitron');
+    txt.setAttribute('font-size', '16');
+    txt.setAttribute('font-weight', 'bold');
+    txt.setAttribute('text-anchor', 'middle');
+    txt.textContent = i;
+    rpmLabels.appendChild(txt);
+  }
+  
+  // 3. RPM Arc Animation
+  const rpmArc = document.getElementById('rpmArc');
+  // Radius = 163, angle = 270 deg
+  const PATH_LEN = 2 * Math.PI * 163 * (270 / 360);
+  rpmArc.style.strokeDasharray = PATH_LEN;
+  rpmArc.style.strokeDashoffset = PATH_LEN;
+  rpmArc.style.transition = 'stroke-dashoffset 0.1s linear';
+
+  function updateGauge(rpm) {
+    if(rpm > MAX_RPM) rpm = MAX_RPM;
+    const ratio = rpm / MAX_RPM;
+    const offset = PATH_LEN - (ratio * PATH_LEN);
+    rpmArc.style.strokeDashoffset = offset;
+  }
+
+  // --- CHARTS LOGIC ---
   const ectBars = document.getElementById('ectBars');
-  const numEct = 10;
+  const numEct = 12;
   for(let i=0; i<numEct; i++) {
     const seg = document.createElement('div');
-    seg.className = 'ect-segment';
     ectBars.appendChild(seg);
   }
   function updateEctChart(temp) {
@@ -349,23 +406,20 @@
     const active = Math.round(ratio * numEct);
     const segs = ectBars.children;
     for(let i=0; i<numEct; i++) {
+      segs[numEct - 1 - i].className = '';
       if(i < active) {
-        segs[numEct - 1 - i].classList.add('active');
-        if(temp >= 110) { segs[numEct - 1 - i].style.background = 'var(--red)'; segs[numEct - 1 - i].style.boxShadow = '0 0 5px var(--red)'; }
-        else if (temp > 100) { segs[numEct - 1 - i].style.background = 'var(--amber)'; segs[numEct - 1 - i].style.boxShadow = '0 0 5px var(--amber)'; }
-        else { segs[numEct - 1 - i].style.background = ''; segs[numEct - 1 - i].style.boxShadow = ''; }
-      } else {
-        segs[numEct - 1 - i].classList.remove('active');
+        if(temp >= 110) segs[numEct - 1 - i].classList.add('alert');
+        else if (temp > 100) segs[numEct - 1 - i].classList.add('warn');
+        else segs[numEct - 1 - i].classList.add('active');
       }
     }
   }
 
   const tpsBars = document.getElementById('tpsBars');
-  const numTps = 15;
+  const numTps = 16;
   for(let i=0; i<numTps; i++) {
     const seg = document.createElement('div');
-    seg.className = 'tps-segment';
-    seg.style.height = (10 + (i * 1.5)) + 'px';
+    seg.style.height = (12 + (i * 1.8)) + 'px';
     tpsBars.appendChild(seg);
   }
   function updateTpsChart(tps) {
@@ -378,12 +432,12 @@
   }
 
   const battBars = document.getElementById('battBars');
-  const numBatt = 20;
-  const battHeights = [15,25,35,20,30,40,25,15,35,25,40,20,30,25,15,35,20,30,25,40];
+  const numBatt = 24;
   for(let i=0; i<numBatt; i++) {
     const seg = document.createElement('div');
-    seg.className = 'batt-segment';
-    seg.style.height = battHeights[i] + 'px';
+    // Equalizer random heights
+    const h = [10,20,15,25,18,30,22,12,28,15,35,20,25,18,32,15,22,12,30,20,28,16,22,14][i];
+    seg.style.height = h + 'px';
     battBars.appendChild(seg);
   }
   function updateBattChart(volt) {
@@ -391,134 +445,76 @@
     const active = Math.round(ratio * numBatt);
     const segs = battBars.children;
     for(let i=0; i<numBatt; i++) {
-      if(i < active) {
-        segs[i].classList.add('active');
-        if(volt > 14.8 || volt < 11.5) { segs[i].style.background = 'var(--red)'; segs[i].style.boxShadow = '0 0 5px var(--red)'; }
-        else if (volt <= 12.0) { segs[i].style.background = 'var(--amber)'; segs[i].style.boxShadow = '0 0 5px var(--amber)'; }
-        else { segs[i].style.background = ''; segs[i].style.boxShadow = ''; }
-      }
+      if(i < active) segs[i].classList.add('active');
       else segs[i].classList.remove('active');
     }
   }
 
-  // --- SVG GAUGE ---
-  const MAX_RPM = 14000;
-  const START_ANGLE = -135;
-  const END_ANGLE = 135;
-  const RADIUS = 140;
-  const PATH_LEN = 2 * Math.PI * RADIUS * (270 / 360);
-  
-  const pathMask = document.getElementById('gaugePathMask');
-  pathMask.style.strokeDasharray = PATH_LEN;
-  pathMask.style.strokeDashoffset = PATH_LEN;
-  pathMask.style.transition = 'stroke-dashoffset 0.1s linear';
-
-  const gLabels = document.getElementById('gaugeLabels');
-  const numLabels = 14;
-  for(let i=0; i<=numLabels; i++) {
-    const ratio = i / numLabels;
-    const angleDeg = START_ANGLE + (END_ANGLE - START_ANGLE) * ratio;
-    const angleRad = angleDeg * Math.PI / 180;
-    
-    // Labels inside the ring
-    const lr = RADIUS - 30;
-    const lx = Math.sin(angleRad) * lr;
-    const ly = -Math.cos(angleRad) * lr;
-    
-    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    txt.setAttribute('x', lx);
-    txt.setAttribute('y', ly + 5);
-    txt.setAttribute('fill', i >= 11 ? 'var(--red)' : 'rgba(255,255,255,0.8)');
-    txt.setAttribute('font-family', 'Share Tech Mono');
-    txt.setAttribute('font-size', '16');
-    txt.setAttribute('font-weight', 'bold');
-    txt.setAttribute('text-anchor', 'middle');
-    txt.textContent = i;
-    gLabels.appendChild(txt);
-  }
-
-  function updateGauge(rpm) {
-    if(rpm > MAX_RPM) rpm = MAX_RPM;
-    const ratio = rpm / MAX_RPM;
-    const offset = PATH_LEN - (ratio * PATH_LEN);
-    pathMask.style.strokeDashoffset = offset;
-  }
-
   // --- ECU EVENT ---
-  let lastECUSpeed = 0;
   window.addEventListener('ecu_data', (e) => {
     const data = e.detail;
-    lastECUSpeed = data.speed;
     
     document.getElementById('speedVal').textContent = Math.round(data.speed);
-    document.getElementById('rpmBotVal').textContent = Math.round(data.rpm);
-    
+    document.getElementById('rpmBotVal').textContent = Math.round(data.rpm).toLocaleString();
     updateGauge(data.rpm);
     
+    // ECT
     const ectEl = document.getElementById('ectVal');
     ectEl.textContent = Math.round(data.ect);
-    if (data.ect >= 110) ectEl.style.color = 'var(--red)';
-    else if (data.ect > 100) ectEl.style.color = 'var(--amber)';
-    else ectEl.style.color = '';
     updateEctChart(data.ect);
     
+    // TPS
     document.getElementById('tpsVal').textContent = Math.round(data.tps);
     updateTpsChart(data.tps);
     
-    const battEl = document.getElementById('battVal');
-    battEl.textContent = data.battery.toFixed(1);
-    if (data.battery > 14.8 || data.battery < 11.5) battEl.style.color = 'var(--red)';
-    else if (data.battery <= 12.0) battEl.style.color = 'var(--amber)';
-    else battEl.style.color = '';
-    
+    // Battery
+    document.getElementById('battVal').textContent = data.battery.toFixed(1);
     const battStatus = document.getElementById('battStatus');
-    if (data.battery > 14.8) {
-      battStatus.textContent = 'HIGH';
-      battStatus.style.color = 'var(--red)';
-    } else if (data.battery < 11.5) {
-      battStatus.textContent = 'LOW';
-      battStatus.style.color = 'var(--red)';
-    } else if (data.battery <= 12.0) {
-      battStatus.textContent = 'WARN';
-      battStatus.style.color = 'var(--amber)';
-    } else {
-      battStatus.textContent = 'GOOD';
-      battStatus.style.color = 'var(--green)';
-    }
+    if (data.battery > 14.8) { battStatus.textContent = 'HIGH'; battStatus.style.color = 'var(--red)'; } 
+    else if (data.battery < 11.5) { battStatus.textContent = 'LOW'; battStatus.style.color = 'var(--red)'; } 
+    else if (data.battery <= 12.0) { battStatus.textContent = 'WARN'; battStatus.style.color = 'var(--amber)'; } 
+    else { battStatus.textContent = 'GOOD'; battStatus.style.color = 'var(--green)'; }
     updateBattChart(data.battery);
     
-    document.getElementById('tripVal').textContent = data.tripA.toFixed(1);
-    if(document.getElementById('fuelVal')) document.getElementById('fuelVal').textContent = data.instantL100km.toFixed(1);
+    // Trip
+    document.getElementById('tripVal').textContent = data.tripA.toFixed(1) + ' km';
+    if(document.getElementById('fuelVal')) document.getElementById('fuelVal').textContent = data.instantL100km.toFixed(1) + ' L/100km';
     
+    // Diagnostics
+    let faults = 0;
+    const statEng = document.getElementById('statEng'); const iconEng = document.getElementById('iconEng');
+    if(data.rpm > 12000 || data.ect > 110) { statEng.textContent = 'FAULT'; statEng.className = 'diag-stat alert'; iconEng.className = 'diag-icon alert'; faults++; }
+    else { statEng.textContent = 'OK'; statEng.className = 'diag-stat'; iconEng.className = 'diag-icon'; }
+    
+    const statAbs = document.getElementById('statAbs'); const iconAbs = document.getElementById('iconAbs');
+    statAbs.textContent = 'OK'; statAbs.className = 'diag-stat'; iconAbs.className = 'diag-icon';
+    
+    const statFuel = document.getElementById('statFuel'); const iconFuel = document.getElementById('iconFuel');
+    statFuel.textContent = 'OK'; statFuel.className = 'diag-stat'; iconFuel.className = 'diag-icon';
+    
+    const statFault = document.getElementById('statFault'); const iconFault = document.getElementById('iconFault');
+    document.getElementById('dtcCount').textContent = faults;
+    if(faults > 0) {
+        statFault.textContent = faults + ' DETECTED'; statFault.className = 'diag-stat alert'; iconFault.className = 'diag-icon alert';
+        document.getElementById('dtcCount').style.color = 'var(--red)';
+    } else {
+        statFault.textContent = 'NONE'; statFault.className = 'diag-stat'; iconFault.className = 'diag-icon';
+        document.getElementById('dtcCount').style.color = 'var(--green)';
+    }
+
     if (window.TripTracker && TripTracker.isRecording()) {
       TripTracker.addECUData(Math.round(data.speed), data.rpm, data.ect, data.tps, data.battery);
     }
-    
-    // --- WARNING ICONS LOGIC ---
-    const iconEngine = document.getElementById('icon-engine');
-    if (data.rpm > 12000) { iconEngine.classList.add('alert-red'); }
-    else { iconEngine.classList.remove('alert-red'); }
-    
-    const iconTemp = document.getElementById('icon-temp');
-    if (data.ect >= 110) { iconTemp.classList.add('alert-red'); iconTemp.classList.remove('alert-amber'); }
-    else if (data.ect > 100) { iconTemp.classList.add('alert-amber'); iconTemp.classList.remove('alert-red'); }
-    else { iconTemp.classList.remove('alert-red', 'alert-amber'); }
-    
-    const iconBatt = document.getElementById('icon-batt');
-    if (data.battery < 11.5 || data.battery > 14.8) { iconBatt.classList.add('alert-red'); iconBatt.classList.remove('alert-amber'); }
-    else if (data.battery <= 12.0) { iconBatt.classList.add('alert-amber'); iconBatt.classList.remove('alert-red'); }
-    else { iconBatt.classList.remove('alert-red', 'alert-amber'); }
   });
 
   // --- SPEED LIMIT EVENT ---
-  let currentSpeedLimit = 0;
   window.addEventListener('speed_limit_data', (e) => {
-    currentSpeedLimit = e.detail.limit;
+    const limit = e.detail.limit;
     const valEl = document.getElementById('speedLimitVal');
     const signEl = document.getElementById('speedLimitSign');
     if (valEl && signEl) {
-      if (currentSpeedLimit > 0) {
-        valEl.textContent = currentSpeedLimit;
+      if (limit > 0) {
+        valEl.textContent = limit;
         signEl.style.opacity = '1';
       } else {
         valEl.textContent = '--';
