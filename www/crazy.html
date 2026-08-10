@@ -37,7 +37,7 @@
 
   /* TOP / BOTTOM BARS */
   .top-bar, .bottom-bar {
-    display: flex; justify-content: space-between; align-items: center; height: 26px;
+    display: flex; justify-content: space-between; align-items: center; height: 20px;
   }
   .tb-group { display: flex; gap: 15px; align-items: center; font-size: 11px; color: var(--dim); }
   .tb-title { font-family: 'Orbitron', sans-serif; font-size: 14px; color: #fff; font-weight: bold; letter-spacing: 1px; }
@@ -54,13 +54,13 @@
   
   /* PANELS */
   .side-panel {
-    width: 250px; height: 100%; display: flex; flex-direction: column; gap: 8px; z-index: 5;
+    width: 230px; height: 100%; display: flex; flex-direction: column; gap: 8px; z-index: 5;
   }
   .hud-box {
     background: linear-gradient(135deg, rgba(20,24,32,0.85), rgba(8,10,14,0.85));
     backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
-    padding: 12px; position: relative; flex: 1; display: flex; flex-direction: column;
+    padding: 8px 10px; position: relative; flex: 1; display: flex; flex-direction: column; justify-content: center;
     border: none;
   }
   
@@ -80,12 +80,12 @@
   .ect-graph div.warn { background: var(--amber); box-shadow: 0 0 5px var(--amber); }
   .ect-graph div.alert { background: var(--red); box-shadow: 0 0 5px var(--red); }
   .ect-info { display: flex; flex-direction: column; justify-content: center; }
-  .ect-val { font-family: 'Orbitron', sans-serif; font-size: 26px; font-weight: 700; margin-bottom: 4px; }
-  .ect-icons { display: flex; gap: 8px; font-size: 16px; color: rgba(255,0,60,0.3); }
+  .ect-val { font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 2px; }
+  .ect-icons { display: flex; gap: 8px; font-size: 14px; color: rgba(255,0,60,0.3); }
 
-  .tps-layout { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; }
-  .tps-val { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; }
-  .tps-graph { display: flex; align-items: flex-end; gap: 3px; height: 40px; }
+  .tps-layout { display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: center; }
+  .tps-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; }
+  .tps-graph { display: flex; align-items: flex-end; gap: 3px; height: 30px; }
   .tps-graph div { flex: 1; background: rgba(0,229,255,0.15); transform: skewX(-15deg); }
   .tps-graph div.active { background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
 
@@ -94,10 +94,10 @@
   .trip-row span:last-child { font-weight: bold; color: #fff; }
 
   /* --- RIGHT PANEL --- */
-  .batt-layout { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; }
-  .batt-val { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; text-align: right; display: flex; justify-content: flex-end; align-items: baseline; gap: 8px;}
-  .batt-status { font-size: 12px; font-family: 'Share Tech Mono'; color: var(--green); }
-  .batt-graph { display: flex; align-items: flex-end; gap: 3px; height: 40px; justify-content: center;}
+  .batt-layout { display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: center; }
+  .batt-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; text-align: right; display: flex; justify-content: flex-end; align-items: baseline; gap: 6px;}
+  .batt-status { font-size: 11px; font-family: 'Share Tech Mono'; color: var(--green); }
+  .batt-graph { display: flex; align-items: flex-end; gap: 3px; height: 30px; justify-content: center;}
   .batt-graph div { width: 8px; background: rgba(0,229,255,0.15); }
   .batt-graph div.active { background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
 
@@ -111,25 +111,25 @@
   @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
   .time-layout { display: flex; flex-direction: column; justify-content: center; align-items: flex-end; flex: 1; }
-  .time-date { font-size: 11px; color: var(--dim); margin-bottom: 4px; text-transform: uppercase; }
-  .time-clock { font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 700; }
+  .time-date { font-size: 10px; color: var(--dim); margin-bottom: 2px; text-transform: uppercase; }
+  .time-clock { font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: 700; }
 
   /* --- CENTER GAUGE --- */
   .center-gauge {
-    position: relative; width: 440px; height: 440px; display: flex; justify-content: center; align-items: center; z-index: 10;
+    position: relative; width: 330px; height: 330px; display: flex; justify-content: center; align-items: center; z-index: 10;
   }
   .svg-gauge { width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: visible;}
   
   .speed-container { display: flex; flex-direction: column; align-items: center; position: absolute; top: 45%; transform: translateY(-50%); }
-  .speed-lbl { font-size: 12px; color: var(--dim); letter-spacing: 2px; margin-bottom: -2px; }
-  .speed-val { font-family: 'Orbitron', sans-serif; font-size: 90px; font-weight: 900; line-height: 1; color: var(--cyan); text-shadow: 0 0 25px rgba(0,229,255,0.6); letter-spacing: -2px; }
-  .speed-unit { font-size: 16px; color: var(--cyan); margin-top: 0px; }
+  .speed-lbl { font-size: 11px; color: var(--dim); letter-spacing: 2px; margin-bottom: -2px; }
+  .speed-val { font-family: 'Orbitron', sans-serif; font-size: 80px; font-weight: 900; line-height: 1; color: var(--cyan); text-shadow: 0 0 25px rgba(0,229,255,0.6); letter-spacing: -2px; }
+  .speed-unit { font-size: 14px; color: var(--cyan); margin-top: 0px; }
   
   .gear-container { position: absolute; bottom: 20%; display: flex; flex-direction: column; align-items: center; }
-  .gear-val { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; color: var(--red); text-shadow: 0 0 15px rgba(255,0,60,0.6); line-height: 1; border: 1px solid rgba(255,0,60,0.5); padding: 4px 12px; border-radius: 4px; background: rgba(255,0,60,0.1); }
-  .gear-lbl { font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-top: 6px; }
+  .gear-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; color: var(--red); text-shadow: 0 0 15px rgba(255,0,60,0.6); line-height: 1; border: 1px solid rgba(255,0,60,0.5); padding: 4px 12px; border-radius: 4px; background: rgba(255,0,60,0.1); }
+  .gear-lbl { font-size: 9px; color: var(--dim); letter-spacing: 1px; margin-top: 6px; }
 
-  .bottom-info { position: absolute; bottom: 12%; width: 55%; display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); }
+  .bottom-info { position: absolute; bottom: 10%; width: 60%; display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); }
   .bottom-info span { color: #fff; font-weight: bold;}
 
   /* Speed limit sign */
@@ -141,10 +141,10 @@
   .speed-limit-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: #000; }
 
   @media (max-width: 800px) {
-    .side-panel { width: 210px; }
-    .center-gauge { width: 360px; height: 360px; }
-    .speed-val { font-size: 90px; }
-    .hud-box { padding: 8px; }
+    .side-panel { width: 190px; }
+    .center-gauge { width: 280px; height: 280px; }
+    .speed-val { font-size: 60px; }
+    .hud-box { padding: 6px; }
   }
 
 </style>
