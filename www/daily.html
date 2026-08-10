@@ -56,9 +56,15 @@
             background-image: 
               linear-gradient(rgba(43,231,255,0.03) 1px, transparent 1px),
               linear-gradient(90deg, rgba(43,231,255,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
+            background-size: 20px 20px;
             box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
             pointer-events: none; z-index: 10;
+        }
+        .bg-glow {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80vw; height: 80vw; max-width: 600px; max-height: 600px;
+            background: radial-gradient(circle, rgba(43,231,255,0.08) 0%, transparent 60%);
+            z-index: 1; pointer-events: none;
         }
         .top-bar {
             width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 8px 20px;
@@ -79,10 +85,10 @@
             margin: 0 auto;
         }
         .svg-container {
-            width: 100%; height: 100%;
+            width: 100%; height: 100%; overflow: visible;
         }
-        .arc-bg {
-            fill: none; stroke: rgba(43,231,255,0.1); stroke-width: 2;
+        .active-arc {
+            transition: stroke-dashoffset 0.1s linear;
         }
         .daily-readout {
             position: absolute; left: 50%; top: 55%; transform: translate(-50%, -50%);
@@ -361,6 +367,7 @@
 <body>
     <div class="app-main">
     <div class="vignette"></div>
+    <div class="bg-glow"></div>
     
     <div class="top-bar">
         <div style="width: 32px;"></div>
@@ -372,9 +379,31 @@
         <span class="speed-limit-val" id="speedLimitVal">--</span>
     </div>
     <div class="cluster">
-        <svg class="svg-container" viewBox="0 0 200 160" preserveAspectRatio="xMidYMid meet">
-            <path class="arc-bg" d="M 17 148 A 88 88 0 1 1 183 148"></path>
-            <g id="ticks"></g>
+        <svg class="svg-container" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid meet">
+            <defs>
+                <linearGradient id="dailyGrad" x1="0%" y1="100%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#2BE7FF" />
+                    <stop offset="65%" stop-color="#2BE7FF" />
+                    <stop offset="85%" stop-color="#ffb703" />
+                    <stop offset="100%" stop-color="#ff2130" />
+                </linearGradient>
+                <filter id="dailyGlow">
+                    <feGaussianBlur stdDeviation="4" result="blur" />
+                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                </filter>
+            </defs>
+            
+            <!-- Decorative background elements -->
+            <circle cx="150" cy="160" r="110" fill="none" stroke="rgba(43,231,255,0.02)" stroke-width="1" />
+            <circle cx="150" cy="160" r="70" fill="none" stroke="rgba(43,231,255,0.05)" stroke-width="1" stroke-dasharray="4 4" />
+
+            <!-- RPM Gauge Track -->
+            <path id="bgArc" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="16" stroke-linecap="round"></path>
+            
+            <!-- RPM Gauge Fill -->
+            <path id="activeArc" class="active-arc" fill="none" stroke="url(#dailyGrad)" stroke-width="16" stroke-linecap="round" filter="url(#dailyGlow)"></path>
+            
+            <g id="dailyLabels"></g>
         </svg>
         <div class="daily-readout">
             <div class="daily-speed">
@@ -485,41 +514,45 @@
             return el;
         }
 
-        // Ticks generation
-        const ticksGroup = document.getElementById('ticks');
-        const numTicks = 56;
-        const startAngle = -110;
-        const endAngle = 110;
-        const cx = 100, cy = 118;
-        const innerR = 74, outerR = 88;
-        const angleStep = (endAngle - startAngle) / (numTicks - 1);
-        const ticks = [];
+        // New Gauge generation
+        function describeArc(x, y, radius, startAngle, endAngle) {
+            const start = polar(x, y, radius, startAngle);
+            const end = polar(x, y, radius, endAngle);
+            const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+            return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`;
+        }
 
-        const isLight = document.documentElement.classList.contains('light-theme');
-        for(let i=0; i<numTicks; i++){
-            let angle = startAngle + i * angleStep;
-            let p1 = polar(cx, cy, innerR, angle);
-            let p2 = polar(cx, cy, outerR, angle);
-            
-            let dimColor, litColor;
-            if(i < 34) {
-                dimColor = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.10)'; 
-                litColor = isLight ? '#008eb3' : '#f4f5f8';
-            } else if (i < 44) {
-                dimColor = isLight ? 'rgba(255,183,3,0.3)' : 'rgba(255,183,3,0.14)'; 
-                litColor = isLight ? '#d49600' : '#ffb703';
-            } else {
-                dimColor = isLight ? 'rgba(255,33,48,0.2)' : 'rgba(255,33,48,0.16)'; 
-                litColor = isLight ? '#d61b27' : '#ff2130';
-            }
+        const bgArc = document.getElementById('bgArc');
+        const activeArc = document.getElementById('activeArc');
+        const dailyLabels = document.getElementById('dailyLabels');
+        
+        const cx = 150, cy = 160;
+        const gaugeR = 130;
+        const startAngle = -105;
+        const endAngle = 105;
+        
+        const arcPath = describeArc(cx, cy, gaugeR, startAngle, endAngle);
+        bgArc.setAttribute('d', arcPath);
+        activeArc.setAttribute('d', arcPath);
 
-            let line = svgEl('line', {
-                x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
-                stroke: dimColor, 'stroke-width': 2,
-                'stroke-linecap': 'round'
-            });
-            ticksGroup.appendChild(line);
-            ticks.push({ el: line, dimColor, litColor });
+        const pathLength = activeArc.getTotalLength() || (2 * Math.PI * gaugeR * (210 / 360));
+        activeArc.style.strokeDasharray = pathLength;
+        activeArc.style.strokeDashoffset = pathLength;
+
+        for(let i=0; i<=12; i+=2) {
+            const ratio = i / 12;
+            const angle = startAngle + ratio * (endAngle - startAngle);
+            const pos = polar(cx, cy, gaugeR - 24, angle);
+            const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            txt.setAttribute('x', pos.x);
+            txt.setAttribute('y', pos.y + 4);
+            txt.setAttribute('fill', i >= 10 ? '#ff2130' : 'rgba(255,255,255,0.4)');
+            txt.setAttribute('font-family', 'Share Tech Mono');
+            txt.setAttribute('font-size', '14');
+            txt.setAttribute('font-weight', 'bold');
+            txt.setAttribute('text-anchor', 'middle');
+            txt.textContent = i;
+            dailyLabels.appendChild(txt);
         }
 
         // Update logic
@@ -534,16 +567,7 @@
             document.getElementById('rpm').innerText = Math.round(rpm);
             let maxRPM = 12000;
             let ratio = Math.min(1, Math.max(0, rpm / maxRPM));
-            let activeTicks = Math.round(ratio * numTicks);
-
-            for(let i=0; i<numTicks; i++) {
-                ticks[i].el.setAttribute('stroke', i < activeTicks ? ticks[i].litColor : ticks[i].dimColor);
-                if(i < activeTicks) {
-                    ticks[i].el.style.filter = `drop-shadow(0 0 3px ${ticks[i].litColor})`;
-                } else {
-                    ticks[i].el.style.filter = 'none';
-                }
-            }
+            activeArc.style.strokeDashoffset = pathLength - (ratio * pathLength);
         }
 
         window.addEventListener('ecu_data', (e) => {
