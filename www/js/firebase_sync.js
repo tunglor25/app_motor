@@ -9,12 +9,13 @@ const FirebaseSync = (function() {
   // Get it from: Firebase Console → Project Settings → Web App
   // ============================================================
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "000000000000",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyDM63iAL2wTmgUc3dtcnVeRCcm1r-Y2dBg",
+    authDomain: "motor-speed-map.firebaseapp.com",
+    projectId: "motor-speed-map",
+    storageBucket: "motor-speed-map.firebasestorage.app",
+    messagingSenderId: "550952078774",
+    appId: "1:550952078774:web:80ab088b3aad3dbfab0517",
+    measurementId: "G-P0Q2HHNBQB"
   };
 
   let db = null;
