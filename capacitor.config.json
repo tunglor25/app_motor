@@ -1,6 +1,6 @@
 {
   "appId": "vn.ab.dash",
-  "appName": "app_moto",
+  "appName": "MotoDash",
   "webDir": "www",
   "android": {
     "backgroundColor": "#030304",
