@@ -57,10 +57,11 @@
     width: 250px; height: 100%; display: flex; flex-direction: column; gap: 8px; z-index: 5;
   }
   .hud-box {
-    background: linear-gradient(135deg, rgba(20,24,32,0.95), rgba(8,10,14,0.95));
+    background: linear-gradient(135deg, rgba(20,24,32,0.85), rgba(8,10,14,0.85));
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
     padding: 12px; position: relative; flex: 1; display: flex; flex-direction: column;
-    border: 1px solid rgba(255,255,255,0.08);
+    border: none;
   }
   
   /* Chamfers */
@@ -119,14 +120,14 @@
   }
   .svg-gauge { width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: visible;}
   
-  .speed-container { display: flex; flex-direction: column; align-items: center; position: absolute; top: 50%; transform: translateY(-50%); }
+  .speed-container { display: flex; flex-direction: column; align-items: center; position: absolute; top: 40%; transform: translateY(-50%); }
   .speed-lbl { font-size: 12px; color: var(--dim); letter-spacing: 2px; margin-bottom: -5px; }
-  .speed-val { font-family: 'Orbitron', sans-serif; font-size: 110px; font-weight: 900; line-height: 0.9; color: var(--cyan); text-shadow: 0 0 25px rgba(0,229,255,0.6); letter-spacing: -2px; }
+  .speed-val { font-family: 'Orbitron', sans-serif; font-size: 110px; font-weight: 900; line-height: 1; color: var(--cyan); text-shadow: 0 0 25px rgba(0,229,255,0.6); letter-spacing: -2px; }
   .speed-unit { font-size: 16px; color: var(--cyan); margin-top: -5px; }
   
-  .gear-container { position: absolute; bottom: 26%; display: flex; flex-direction: column; align-items: center; }
-  .gear-val { font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 700; color: var(--red); text-shadow: 0 0 15px rgba(255,0,60,0.6); line-height: 1; border: 1px solid rgba(255,0,60,0.3); padding: 2px 16px; border-radius: 4px; background: rgba(255,0,60,0.1); }
-  .gear-lbl { font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-top: 4px; }
+  .gear-container { position: absolute; bottom: 20%; display: flex; flex-direction: column; align-items: center; }
+  .gear-val { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; color: var(--red); text-shadow: 0 0 15px rgba(255,0,60,0.6); line-height: 1; border: 1px solid rgba(255,0,60,0.5); padding: 4px 12px; border-radius: 4px; background: rgba(255,0,60,0.1); }
+  .gear-lbl { font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-top: 6px; }
 
   .bottom-info { position: absolute; bottom: 12%; width: 55%; display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); }
   .bottom-info span { color: #fff; font-weight: bold;}
@@ -186,7 +187,7 @@
       <div class="hud-box" style="flex: 1;">
         <div class="box-title">THROTTLE POSITION <span>TPS</span></div>
         <div class="tps-layout">
-          <div class="tps-val">TPS: <span id="tpsVal">--</span>%</div>
+          <div class="tps-val"><span id="tpsVal">--</span>%</div>
           <div class="tps-graph" id="tpsBars"></div>
         </div>
       </div>
@@ -365,7 +366,7 @@
     if(i >= 10) color = '#ffb703';
     if(i >= 12) color = '#ff003c';
     
-    const pos = polar(0, 0, 160, angle); // slightly inside the thin line
+    const pos = polar(0, 0, 215, angle); // Outside the outer ticks
     
     const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     txt.setAttribute('x', pos.x);
