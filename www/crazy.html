@@ -439,18 +439,42 @@
     document.getElementById('speedVal').textContent = lastECUSpeed;
     document.getElementById('rpmBotVal').textContent = Math.round(data.rpm);
     
-    document.getElementById('ectVal').textContent = Math.round(data.ect);
+    const ectVal = document.getElementById('ectVal');
+    ectVal.textContent = Math.round(data.ect);
+    if (data.ect >= 110) ectVal.style.color = 'var(--red)';
+    else if (data.ect > 100) ectVal.style.color = 'var(--amber)';
+    else ectVal.style.color = '';
+
     let ectRatio = Math.min(data.ect / 120, 1);
     let ectFill = document.getElementById('ectFill');
     ectFill.style.height = (ectRatio * 100) + '%';
-    ectFill.style.background = data.ect > 105 ? 'var(--red)' : 'var(--cyan)';
+    if (data.ect >= 110) ectFill.style.background = 'var(--red)';
+    else if (data.ect > 100) ectFill.style.background = 'var(--amber)';
+    else ectFill.style.background = 'var(--cyan)';
     
     document.getElementById('tpsVal').textContent = Math.round(data.tps) + '%';
     document.getElementById('tpsFill').style.width = Math.round(data.tps) + '%';
     
-    document.getElementById('battVal').textContent = data.battery.toFixed(1);
-    document.getElementById('battStatus').textContent = data.battery < 11.5 ? 'LOW' : 'GOOD';
-    document.getElementById('battStatus').style.color = data.battery < 11.5 ? 'var(--red)' : 'var(--green)';
+    const battVal = document.getElementById('battVal');
+    battVal.textContent = data.battery.toFixed(1);
+    if (data.battery > 14.8 || data.battery < 11.5) battVal.style.color = 'var(--red)';
+    else if (data.battery <= 12.0) battVal.style.color = 'var(--amber)';
+    else battVal.style.color = '';
+
+    const battStatus = document.getElementById('battStatus');
+    if (data.battery > 14.8) {
+      battStatus.textContent = 'HIGH';
+      battStatus.style.color = 'var(--red)';
+    } else if (data.battery < 11.5) {
+      battStatus.textContent = 'LOW';
+      battStatus.style.color = 'var(--red)';
+    } else if (data.battery <= 12.0) {
+      battStatus.textContent = 'WARN';
+      battStatus.style.color = 'var(--amber)';
+    } else {
+      battStatus.textContent = 'GOOD';
+      battStatus.style.color = 'var(--green)';
+    }
     
     document.getElementById('tripVal').textContent = data.tripA.toFixed(1) + ' km';
     if(document.getElementById('fuelVal')) document.getElementById('fuelVal').textContent = data.instantL100km.toFixed(1) + ' L/100';

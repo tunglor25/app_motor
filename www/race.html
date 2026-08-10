@@ -547,22 +547,31 @@
     document.getElementById('speedVal').textContent = lastECUSpeed;
     document.getElementById('tripVal').textContent = data.tripA.toFixed(1);
     
-    document.getElementById('ectVal').innerHTML = Math.round(data.ect) + '<i>°C</i>';
-    document.getElementById('ectFill').style.width = Math.min(data.ect / 120 * 100, 100) + '%';
-    
-    if (data.ect > 105) {
-      document.getElementById('ectBox').classList.add('hot');
-      document.getElementById('ectFill').style.background = 'var(--red)';
-    } else {
-      document.getElementById('ectBox').classList.remove('hot');
-      document.getElementById('ectFill').style.background = 'var(--green)';
+    const ectEl = document.getElementById('ectVal');
+    if (ectEl) {
+      ectEl.innerHTML = Math.round(data.ect) + '<i>°C</i>';
+      ectEl.style.color = data.ect >= 110 ? 'var(--red)' : (data.ect > 100 ? 'var(--amber, #ffb703)' : '');
+    }
+    const ectFill = document.getElementById('ectFill');
+    if (ectFill) {
+      ectFill.style.width = Math.min(data.ect / 120 * 100, 100) + '%';
+      ectFill.style.background = data.ect > 105 ? 'var(--red)' : 'var(--green)';
+    }
+    const ectBox = document.getElementById('ectBox');
+    if (ectBox) {
+      if (data.ect > 105) ectBox.classList.add('hot');
+      else ectBox.classList.remove('hot');
     }
 
-    if (document.getElementById('tpsVal')) {
-      document.getElementById('tpsVal').innerHTML = Math.round(data.tps) + '<i>%</i>';
-    }
-    if (document.getElementById('battVal')) {
-      document.getElementById('battVal').innerHTML = data.battery.toFixed(1) + '<i>V</i>';
+    const tpsEl = document.getElementById('tpsVal');
+    if (tpsEl) tpsEl.innerHTML = Math.round(data.tps) + '<i>%</i>';
+
+    const battEl = document.getElementById('battVal');
+    if (battEl) {
+      battEl.innerHTML = data.battery.toFixed(1) + '<i>V</i>';
+      if (data.battery > 14.8 || data.battery < 11.5) battEl.style.color = 'var(--red)';
+      else if (data.battery <= 12.0) battEl.style.color = 'var(--amber, #ffb703)';
+      else battEl.style.color = '';
     }
 
     const fuelVal = document.getElementById('fuelInstVal');

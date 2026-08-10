@@ -664,14 +664,22 @@
             setDialValue('speed', data.speed);
             
             tempText.textContent = Math.round(data.ect) + '°C';
-            if (data.ect > 105) {
+            if (data.ect >= 110) {
+                tempText.style.color = '#c23b2c';
                 tempText.classList.add('hot');
+            } else if (data.ect > 100) {
+                tempText.style.color = '#d49b2a';
+                tempText.classList.remove('hot');
             } else {
+                tempText.style.color = '';
                 tempText.classList.remove('hot');
             }
             
             tpsText.textContent = Math.round(data.tps) + '%';
             battText.textContent = data.battery.toFixed(1) + 'V';
+            if (data.battery > 14.8 || data.battery < 11.5) battText.style.color = '#c23b2c';
+            else if (data.battery <= 12.0) battText.style.color = '#d49b2a';
+            else battText.style.color = '';
 
             // Feed ECU data to trip tracker if recording
             if (window.TripTracker && TripTracker.isRecording()) {

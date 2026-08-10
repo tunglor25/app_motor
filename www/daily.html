@@ -554,13 +554,20 @@
             document.getElementById('avg').innerText = data.avgKmL.toFixed(1);
             
             document.getElementById('tps').innerText = Math.round(data.tps);
-            document.getElementById('volt').innerText = data.battery.toFixed(1);
-            document.getElementById('temp').innerText = Math.round(data.ect);
+            const voltEl = document.getElementById('volt');
+            if (voltEl) {
+                voltEl.innerText = data.battery.toFixed(1);
+                if (data.battery > 14.8 || data.battery < 11.5) voltEl.style.color = 'var(--red, #ff2130)';
+                else if (data.battery <= 12.0) voltEl.style.color = 'var(--amber, #ffb703)';
+                else voltEl.style.color = '';
+            }
             
-            if (data.ect > 105) {
-                document.getElementById('temp').style.color = 'var(--red)';
-            } else {
-                document.getElementById('temp').style.color = 'var(--cyan)';
+            const tempEl = document.getElementById('temp');
+            if (tempEl) {
+                tempEl.innerText = Math.round(data.ect);
+                if (data.ect >= 110) tempEl.style.color = 'var(--red, #ff2130)';
+                else if (data.ect > 100) tempEl.style.color = 'var(--amber, #ffb703)';
+                else tempEl.style.color = '';
             }
 
             // Feed ECU data to trip tracker if recording
