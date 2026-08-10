@@ -127,21 +127,22 @@
   .gauge-svg { width: min(100%, 85vh); height: auto; overflow: visible; }
   
   /* Warning Icons */
-  .warning-icons { display: flex; justify-content: space-around; align-items: center; margin-top: 15px; }
-  .w-icon { width: 32px; height: 32px; color: rgba(255,255,255,0.1); transition: color 0.3s, filter 0.3s; }
-  .w-icon.alert-red { color: var(--red); filter: drop-shadow(0 0 10px var(--red)); animation: blink 1s infinite; }
-  .w-icon.alert-amber { color: var(--amber); filter: drop-shadow(0 0 10px var(--amber)); }
+  .warning-icons { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
+  .w-icon-box { width: 44px; height: 34px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; display: flex; justify-content: center; align-items: center; }
+  .w-icon { width: 22px; height: 22px; color: rgba(255,255,255,0.15); transition: color 0.3s, filter 0.3s; }
+  .w-icon.alert-red { color: var(--red); filter: drop-shadow(0 0 8px var(--red)); animation: blink 1s infinite; }
+  .w-icon.alert-amber { color: var(--amber); filter: drop-shadow(0 0 8px var(--amber)); }
 
   /* SPEED LIMIT SIGN */
   .speed-limit-sign {
-    position: absolute; top: 0px; left: 0px;
-    width: 44px; height: 44px; border-radius: 50%;
-    border: 2px solid var(--red); background: rgba(255,0,60,0.1);
+    position: absolute; top: 20px; left: 20px;
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 4px solid var(--red); background: #ffffff;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 15px rgba(255,0,60,0.4), inset 0 0 10px rgba(255,0,60,0.2); z-index: 20;
-    backdrop-filter: blur(4px);
+    box-shadow: 0 0 15px rgba(255,0,60,0.6); z-index: 20;
+    transition: opacity 0.3s; opacity: 0;
   }
-  .speed-limit-val { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900; color: var(--red); text-shadow: 0 0 5px var(--red); }
+  .speed-limit-val { font-family: 'Share Tech Mono', monospace; font-size: 20px; font-weight: bold; color: #000; }
 
   /* BOTTOM BAR */
   .bottom-bar {
@@ -249,13 +250,13 @@
         <g id="gaugeLabels"></g>
         
         <!-- Speed text inside SVG -->
-        <text x="0" y="-20" fill="rgba(255,255,255,0.3)" font-family="Orbitron" font-size="12" letter-spacing="2" text-anchor="middle">SPEED</text>
-        <text id="speedVal" x="0" y="40" fill="#00e5ff" font-family="Orbitron" font-size="76" font-weight="900" font-style="italic" letter-spacing="-2" text-anchor="middle" filter="url(#glow)">0</text>
-        <text x="0" y="60" fill="rgba(255,255,255,0.3)" font-family="Orbitron" font-size="12" letter-spacing="2" text-anchor="middle">km/h</text>
+        <text x="0" y="-20" fill="rgba(255,255,255,0.4)" font-family="Share Tech Mono" font-size="14" letter-spacing="2" text-anchor="middle">SPEED</text>
+        <text id="speedVal" x="0" y="45" fill="#00e5ff" font-family="Share Tech Mono" font-size="84" font-weight="bold" letter-spacing="-4" text-anchor="middle" filter="url(#glow)">0</text>
+        <text x="0" y="65" fill="rgba(255,255,255,0.4)" font-family="Share Tech Mono" font-size="14" letter-spacing="2" text-anchor="middle">km/h</text>
         
-        <!-- RPM & ODO (Moved down to avoid overlapping the arc labels) -->
-        <text x="-45" y="125" fill="rgba(255,255,255,0.7)" font-family="Orbitron" font-size="12" font-weight="500" text-anchor="middle">RPM <tspan id="rpmBotVal" fill="#fff">0</tspan></text>
-        <text x="45" y="125" fill="rgba(255,255,255,0.7)" font-family="Orbitron" font-size="12" font-weight="500" text-anchor="middle">ODO <tspan fill="#fff">12,450</tspan></text>
+        <!-- RPM & ODO -->
+        <text x="-45" y="125" fill="rgba(255,255,255,0.7)" font-family="Share Tech Mono" font-size="12" font-weight="bold" text-anchor="middle">RPM <tspan id="rpmBotVal" fill="#fff">0</tspan></text>
+        <text x="45" y="125" fill="rgba(255,255,255,0.7)" font-family="Share Tech Mono" font-size="12" font-weight="bold" text-anchor="middle">ODO <tspan fill="#fff">12,450</tspan></text>
       </svg>
       
       <div class="speed-limit-sign" id="speedLimitSign">
@@ -283,14 +284,10 @@
       <div class="panel-box right" style="flex: 1.2;">
         <div class="panel-title" style="text-align: right;">SYSTEM ALERTS</div>
         <div class="warning-icons" id="warningIcons">
-          <!-- Engine -->
-          <svg viewBox="0 0 24 24" class="w-icon" id="icon-engine"><path fill="currentColor" d="M19,9V7H17V6.5A1.5,1.5 0 0,0 15.5,5H13V3H11V5H8.5A1.5,1.5 0 0,0 7,6.5V7H5V9H7V10H5V12H7V13H5V15H7V17.5A1.5,1.5 0 0,0 8.5,19H15.5A1.5,1.5 0 0,0 17,17.5V17H19V15H17V14H19V12H17V11H19V9M10,15H8V13H10V15M10,11H8V9H10V11M16,15H14V13H16V15M16,11H14V9H16V11Z"/></svg>
-          <!-- Temp -->
-          <svg viewBox="0 0 24 24" class="w-icon" id="icon-temp"><path fill="currentColor" d="M15,13V5A3,3 0 0,0 9,5V13A5,5 0 1,0 15,13M12,4A1,1 0 0,1 13,5V8H11V5A1,1 0 0,1 12,4Z"/></svg>
-          <!-- Battery -->
-          <svg viewBox="0 0 24 24" class="w-icon" id="icon-batt"><path fill="currentColor" d="M16.67,4H15V2H9V4H7.33C6.6,4 6,4.6 6,5.33V20.67C6,21.4 6.6,22 7.33,22H16.67C17.4,22 18,21.4 18,20.67V5.33C18,4.6 17.4,4 16.67,4M11,16H9V14H11V16M15,16H13V14H15V16M11,12H9V10H11V12M15,12H13V10H15V12M15,8H9V6H15V8Z"/></svg>
-          <!-- ABS -->
-          <svg viewBox="0 0 24 24" class="w-icon" id="icon-abs"><path fill="currentColor" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M8,7.5H10.5C11.3,7.5 12,8.2 12,9V11.5C12,12.3 11.3,13 10.5,13H8V7.5M9.5,9V11.5H10.5V9H9.5M13.5,7.5H16C16.8,7.5 17.5,8.2 17.5,9V10.5C17.5,11.3 16.8,12 16,12V14.5C16,15.3 15.3,16 14.5,16H12V7.5H13.5M13.5,9V11.5H14.5V9H13.5M13.5,13V14.5H14.5V13H13.5Z"/></svg>
+          <div class="w-icon-box"><svg viewBox="0 0 24 24" class="w-icon" id="icon-engine"><path fill="currentColor" d="M19 9V7H17V6.5C17 5.67 16.33 5 15.5 5H13V3H11V5H8.5C7.67 5 7 5.67 7 6.5V7H5V9H7V10H5V12H7V13H5V15H7V17.5C7 18.33 7.67 19 8.5 19H15.5C16.33 19 17 18.33 17 17.5V17H19V15H17V14H19V12H17V11H19V9M10 15H8V13H10V15M10 11H8V9H10V11M16 15H14V13H16V15M16 11H14V9H16V11Z"/></svg></div>
+          <div class="w-icon-box"><svg viewBox="0 0 24 24" class="w-icon" id="icon-temp"><path fill="currentColor" d="M15 13V5C15 3.34 13.66 2 12 2S9 3.34 9 5V13C7.18 14.36 6.54 16.92 7.9 18.74C9.26 20.56 11.82 21.2 13.64 19.84C14.7 19.05 15.34 17.85 15.34 16.5C15.34 15.19 14.66 13.93 13.5 13.15V5C13.5 4.17 12.83 3.5 12 3.5S10.5 4.17 10.5 5V13.15C9.34 13.93 8.66 15.19 8.66 16.5C8.66 18.34 10.16 19.84 12 19.84S15.34 18.34 15.34 16.5C15.34 15.19 14.66 13.93 13.5 13.15H15Z"/></svg></div>
+          <div class="w-icon-box"><svg viewBox="0 0 24 24" class="w-icon" id="icon-batt"><path fill="currentColor" d="M16.67 4H15V2H9V4H7.33C6.6 4 6 4.6 6 5.33V20.67C6 21.4 6.6 22 7.33 22H16.67C17.4 22 18 21.4 18 20.67V5.33C18 4.6 17.4 4 16.67 4M11 16H9V14H11V16M15 16H13V14H15V16M11 12H9V10H11V12M15 12H13V10H15V12Z"/></svg></div>
+          <div class="w-icon-box"><svg viewBox="0 0 24 24" class="w-icon" id="icon-abs"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M8 7.5H10.5C11.3 7.5 12 8.2 12 9V11.5C12 12.3 11.3 13 10.5 13H8V7.5M9.5 9V11.5H10.5V9H9.5M13.5 7.5H16C16.8 7.5 17.5 8.2 17.5 9V10.5C17.5 11.3 16.8 12 16 12V14.5C16 15.3 15.3 16 14.5 16H12V7.5H13.5M13.5 9V11.5H14.5V9H13.5M13.5 13V14.5H14.5V13H13.5Z"/></svg></div>
         </div>
       </div>
       
@@ -432,9 +429,9 @@
     txt.setAttribute('x', lx);
     txt.setAttribute('y', ly + 5);
     txt.setAttribute('fill', i >= 11 ? 'var(--red)' : 'rgba(255,255,255,0.8)');
-    txt.setAttribute('font-family', 'Orbitron');
+    txt.setAttribute('font-family', 'Share Tech Mono');
     txt.setAttribute('font-size', '16');
-    txt.setAttribute('font-weight', '700');
+    txt.setAttribute('font-weight', 'bold');
     txt.setAttribute('text-anchor', 'middle');
     txt.textContent = i;
     gLabels.appendChild(txt);
@@ -518,8 +515,15 @@
   window.addEventListener('speed_limit_data', (e) => {
     currentSpeedLimit = e.detail.limit;
     const valEl = document.getElementById('speedLimitVal');
-    if (valEl) {
-      valEl.textContent = currentSpeedLimit > 0 ? currentSpeedLimit : '--';
+    const signEl = document.getElementById('speedLimitSign');
+    if (valEl && signEl) {
+      if (currentSpeedLimit > 0) {
+        valEl.textContent = currentSpeedLimit;
+        signEl.style.opacity = '1';
+      } else {
+        valEl.textContent = '--';
+        signEl.style.opacity = '0';
+      }
     }
   });
 </script>
