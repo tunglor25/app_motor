@@ -128,19 +128,20 @@
   
   /* Warning Icons */
   .warning-icons { display: flex; justify-content: space-around; align-items: center; margin-top: 15px; }
-  .w-icon { width: 36px; height: 36px; color: rgba(255,255,255,0.15); transition: color 0.3s, filter 0.3s; }
+  .w-icon { width: 32px; height: 32px; color: rgba(255,255,255,0.1); transition: color 0.3s, filter 0.3s; }
   .w-icon.alert-red { color: var(--red); filter: drop-shadow(0 0 10px var(--red)); animation: blink 1s infinite; }
   .w-icon.alert-amber { color: var(--amber); filter: drop-shadow(0 0 10px var(--amber)); }
 
   /* SPEED LIMIT SIGN */
   .speed-limit-sign {
-    position: absolute; top: 15px; left: 15px;
+    position: absolute; top: 0px; left: 0px;
     width: 44px; height: 44px; border-radius: 50%;
-    border: 3px solid var(--red); background: rgba(255,255,255,0.95);
+    border: 2px solid var(--red); background: rgba(255,0,60,0.1);
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 15px rgba(255,0,60,0.5); z-index: 20;
+    box-shadow: 0 0 15px rgba(255,0,60,0.4), inset 0 0 10px rgba(255,0,60,0.2); z-index: 20;
+    backdrop-filter: blur(4px);
   }
-  .speed-limit-val { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900; color: #111; }
+  .speed-limit-val { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900; color: var(--red); text-shadow: 0 0 5px var(--red); }
 
   /* BOTTOM BAR */
   .bottom-bar {
@@ -216,16 +217,16 @@
     
     <!-- CENTER GAUGE -->
     <div class="center-gauge-container">
-      <svg class="gauge-svg" viewBox="-150 -150 300 300" id="gaugeSvg">
+      <svg class="gauge-svg" viewBox="-160 -160 320 320" id="gaugeSvg">
         <defs>
           <linearGradient id="gaugeGrad" x1="0%" y1="100%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="#00e5ff" />
-            <stop offset="65%" stop-color="#00e5ff" />
+            <stop offset="70%" stop-color="#00e5ff" />
             <stop offset="85%" stop-color="#ffb703" />
             <stop offset="100%" stop-color="#ff003c" />
           </linearGradient>
           <mask id="gaugeMask">
-            <path id="gaugePathMask" d="M -98.99 98.99 A 140 140 0 1 1 98.99 98.99" fill="none" stroke="white" stroke-width="24" stroke-linecap="butt" />
+            <path id="gaugePathMask" d="M -98.99 98.99 A 140 140 0 1 1 98.99 98.99" fill="none" stroke="white" stroke-width="32" stroke-linecap="butt" />
           </mask>
           <filter id="glow">
              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
@@ -236,22 +237,25 @@
           </filter>
         </defs>
         
+        <!-- Thin outer decoration ring -->
+        <path d="M -109.6 109.6 A 155 155 0 1 1 109.6 109.6" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="2" />
+
         <!-- Background segmented track -->
-        <path d="M -98.99 98.99 A 140 140 0 1 1 98.99 98.99" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="16" stroke-dasharray="10 4" stroke-linecap="butt" />
+        <path d="M -98.99 98.99 A 140 140 0 1 1 98.99 98.99" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="22" stroke-dasharray="8 5" stroke-linecap="butt" />
         
         <!-- Filled segmented track with gradient and mask -->
-        <path d="M -98.99 98.99 A 140 140 0 1 1 98.99 98.99" fill="none" stroke="url(#gaugeGrad)" stroke-width="16" stroke-dasharray="10 4" stroke-linecap="butt" mask="url(#gaugeMask)" filter="url(#glow)" />
+        <path d="M -98.99 98.99 A 140 140 0 1 1 98.99 98.99" fill="none" stroke="url(#gaugeGrad)" stroke-width="22" stroke-dasharray="8 5" stroke-linecap="butt" mask="url(#gaugeMask)" filter="url(#glow)" />
         
         <g id="gaugeLabels"></g>
         
         <!-- Speed text inside SVG -->
-        <text x="0" y="-20" fill="rgba(255,255,255,0.4)" font-family="Orbitron" font-size="12" letter-spacing="2" text-anchor="middle">SPEED</text>
-        <text id="speedVal" x="0" y="35" fill="#00e5ff" font-family="Orbitron" font-size="64" font-weight="900" font-style="italic" letter-spacing="-2" text-anchor="middle" filter="url(#glow)">0</text>
-        <text x="0" y="55" fill="rgba(255,255,255,0.4)" font-family="Orbitron" font-size="12" letter-spacing="2" text-anchor="middle">km/h</text>
+        <text x="0" y="-20" fill="rgba(255,255,255,0.3)" font-family="Orbitron" font-size="12" letter-spacing="2" text-anchor="middle">SPEED</text>
+        <text id="speedVal" x="0" y="40" fill="#00e5ff" font-family="Orbitron" font-size="76" font-weight="900" font-style="italic" letter-spacing="-2" text-anchor="middle" filter="url(#glow)">0</text>
+        <text x="0" y="60" fill="rgba(255,255,255,0.3)" font-family="Orbitron" font-size="12" letter-spacing="2" text-anchor="middle">km/h</text>
         
-        <!-- RPM & ODO -->
-        <text x="-45" y="90" fill="#fff" font-family="Orbitron" font-size="12" font-weight="500" text-anchor="middle">RPM <tspan id="rpmBotVal">0</tspan></text>
-        <text x="45" y="90" fill="#fff" font-family="Orbitron" font-size="12" font-weight="500" text-anchor="middle">ODO 12,450</text>
+        <!-- RPM & ODO (Moved down to avoid overlapping the arc labels) -->
+        <text x="-45" y="125" fill="rgba(255,255,255,0.7)" font-family="Orbitron" font-size="12" font-weight="500" text-anchor="middle">RPM <tspan id="rpmBotVal" fill="#fff">0</tspan></text>
+        <text x="45" y="125" fill="rgba(255,255,255,0.7)" font-family="Orbitron" font-size="12" font-weight="500" text-anchor="middle">ODO <tspan fill="#fff">12,450</tspan></text>
       </svg>
       
       <div class="speed-limit-sign" id="speedLimitSign">
@@ -420,7 +424,7 @@
     const angleRad = angleDeg * Math.PI / 180;
     
     // Labels inside the ring
-    const lr = RADIUS - 25;
+    const lr = RADIUS - 30;
     const lx = Math.sin(angleRad) * lr;
     const ly = -Math.cos(angleRad) * lr;
     
@@ -429,7 +433,7 @@
     txt.setAttribute('y', ly + 5);
     txt.setAttribute('fill', i >= 11 ? 'var(--red)' : 'rgba(255,255,255,0.8)');
     txt.setAttribute('font-family', 'Orbitron');
-    txt.setAttribute('font-size', '14');
+    txt.setAttribute('font-size', '16');
     txt.setAttribute('font-weight', '700');
     txt.setAttribute('text-anchor', 'middle');
     txt.textContent = i;
