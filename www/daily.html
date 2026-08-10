@@ -7,10 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <style>
         :root {
             --cyan: #2BE7FF;
@@ -151,142 +147,96 @@
         }
         .btn-gear:active { background: rgba(43,231,255,0.15); color: #2BE7FF; }
 
-        /* === SIDE WIDGET (Album Art / Map) === */
-        .side-widget{display:none;flex-shrink:0;overflow:hidden;z-index:5;position:relative;
-          background:#0a0a0f;border-left:1px solid rgba(43,231,255,0.1);
+        /* Speed Limit Sign */
+        .speed-limit-sign {
+            position: absolute;
+            top: 20%; right: -20px;
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            border: 4px solid #ff2130;
+            background: rgba(255,255,255,0.95);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 12px rgba(255,33,48,0.4), 0 4px 8px rgba(0,0,0,0.5);
+            z-index: 20;
+            transition: opacity 0.3s, transform 0.3s;
         }
-        .side-widget.show{display:flex;flex-direction:column;align-items:center;justify-content:center;}
-        .album-art-wrap{position:relative;width:100%;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-        .album-art{width:100%;height:100%;object-fit:cover;opacity:0.85;}
-        .album-art-overlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,0.8) 0%,transparent 50%);
-          display:flex;flex-direction:column;justify-content:flex-end;padding:6px;
+        .speed-limit-sign.hidden { opacity: 0; transform: scale(0.5); pointer-events: none; }
+        .speed-limit-sign.overspeed { animation: overspeedPulse 0.5s infinite alternate; }
+        @keyframes overspeedPulse {
+            0% { box-shadow: 0 0 12px rgba(255,33,48,0.4); }
+            100% { box-shadow: 0 0 30px rgba(255,33,48,0.9), 0 0 60px rgba(255,33,48,0.3); }
         }
-        .album-art-title{font-family:'Share Tech Mono';font-size:10px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .album-art-artist{font-family:'Share Tech Mono';font-size:8px;color:var(--cyan);opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .album-play-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-          width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.5);border:2px solid var(--cyan);
-          color:var(--cyan);font-size:16px;display:flex;align-items:center;justify-content:center;
-          cursor:pointer;opacity:0;transition:opacity 0.2s;
+        .speed-limit-val {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 20px; font-weight: 900; color: #111;
+            line-height: 1;
         }
-        .album-art-wrap:active .album-play-btn{opacity:1;}
-        .no-art-icon{font-size:32px;color:var(--cyan);opacity:0.3;}
-        #minimap{width:100%;height:100%;background:#0d1117;}
 
-        /* === MAP CONTROLS & FULLSCREEN === */
-        .map-controls { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
-        .map-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--cyan); background: rgba(10,12,16,0.8); color: var(--cyan); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; box-shadow: 0 0 8px rgba(0,0,0,0.5); transition: transform 0.1s; }
-        .map-btn:active { transform: scale(0.9); }
-        #mapContainer.map-fullscreen { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 900 !important; }
-        html:not(.light-theme) #minimap:not(.satellite-mode) .leaflet-layer { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
-        
-        /* === MAP GEOCODER (GOOGLE STYLE) === */
-        .leaflet-control-geocoder { 
-          position: relative !important;
-          border-radius: 24px !important; 
-          box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important; 
-          background: rgba(30,30,36,0.95) !important;
-          margin-top: 12px !important; 
-          width: calc(100% - 24px) !important; 
-          max-width: 320px !important;
-          padding: 0 !important;
-          border: 1px solid rgba(255,255,255,0.1) !important;
-          box-sizing: border-box !important;
+        /* GPS Speed Display */
+        .gps-speed-line {
+            margin-top: 6px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px; color: rgba(255,255,255,0.45);
+            letter-spacing: 1px;
         }
-        .leaflet-control-geocoder-icon { 
-          position: absolute !important;
-          left: 12px !important;
-          top: 50% !important;
-          transform: translateY(-50%) !important;
-          width: 24px !important; 
-          height: 24px !important; 
-          background-color: transparent !important; 
-          border: none !important; 
-          margin: 0 !important;
-          padding: 0 !important;
-          filter: invert(1) brightness(0.8);
-          box-shadow: none !important;
-          z-index: 2 !important;
+        .gps-speed-line .gps-label { font-size: 10px; letter-spacing: 2px; }
+        .gps-speed-line .gps-val {
+            color: var(--cyan); font-family: 'Rajdhani', sans-serif;
+            font-weight: 700; font-size: 16px;
+            text-shadow: var(--cyan-glow);
         }
-        .leaflet-control-geocoder-form { 
-          display: block !important; 
-          width: 100% !important; 
-          height: 44px !important; 
-          margin: 0 !important; 
-          padding: 0 16px 0 44px !important; /* space for icon */
-          box-sizing: border-box !important;
-        }
-        .leaflet-control-geocoder-alternatives {
-          background: rgba(30,30,36,0.95) !important;
-          width: 100% !important;
-          border-radius: 0 0 24px 24px !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          list-style: none !important;
-          position: absolute !important;
-          top: 44px !important;
-          left: 0 !important;
-          box-shadow: 0 8px 16px rgba(0,0,0,0.5) !important;
-          overflow: hidden !important;
-          z-index: 10000 !important;
-        }
-        .leaflet-control-geocoder-alternatives-minimized {
-          display: none !important;
-        }
-        .leaflet-control-geocoder-alternatives li {
-          padding: 12px 16px !important;
-          border-top: 1px solid rgba(255,255,255,0.1) !important;
-          font-size: 13px !important;
-          cursor: pointer !important;
-        }
-        .leaflet-control-geocoder-alternatives li:hover {
-          background: rgba(255,255,255,0.1) !important;
-        }
-        .leaflet-control-geocoder-alternatives li a {
-          color: #fff !important; text-decoration: none !important; display: block;
-        }
-        .leaflet-control-geocoder-form input { 
-          font-family: sans-serif !important; font-size: 14px !important; color: #fff !important;
-          width: 100% !important; height: 100% !important; 
-          padding: 0 !important; margin: 0 !important;
-          border: none !important; outline: none !important; 
-          background: transparent !important; font-weight: normal;
-          box-shadow: none !important;
-        }
-        html.light-theme .leaflet-control-geocoder { background: rgba(255,255,255,0.95) !important; border-color: rgba(0,0,0,0.1) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important; }
-        html.light-theme .leaflet-control-geocoder-form input { color: #111 !important; font-weight: 600; }
-        html.light-theme .leaflet-control-geocoder-icon { filter: none !important; opacity: 0.6; }
-        html.light-theme .leaflet-control-geocoder-alternatives li { border-top: 1px solid rgba(0,0,0,0.1) !important; }
-        html.light-theme .leaflet-control-geocoder-alternatives li:hover { background: rgba(0,0,0,0.05) !important; }
-        html.light-theme .leaflet-control-geocoder-alternatives li a { color: #111 !important; }
-        
-        /* === SPEED OVERLAYS (TRAFFIC SIGN STYLE) === */
-        .map-speed-container {
-          position: absolute !important; bottom: 16px !important; left: 16px !important; z-index: 1000 !important;
-          width: 52px !important; height: 52px !important; pointer-events: none !important; display: block !important;
-        }
-        .gps-speed-box {
-          position: absolute !important; top: 0 !important; left: 0 !important;
-          width: 100% !important; height: 100% !important; border-radius: 50% !important;
-          background: #fff !important; 
-          display: flex !important; align-items: center !important; justify-content: center !important;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
-          padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;
-          border: 4px solid #111 !important; transition: border-color 0.3s !important;
-        }
-        .limit-speed-box {
-          position: absolute !important; top: -10px !important; right: -10px !important; z-index: 2 !important;
-          width: 32px !important; height: 32px !important; border-radius: 50% !important;
-          background: #fff !important; 
-          display: flex !important; align-items: center !important; justify-content: center !important;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
-          padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;
-          border: 3px solid #ff2130 !important;
-        }
-        .gps-speed-val { font-size: 24px !important; font-weight: 900 !important; color: #111 !important; line-height: 1 !important; margin: 0 !important; padding: 0 !important; text-shadow: none !important; }
-        .limit-speed-val { font-size: 14px !important; font-weight: 900 !important; color: #111 !important; line-height: 1 !important; margin: 0 !important; padding: 0 !important; text-shadow: none !important; }
-        .gps-speed-unit { display: none !important; }
+        .gps-speed-line .gps-unit { font-size: 10px; }
 
-        /* === MUSIC FAB & POPUP === */
+        /* === TRIP RECORDING BAR === */
+        .trip-bar {
+            width: 100%; padding: 4px 12px;
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(255,33,48,0.08);
+            border-top: 1px solid rgba(255,33,48,0.2);
+            flex-shrink: 0;
+            opacity: 0; height: 0; overflow: hidden;
+            transition: opacity 0.3s, height 0.3s;
+            position: absolute; bottom: 44px; left: 0; z-index: 4;
+        }
+        .trip-bar.active {
+            opacity: 1; height: auto; padding: 6px 12px;
+        }
+        .rec-dot {
+            width: 8px; height: 8px;
+            background: #ff2130;
+            border-radius: 50%;
+            animation: recBlink 1s infinite;
+            flex-shrink: 0;
+        }
+        @keyframes recBlink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+        .rec-label { font-size: 10px; color: #ff2130; letter-spacing: 2px; font-weight: 700; font-family: 'Share Tech Mono'; }
+        .trip-stats {
+            display: flex; gap: 16px; flex: 1;
+            justify-content: center;
+        }
+        .trip-stat {
+            text-align: center; font-family: 'Share Tech Mono';
+        }
+        .trip-stat-lbl { font-size: 7px; color: rgba(255,255,255,0.45); letter-spacing: 1px; }
+        .trip-stat-val { font-size: 12px; color: var(--cyan); font-family: 'Rajdhani', sans-serif; font-weight: 700; }
+
+        .btn-trip {
+            position: relative; overflow: hidden;
+        }
+        .btn-trip.recording {
+            color: #ff2130; text-shadow: 0 0 10px rgba(255,33,48,0.5);
+            animation: btnRecPulse 1.5s infinite;
+        }
+        @keyframes btnRecPulse {
+            0%,100% { background: none; }
+            50% { background: rgba(255,33,48,0.15); }
+        }
+        .btn-trip .btn-progress {
+            position: absolute; bottom: 0; left: 0; height: 3px;
+            background: #ff2130; width: 0%;
+            transition: width 0.1s linear;
+        }
         .music-fab {
           position: absolute; bottom: 20px; right: 20px;
           width: 48px; height: 48px; border-radius: 50%;
@@ -361,13 +311,16 @@
             .btn-bottom { padding: 6px 14px; font-size: 12px; }
             .lcd-lbl { font-size: 8px; }
             .lcd-val { font-size: min(18px, 4vw); }
-            .side-widget.show{display:flex;width:25vw;height:100%;}
+            .speed-limit-sign { top: 10px; right: 20px; width: 44px; height: 44px; border-width: 3px; }
+            .speed-limit-val { font-size: 18px; }
+            .gps-speed-line .gps-val { font-size: 14px; }
+            .trip-bar.active { padding: 4px 12px; }
         }
         @media (orientation: portrait) {
-            .app-main { padding-top: 50px; flex: none; height: 60vh; }
-            .cluster { max-width: 100vw; }
-            .side-widget.show{display:flex !important; width:100%; height:40vh; border-left:none; border-top:1px solid rgba(43,231,255,0.1); flex-shrink:0;}
+            .app-main { padding-top: 50px; flex: none; height: 100vh; }
+            .cluster { max-width: 100vw; margin-top: 5vh; }
             .daily-speed span { font-size: min(80px, 22vw); }
+            .speed-limit-sign { top: 30%; right: 10%; width: 56px; height: 56px; }
             .lcd-panel {
                 width: 88vw;
                 display: grid;
@@ -392,6 +345,7 @@
         html.light-theme #clock { color: #111; text-shadow: none; }
     </style>
     <script src="js/data_engine.js"></script>
+    <script src="js/trip_tracker.js"></script>
     <script>
         if (localStorage.getItem('light_mode') === 'true') {
             document.documentElement.classList.add('light-theme');
@@ -415,9 +369,17 @@
             <g id="ticks"></g>
         </svg>
         <div class="daily-readout">
+            <div class="speed-limit-sign hidden" id="speedLimitSign">
+                <span class="speed-limit-val" id="speedLimitVal">60</span>
+            </div>
             <div class="daily-speed">
                 <span id="speed">0</span>
                 <small>km/h</small>
+            </div>
+            <div class="gps-speed-line">
+                <span class="gps-label">GPS</span>
+                <span class="gps-val" id="gpsSpeedVal">--</span>
+                <span class="gps-unit">km/h</span>
             </div>
             <div class="daily-rpm-val">
                 <span id="rpm">0</span> RPM
@@ -442,8 +404,28 @@
         </div>
     </div>
 
+    <!-- TRIP RECORDING BAR -->
+    <div class="trip-bar" id="tripBar">
+        <div class="rec-dot"></div>
+        <span class="rec-label">REC</span>
+        <div class="trip-stats">
+            <div class="trip-stat">
+                <div class="trip-stat-lbl">DIST</div>
+                <div class="trip-stat-val" id="tripDist">0.0 km</div>
+            </div>
+            <div class="trip-stat">
+                <div class="trip-stat-lbl">TIME</div>
+                <div class="trip-stat-val" id="tripTime">00:00</div>
+            </div>
+            <div class="trip-stat">
+                <div class="trip-stat-lbl">MAX</div>
+                <div class="trip-stat-val" id="tripMax">0 km/h</div>
+            </div>
+        </div>
+    </div>
+
     <div class="bottom-bar">
-        <button class="btn-bottom" id="btnSel">SEL</button>
+        <button class="btn-bottom btn-trip" id="btnTrip">▶ TRIP<div class="btn-progress" id="btnTripProgress"></div></button>
         <div class="lcd-panel">
             <div class="lcd-box">
                 <div class="lcd-lbl">TRIP</div>
@@ -469,24 +451,6 @@
         <button class="btn-bottom" id="btnSet">SET</button>
     </div>
     </div><!-- End app-main -->
-
-    <!-- SIDE WIDGET (Map Only) -->
-    <div class="side-widget show" id="sideWidget">
-        <div id="mapContainer" style="flex:1;width:100%;height:100%;position:relative;">
-            <div class="map-controls">
-                <button class="map-btn" id="btnMapExpand">⛶</button>
-            </div>
-            <div class="map-speed-container">
-                <div class="gps-speed-box" id="gpsSpeedBox" title="Tốc độ GPS">
-                    <div class="gps-speed-val" id="gpsSpeedVal">0</div>
-                </div>
-                <div class="limit-speed-box" id="limitSpeedBox" style="display:none;" title="Giới hạn tốc độ">
-                    <div class="limit-speed-val" id="limitSpeedVal">50</div>
-                </div>
-            </div>
-            <div id="minimap" style="width:100%;height:100%;"></div>
-        </div>
-    </div>
 
     <script>
         document.getElementById('btnGear').addEventListener('click', (e) => {
@@ -577,7 +541,6 @@
             }
         }
 
-        // --- ECU Engine Integration ---
         window.addEventListener('ecu_data', (e) => {
             const data = e.detail;
             updateTachometer(data.rpm);
@@ -598,13 +561,16 @@
             } else {
                 document.getElementById('temp').style.color = 'var(--cyan)';
             }
+
+            // Feed ECU data to trip tracker if recording
+            if (window.TripTracker && TripTracker.isRecording()) {
+                TripTracker.addECUData(Math.round(data.speed), data.rpm, data.ect, data.tps, data.battery);
+            }
         });
 
   // --- Anti-Web Behaviors ---
   document.addEventListener('contextmenu',e=>e.preventDefault());
   document.addEventListener('touchmove',e=>{
-    // Allow map touch if map is visible
-    if(e.target.closest('#minimap')) return;
     e.preventDefault();
   },{passive:false});
   document.addEventListener('dragstart',e=>e.preventDefault());
@@ -619,8 +585,6 @@
   const mpArtist = document.getElementById('mpArtist');
   const mpArt = document.getElementById('mpArt');
   const mpPlayPause = document.getElementById('mpPlayPause');
-  
-  const sideWidget = document.getElementById('sideWidget');
 
   musicFab.addEventListener('click', () => { musicOverlay.classList.add('show'); });
   musicOverlay.addEventListener('click', (e) => { if (e.target === musicOverlay) musicOverlay.classList.remove('show'); });
@@ -663,232 +627,6 @@
   document.getElementById('mpNext').addEventListener('click', async () => {
     try{await Capacitor.Plugins.MediaControlPlugin.next();}catch(e){}
   });
-
-  // --- TOMTOM SETUP ---
-    const tomtomKey = 'TNsjEBPR6I6MSu4Lwq1O3YO8udmg5aU3';
-    const tomtomGeocoder = {
-      geocode: function(query, cb, context) {
-        fetch(`https://api.tomtom.com/search/2/search/${encodeURIComponent(query)}.json?key=${tomtomKey}&limit=5`)
-        .then(res => res.json())
-        .then(data => {
-          let results = [];
-          if (data.results) {
-            results = data.results.map(r => ({
-              name: r.address.freeformAddress || r.poi?.name,
-              bbox: L.latLngBounds(L.latLng(r.viewport.topLeftPoint.lat, r.viewport.topLeftPoint.lon), L.latLng(r.viewport.btmRightPoint.lat, r.viewport.btmRightPoint.lon)),
-              center: L.latLng(r.position.lat, r.position.lon)
-            }));
-          }
-          cb.call(context, results);
-        });
-      },
-      suggest: function(query, cb, context) { this.geocode(query, cb, context); },
-      reverse: function(location, scale, cb, context) {
-        fetch(`https://api.tomtom.com/search/2/reverseGeocode/${location.lat},${location.lng}.json?key=${tomtomKey}`)
-        .then(res => res.json())
-        .then(data => {
-          let results = [];
-          if(data.addresses && data.addresses.length > 0) {
-            let r = data.addresses[0];
-            results.push({
-              name: r.address.freeformAddress,
-              center: L.latLng(location.lat, location.lng),
-              bbox: L.latLngBounds(L.latLng(location.lat, location.lng), L.latLng(location.lat, location.lng))
-            });
-          }
-          cb.call(context, results);
-        });
-      }
-    };
-
-    // --- MINI MAP ---
-    let miniMap=null,mapMarker=null,routingControl=null;
-    let lastSpeedLimitCheck = 0;
-    let currentSpeedLimit = 0;
-
-    function initMap(){
-      try{
-        const showMap = localStorage.getItem('show_map') !== 'false';
-        if (!showMap) {
-          document.getElementById('sideWidget').style.display = 'none';
-          return;
-        }
-        
-        const mapStyle = localStorage.getItem('map_style') || 'dark';
-        const mapEl = document.getElementById('minimap');
-        
-        let currentTheme = localStorage.getItem('theme') || 'dark-theme';
-        let tomtomStyle = currentTheme === 'light-theme' ? 'main' : 'night';
-        let tileUrl = `https://api.tomtom.com/map/1/tile/basic/${tomtomStyle}/{z}/{x}/{y}.png?key=${tomtomKey}`;
-
-        if (mapStyle === 'satellite') {
-          tileUrl = `https://api.tomtom.com/map/1/tile/sat/main/{z}/{x}/{y}.jpg?key=${tomtomKey}`;
-          mapEl.classList.add('satellite-mode');
-        } else {
-          mapEl.classList.remove('satellite-mode');
-        }
-
-        const mapIconType = localStorage.getItem('map_icon') || 'moto';
-        const iconPaths = {
-          'moto': '<svg viewBox="0 0 24 24" width="32" height="32"><defs><filter id="glow"><feGaussianBlur stdDeviation="1.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path filter="url(#glow)" fill="var(--cyan, #2BE7FF)" stroke="#fff" stroke-width="1.5" d="M12,2 L22,20 L12,16 L2,20 Z" /></svg>',
-          'car': '<svg viewBox="0 0 24 24" width="28" height="28"><defs><filter id="glow"><feGaussianBlur stdDeviation="1.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path filter="url(#glow)" fill="var(--cyan, #2BE7FF)" stroke="#fff" stroke-width="1.5" d="M12,2 L20,8 L20,16 L12,22 L4,16 L4,8 Z" /></svg>',
-          'boat': '<svg viewBox="0 0 24 24" width="28" height="28"><defs><filter id="glow"><feGaussianBlur stdDeviation="1.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path filter="url(#glow)" fill="var(--cyan, #2BE7FF)" stroke="#fff" stroke-width="1.5" d="M12,2 L18,12 L12,22 L6,12 Z" /></svg>'
-        };
-
-        const customIcon = L.divIcon({
-          className: 'custom-map-icon',
-          html: `<div style="transform:translate(-50%,-50%);">${iconPaths[mapIconType]||iconPaths['moto']}</div>`,
-          iconSize: [0, 0]
-        });
-
-        miniMap=L.map('minimap',{
-          zoomControl:false,attributionControl:false,
-          dragging:true,scrollWheelZoom:false,doubleClickZoom:false,
-          touchZoom:true
-        }).setView([10.8,106.65],15);
-        
-        L.tileLayer(tileUrl,{maxZoom:19, attribution: '© TomTom'}).addTo(miniMap);
-      
-        // Add Traffic Flow Layer
-        let trafficUrl = `https://api.tomtom.com/traffic/map/4/tile/flow/relative0/{z}/{x}/{y}.png?key=${tomtomKey}`;
-        L.tileLayer(trafficUrl, {maxZoom: 19, opacity: 0.8, attribution: '© TomTom Traffic'}).addTo(miniMap);
-      
-        mapMarker=L.marker([10.8,106.65], {icon: customIcon}).addTo(miniMap);
-
-        // Add Geocoder (Search) using TomTom
-        if (L.Control.geocoder) {
-          L.Control.geocoder({
-            geocoder: tomtomGeocoder,
-            defaultMarkGeocode: false,
-            collapsed: false,
-            position: 'topright',
-            placeholder: 'Tìm địa điểm, tuyến đường...'
-          }).on('markgeocode', function(e) {
-            const dest = e.geocode.center;
-            miniMap.fitBounds(e.geocode.bbox);
-            if (routingControl) miniMap.removeControl(routingControl);
-            
-            routingControl = L.Routing.control({
-              waypoints: [ mapMarker.getLatLng(), dest ],
-              routeWhileDragging: false,
-              show: false,
-              createMarker: function() { return null; },
-              lineOptions: { styles: [{color: 'var(--amber, #ffb703)', opacity: 0.8, weight: 5}] }
-            }).addTo(miniMap);
-          }).addTo(miniMap);
-
-          setTimeout(() => {
-            const gcInput = document.querySelector('.leaflet-control-geocoder-form input');
-            const alternativesList = document.querySelector('.leaflet-control-geocoder-alternatives');
-            if (gcInput && alternativesList) {
-              let typeTimeout;
-              gcInput.addEventListener('input', () => {
-                clearTimeout(typeTimeout);
-                typeTimeout = setTimeout(() => {
-                  if (gcInput.value.length >= 2) {
-                    fetch(`https://api.tomtom.com/search/2/search/${encodeURIComponent(gcInput.value)}.json?key=${tomtomKey}&limit=5`)
-                    .then(res => res.json())
-                    .then(data => {
-                      alternativesList.innerHTML = '';
-                      if (data.results && data.results.length > 0) {
-                        alternativesList.style.display = 'block';
-                        alternativesList.classList.remove('leaflet-control-geocoder-alternatives-minimized');
-                        data.results.forEach(r => {
-                          const name = r.address.freeformAddress || r.poi?.name || 'Unknown';
-                          const li = document.createElement('li');
-                          li.innerHTML = `<a href="javascript:void(0)">${name}</a>`;
-                          li.onclick = (e) => {
-                            e.preventDefault();
-                            gcInput.value = name;
-                            alternativesList.style.display = 'none';
-                            const dest = L.latLng(r.position.lat, r.position.lon);
-                            const bbox = L.latLngBounds(
-                              L.latLng(r.viewport.topLeftPoint.lat, r.viewport.topLeftPoint.lon), 
-                              L.latLng(r.viewport.btmRightPoint.lat, r.viewport.btmRightPoint.lon)
-                            );
-                            miniMap.fitBounds(bbox);
-                            if (routingControl) miniMap.removeControl(routingControl);
-                            routingControl = L.Routing.control({
-                              waypoints: [ mapMarker.getLatLng(), dest ],
-                              routeWhileDragging: false,
-                              show: false,
-                              createMarker: function() { return null; },
-                              lineOptions: { styles: [{color: 'var(--amber, #ffb703)', opacity: 0.8, weight: 5}] }
-                            }).addTo(miniMap);
-                          };
-                          alternativesList.appendChild(li);
-                        });
-                      } else {
-                        alternativesList.style.display = 'none';
-                      }
-                    });
-                  } else {
-                    alternativesList.style.display = 'none';
-                  }
-                }, 500);
-              });
-            }
-          }, 1000);
-        }
-
-      // GPS watch
-      if(window.Capacitor&&Capacitor.Plugins.Geolocation){
-        Capacitor.Plugins.Geolocation.watchPosition({
-          enableHighAccuracy:true,timeout:10000,maximumAge:0
-        },(pos,err)=>{
-          if(pos){
-            const lat=pos.coords.latitude,lng=pos.coords.longitude;
-            const newLatLng = new L.LatLng(lat, lng);
-            mapMarker.setLatLng(newLatLng);
-            
-            // Update GPS Speed
-            let speed = pos.coords.speed;
-            const speedBox = document.getElementById('gpsSpeedBox');
-            if (speed !== null && speed >= 0) {
-              let speedKmh = Math.round(speed * 3.6);
-              speedBox.style.display = 'flex';
-              speedBox.style.flexDirection = 'column';
-              document.getElementById('gpsSpeedVal').textContent = speedKmh;
-              
-              if (currentSpeedLimit > 0) {
-                  if (speedKmh >= currentSpeedLimit) {
-                      speedBox.style.setProperty('border-color', '#ff2130', 'important');
-                  } else if (speedKmh >= currentSpeedLimit - 5) {
-                      speedBox.style.setProperty('border-color', '#ffb300', 'important');
-                  } else {
-                      speedBox.style.setProperty('border-color', '#00c853', 'important');
-                  }
-              } else {
-                  speedBox.style.setProperty('border-color', '#111', 'important');
-              }
-            }
-              
-            // Check TomTom Speed Limit
-            const now = Date.now();
-            if (now - lastSpeedLimitCheck > 10000) {
-                 lastSpeedLimitCheck = now;
-                 fetch(`https://api.tomtom.com/search/2/reverseGeocode/${lat},${lng}.json?key=${tomtomKey}&returnSpeedLimit=true`)
-                   .then(r => r.json())
-                   .then(data => {
-                      const limitBox = document.getElementById('limitSpeedBox');
-                      if (data && data.addresses && data.addresses.length > 0) {
-                          const addr = data.addresses[0].address;
-                          if (addr && addr.speedLimit) {
-                              let sl = addr.speedLimit;
-                              let limitNum = parseInt(sl.replace(/\D/g,''));
-                              if (!isNaN(limitNum) && limitNum > 0) {
-                                  limitBox.style.display = 'flex';
-                                  limitBox.style.flexDirection = 'column';
-                                  document.getElementById('limitSpeedVal').textContent = limitNum;
-                                  currentSpeedLimit = limitNum;
-                              } else {
-                                  limitBox.style.display = 'none';
-                                  currentSpeedLimit = 0;
-                              }
-                          } else { limitBox.style.display = 'none'; currentSpeedLimit = 0; }
-                      } else { limitBox.style.display = 'none'; currentSpeedLimit = 0; }
-                   }).catch(e => console.log(e));
-            }
 
             if (!routingControl) {
                miniMap.setView([lat,lng],16,{animate:true,duration:0.5});

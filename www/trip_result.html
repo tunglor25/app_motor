@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Kết Quả Hành Trình</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/trip_tracker.js"></script>
+<script src="js/ios_statusbar.js"></script>
+<style>
+  :root {
+    --cyan: #00e5ff;
+    --bg: #030304;
+    --card: rgba(255, 255, 255, 0.05);
+    --border: rgba(0, 229, 255, 0.3);
+    --text: #ffffff;
+    --dim: rgba(255, 255, 255, 0.6);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-user-select: none; user-select: none; font-family: 'Share Tech Mono', monospace; }
+  body { 
+    background: var(--bg); color: var(--text); 
+    display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  /* Map Section */
+  .map-section {
+    flex: 1;
+    position: relative;
+    border-bottom: 2px solid var(--cyan);
+  }
+  #map {
+    width: 100%;
+    height: 100%;
+    background: #0d1117;
+  }
+  
+  /* Stats Section */
+  .stats-section {
+    padding: 16px;
+    background: var(--bg);
+    overflow-y: auto;
+    height: 50vh;
+  }
+  .trip-title {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--cyan);
+    font-size: 18px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    text-shadow: 0 0 8px rgba(0,229,255,0.4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .grid-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 12px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--dim);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .stat-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cyan);
+  }
+  .stat-sub {
+    font-size: 10px;
+    color: var(--dim);
+    margin-top: 2px;
+  }
+  
+  /* Back Button */
+  .btn-back {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .btn-back:active {
+    background: var(--cyan);
+    color: var(--bg);
+  }
+
+  /* Map invert for dark mode */
+  .leaflet-layer { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+</style>
+</head>
+<body>
+
+<div class="map-section">
+  <div id="map"></div>
+</div>
+
+<div class="stats-section">
+  <div class="trip-title">
+    <span>Chi Tiết Hành Trình</span>
+    <span id="tripDate" style="font-size: 12px; font-family: 'Share Tech Mono', monospace; color: var(--dim);">--/--/----</span>
+  </div>
+  
+  <div class="grid-stats">
+    <div class="stat-card">
+      <div class="stat-label">Quãng đường</div>
+      <div class="stat-value" id="valDist">0.0 km</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Thời gian</div>
+      <div class="stat-value" id="valTime">00:00:00</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-label">Tốc độ tối đa</div>
+      <div class="stat-value"><span id="valMaxSpdECU">0</span> km/h</div>
+      <div class="stat-sub">GPS: <span id="valMaxSpdGPS">0</span> km/h</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Tốc độ TB</div>
+      <div class="stat-value"><span id="valAvgSpdECU">0</span> km/h</div>
+      <div class="stat-sub">GPS: <span id="valAvgSpdGPS">0</span> km/h</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-label">Vòng tua (RPM)</div>
+      <div class="stat-value">Max: <span id="valMaxRPM">0</span></div>
+      <div class="stat-sub">TB: <span id="valAvgRPM">0</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Nhiệt độ Max</div>
+      <div class="stat-value" id="valMaxECT">0 °C</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-label">Nhiên liệu</div>
+      <div class="stat-value" id="valFuel">0.0 L</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Tiêu hao TB</div>
+      <div class="stat-value" id="valFuelAvg">0.0 km/L</div>
+    </div>
+  </div>
+  
+  <button class="btn-back" onclick="history.back()">Quay Lại</button>
+</div>
+
+<script>
+  function formatTime(ms) {
+    let totalSeconds = Math.floor(ms / 1000);
+    let hours = Math.floor(totalSeconds / 3600);
+    let minutes = Math.floor((totalSeconds % 3600) / 60);
+    let seconds = totalSeconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  function formatDate(timestamp) {
+    const d = new Date(timestamp);
+    return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tripId = urlParams.get('id');
+    
+    if (!tripId) {
+      alert('Không tìm thấy ID chuyến đi');
+      return;
+    }
+
+    const trip = TripTracker.getTripById(tripId);
+    if (!trip) {
+      alert('Không tìm thấy dữ liệu chuyến đi');
+      return;
+    }
+
+    // Populate stats
+    document.getElementById('tripDate').textContent = formatDate(trip.startTime);
+    document.getElementById('valDist').textContent = trip.totalDistance.toFixed(2) + ' km';
+    document.getElementById('valTime').textContent = formatTime(trip.duration);
+    
+    document.getElementById('valMaxSpdECU').textContent = Math.round(trip.maxSpeedECU);
+    document.getElementById('valMaxSpdGPS').textContent = Math.round(trip.maxSpeedGPS);
+    document.getElementById('valAvgSpdECU').textContent = Math.round(trip.avgSpeedECU);
+    document.getElementById('valAvgSpdGPS').textContent = Math.round(trip.avgSpeedGPS);
+    
+    document.getElementById('valMaxRPM').textContent = Math.round(trip.maxRPM);
+    document.getElementById('valAvgRPM').textContent = Math.round(trip.avgRPM);
+    
+    document.getElementById('valMaxECT').textContent = Math.round(trip.maxECT) + ' °C';
+    
+    document.getElementById('valFuel').textContent = (trip.fuelConsumed || 0).toFixed(2) + ' L';
+    
+    let kmPerL = 0;
+    if (trip.fuelConsumed > 0) {
+      kmPerL = trip.totalDistance / trip.fuelConsumed;
+    }
+    document.getElementById('valFuelAvg').textContent = kmPerL.toFixed(1) + ' km/L';
+
+    // Init Map
+    const tomtomKey = 'CxlMrnIOFG5ygAG7eSGR2GAwGj3gq12h';
+    const tileUrl = `https://api.tomtom.com/map/1/tile/basic/night/{z}/{x}/{y}.png?key=${tomtomKey}`;
+
+    const map = L.map('map', {
+      zoomControl: false,
+      attributionControl: false
+    });
+    
+    L.tileLayer(tileUrl, {maxZoom: 19, attribution: '© TomTom'}).addTo(map);
+
+    // Draw route
+    if (trip.routeCoords && trip.routeCoords.length > 0) {
+      const latlngs = trip.routeCoords.map(p => [p.lat, p.lng]);
+      
+      const polyline = L.polyline(latlngs, {
+        color: '#00e5ff',
+        weight: 4,
+        opacity: 0.8
+      }).addTo(map);
+      
+      map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
+      
+      // Markers
+      const startPoint = latlngs[0];
+      const endPoint = latlngs[latlngs.length - 1];
+      
+      const startIcon = L.divIcon({
+        className: 'custom-icon',
+        html: `<div style="background:#00ff66;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px #00ff66;"></div>`,
+        iconSize: [12, 12],
+        iconAnchor: [6, 6]
+      });
+      L.marker(startPoint, {icon: startIcon}).addTo(map);
+
+      const endIcon = L.divIcon({
+        className: 'custom-icon',
+        html: `<div style="font-size:20px;line-height:1;transform:translate(-50%, -100%);">🏁</div>`,
+        iconSize: [0, 0]
+      });
+      L.marker(endPoint, {icon: endIcon}).addTo(map);
+      
+    } else {
+      // Default view if no GPS data
+      map.setView([10.8, 106.65], 13);
+    }
+  });
+</script>
+</body>
+</html>

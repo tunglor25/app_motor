@@ -281,6 +281,7 @@
   }
 </script>
 <script src="js/ios_statusbar.js"></script>
+<script src="js/trip_tracker.js"></script>
 </head>
 <body>
 
@@ -291,7 +292,7 @@
 
 <div class="tabs">
   <div class="btn tab-btn active" data-tab="tab-general">CHUNG</div>
-  <div class="btn tab-btn" data-tab="tab-map">BẢN ĐỒ</div>
+  <div class="btn tab-btn" data-tab="tab-map">HÀNH TRÌNH</div>
   <div class="btn tab-btn" data-tab="tab-music">NHẠC</div>
 </div>
 
@@ -583,18 +584,33 @@
   <!-- TAB MAP -->
   <div id="tab-map" class="tab-content">
     <div class="section">
-      <div class="section-title">BẢN ĐỒ MINI</div>
+      <div class="section-title">HÀNH TRÌNH (TRIP TRACKER)</div>
       <div class="section-card">
-        <div class="row">
+        <div class="row" style="cursor: pointer;" onclick="window.location.href='trip_history.html'">
           <div class="row-left">
             <div class="row-icon blue">🗺️</div>
             <div>
-              <div class="row-label">Hiển thị bản đồ</div>
-              <div class="row-desc">Hiển thị bản đồ ở góc màn hình ngang</div>
+              <div class="row-label">Xem lịch sử hành trình</div>
+              <div class="row-desc">Danh sách các chuyến đi đã lưu</div>
             </div>
           </div>
-          <div class="toggle on" id="toggleMap" data-key="show_map"></div>
+          <div class="row-value">❯</div>
         </div>
+        <div class="row" style="cursor: pointer;" onclick="if(confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử hành trình không?')) { TripTracker.clearAllTrips(); alert('Đã xóa lịch sử!'); }">
+          <div class="row-left">
+            <div class="row-icon red">🗑️</div>
+            <div>
+              <div class="row-label">Xóa tất cả lịch sử</div>
+              <div class="row-desc">Xóa mọi dữ liệu chuyến đi vĩnh viễn</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">CÀI ĐẶT BẢN ĐỒ (TRIP RESULT)</div>
+      <div class="section-card">
         <div class="row">
           <div class="row-left">
             <div class="row-icon green">🎨</div>
@@ -663,7 +679,6 @@
     wake_lock: localStorage.getItem('wake_lock') !== 'false',
     fullscreen: localStorage.getItem('fullscreen') !== 'false',
     light_mode: localStorage.getItem('light_mode') === 'true',
-    show_map: localStorage.getItem('show_map') !== 'false',
     map_style: localStorage.getItem('map_style') || 'dark',
     map_icon: localStorage.getItem('map_icon') || 'moto',
     auto_hide_music: localStorage.getItem('auto_hide_music') !== 'false',
@@ -734,7 +749,6 @@
   initToggle('toggleWakeLock', 'wake_lock');
   initToggle('toggleFullscreen', 'fullscreen');
   initToggle('toggleLightMode', 'light_mode');
-  initToggle('toggleMap', 'show_map');
   initToggle('toggleMusicAuto', 'auto_hide_music');
   initToggle('toggleDemoMode', 'demo_mode');
 

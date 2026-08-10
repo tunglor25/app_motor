@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Lịch Sử Hành Trình</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="js/trip_tracker.js"></script>
+<script src="js/ios_statusbar.js"></script>
+<style>
+  :root {
+    --cyan: #00e5ff;
+    --red: #ff2130;
+    --bg: #030304;
+    --card: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.1);
+    --text: #ffffff;
+    --dim: rgba(255, 255, 255, 0.6);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-user-select: none; user-select: none; font-family: 'Share Tech Mono', monospace; }
+  body { 
+    background: var(--bg); color: var(--text); 
+    display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: rgba(0,0,0,0.5);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .btn-back {
+    width: 40px; height: 40px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 20px;
+    display: flex; justify-content: center; align-items: center;
+    cursor: pointer;
+    margin-right: 16px;
+  }
+  .btn-back:active {
+    background: var(--card);
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+  .header-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    text-shadow: 0 0 8px rgba(0,229,255,0.3);
+  }
+
+  /* List */
+  .list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .empty-state {
+    text-align: center;
+    color: var(--dim);
+    margin-top: 40px;
+    font-size: 14px;
+  }
+  
+  /* Card */
+  .trip-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    overflow: hidden;
+  }
+  .trip-card:active {
+    background: rgba(0, 229, 255, 0.05);
+    border-color: var(--cyan);
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 6px;
+  }
+  .trip-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    color: var(--cyan);
+  }
+  .trip-date {
+    font-size: 12px;
+    color: var(--dim);
+  }
+  .card-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .stat-line {
+    display: flex;
+    flex-direction: column;
+  }
+  .stat-lbl {
+    font-size: 10px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+  .stat-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    color: #fff;
+  }
+
+  /* Delete Overlay */
+  .delete-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255, 33, 48, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 10;
+  }
+  .delete-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .btn-del-confirm {
+    background: #000;
+    color: var(--text);
+    border: 1px solid var(--text);
+    padding: 8px 16px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+  .btn-del-confirm:active {
+    background: #fff;
+    color: #000;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="btn-back" onclick="history.back()">←</button>
+  <div class="header-title">📋 LỊCH SỬ HÀNH TRÌNH</div>
+</div>
+
+<div class="list-container" id="tripList">
+  <!-- Items injected here -->
+</div>
+
+<script>
+  function formatTime(ms) {
+    let totalSeconds = Math.floor(ms / 1000);
+    let hours = Math.floor(totalSeconds / 3600);
+    let minutes = Math.floor((totalSeconds % 3600) / 60);
+    let seconds = totalSeconds % 60;
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m ${seconds}s`;
+  }
+
+  function formatDate(timestamp) {
+    const d = new Date(timestamp);
+    return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+  }
+
+  function renderList() {
+    const listEl = document.getElementById('tripList');
+    listEl.innerHTML = '';
+    
+    const trips = TripTracker.getAllTrips();
+    
+    if (trips.length === 0) {
+      listEl.innerHTML = '<div class="empty-state">Không có dữ liệu hành trình.</div>';
+      return;
+    }
+
+    // Newest first
+    trips.forEach((trip, index) => {
+      const tripNum = trips.length - index; // if sorting is newest first
+      
+      const card = document.createElement('div');
+      card.className = 'trip-card';
+      
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="trip-num">TRIP #${tripNum}</div>
+          <div class="trip-date">${formatDate(trip.startTime)}</div>
+        </div>
+        <div class="card-body">
+          <div class="stat-line">
+            <span class="stat-lbl">Quãng đường</span>
+            <span class="stat-val">${trip.totalDistance.toFixed(1)} km</span>
+          </div>
+          <div class="stat-line">
+            <span class="stat-lbl">Thời gian</span>
+            <span class="stat-val">${formatTime(trip.duration)}</span>
+          </div>
+          <div class="stat-line">
+            <span class="stat-lbl">Max Speed</span>
+            <span class="stat-val">${Math.round(trip.maxSpeedECU)} km/h</span>
+          </div>
+          <div class="stat-line">
+            <span class="stat-lbl">Avg Speed</span>
+            <span class="stat-val">${Math.round(trip.avgSpeedECU)} km/h</span>
+          </div>
+        </div>
+        <div class="delete-overlay" id="del_overlay_${trip.id}">
+          <button class="btn-del-confirm" id="btn_del_${trip.id}">XÓA CHUYẾN ĐI</button>
+        </div>
+      `;
+
+      // Long press logic
+      let pressTimer;
+      let isLongPress = false;
+      
+      const startPress = (e) => {
+        isLongPress = false;
+        pressTimer = setTimeout(() => {
+          isLongPress = true;
+          document.getElementById(`del_overlay_${trip.id}`).classList.add('show');
+          if (navigator.vibrate) navigator.vibrate(50);
+        }, 600); // 600ms for long press
+      };
+      
+      const endPress = (e) => {
+        clearTimeout(pressTimer);
+      };
+
+      card.addEventListener('touchstart', startPress, {passive: true});
+      card.addEventListener('touchend', endPress);
+      card.addEventListener('touchmove', endPress, {passive: true});
+      
+      card.addEventListener('mousedown', startPress);
+      card.addEventListener('mouseup', endPress);
+      card.addEventListener('mouseleave', endPress);
+
+      card.addEventListener('click', (e) => {
+        // Prevent navigation if we are interacting with delete overlay
+        if (e.target.tagName === 'BUTTON' || isLongPress) return;
+        
+        const overlay = document.getElementById(`del_overlay_${trip.id}`);
+        if (overlay.classList.contains('show')) {
+          overlay.classList.remove('show');
+          return;
+        }
+
+        window.location.href = `trip_result.html?id=${trip.id}`;
+      });
+
+      // Delete action
+      const btnDel = card.querySelector(`#btn_del_${trip.id}`);
+      btnDel.addEventListener('click', (e) => {
+        e.stopPropagation();
+        TripTracker.deleteTrip(trip.id);
+        renderList();
+      });
+
+      listEl.appendChild(card);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderList();
+  });
+</script>
+</body>
+</html>
