@@ -173,6 +173,16 @@ const ECUController = {
                     ECUData.accelTiming.active = false; // Aborted
                 }
             }
+            // Speed Warning Logic
+            const warnEnabled = localStorage.getItem('speed_warn_enabled') === 'true';
+            const speedLimit = parseInt(localStorage.getItem('speed_warn_val') || '80');
+            this.dispatchUpdate('speed_limit_data', { limit: warnEnabled ? speedLimit : 0 });
+            
+            const isWarning = warnEnabled && ECUData.speed > speedLimit;
+            if (isWarning !== this._lastSpeedWarning) {
+                this._lastSpeedWarning = isWarning;
+                this.dispatchUpdate('speed_warning', { warning: isWarning });
+            }
         }
         
         this.dispatchUpdate('ecu_data', ECUData);
