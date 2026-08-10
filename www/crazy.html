@@ -7,23 +7,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --cyan: #2BE7FF;
-    --red: #ff2130;
+    --cyan: #00e5ff;
+    --red: #ff003c;
     --amber: #ffb703;
     --green: #00ff66;
-    --bg-dark: #030304;
-    --bg-panel: rgba(10, 12, 16, 0.85);
+    --bg-dark: #0a0b10;
+    --bg-panel: rgba(20, 22, 28, 0.85);
     --dim: rgba(255,255,255,0.45);
-    --hud-border: 1px solid rgba(43, 231, 255, 0.3);
-    --hud-glow: 0 0 10px rgba(43, 231, 255, 0.2);
-  }
-  html.light-theme {
-    --cyan: #008eb3;
-    --bg-dark: #e0e5ec;
-    --bg-panel: rgba(255, 255, 255, 0.85);
-    --dim: rgba(0,0,0,0.45);
-    --hud-border: 1px solid rgba(0, 142, 179, 0.3);
-    --hud-glow: 0 4px 8px rgba(0,0,0,0.1);
+    --hud-border: 1px solid rgba(255, 255, 255, 0.15);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; 
       -webkit-user-select: none; user-select: none;
@@ -33,434 +24,478 @@
     background: var(--bg-dark); color: #fff; font-family: 'Share Tech Mono', monospace;
     overflow: hidden; touch-action: none; width: 100vw; height: 100vh;
   }
-  html.light-theme body { color: #111; }
   
   #app {
     position: relative; width: 100%; height: 100%; display: flex; flex-direction: column;
-    padding: env(safe-area-inset-top, 5px) env(safe-area-inset-right, 5px) env(safe-area-inset-bottom, 5px) env(safe-area-inset-left, 5px);
-    background: radial-gradient(circle at center, rgba(43, 231, 255, 0.05) 0%, var(--bg-dark) 80%);
+    padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 15px) env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 15px);
   }
-  html.light-theme #app { background: radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, var(--bg-dark) 80%); }
+
+  /* Radial Glows */
+  .bg-glow {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;
+    background: radial-gradient(circle at 35% 50%, rgba(0,229,255,0.15) 0%, transparent 50%),
+                radial-gradient(circle at 65% 50%, rgba(255,0,60,0.15) 0%, transparent 50%);
+  }
 
   /* TOP BAR */
   .top-bar {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 4px 16px; border-bottom: var(--hud-border);
-    background: linear-gradient(90deg, transparent, rgba(43,231,255,0.1), transparent);
-    flex-shrink: 0; z-index: 10;
+    padding: 0 20px; z-index: 10; height: 30px; margin-bottom: 5px;
   }
-  .top-bar-side { display: flex; gap: 16px; align-items: center; }
-  .tb-label { font-size: 10px; color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 5px var(--cyan); }
-  .tb-val { font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 700; color: #fff; }
-  html.light-theme .tb-val { color: #111; }
-
+  .tb-title {
+    font-size: 14px; font-weight: bold; letter-spacing: 2px; color: #fff; font-family: 'Orbitron', sans-serif;
+  }
+  .tb-center {
+    display: flex; gap: 20px; align-items: center; font-size: 11px; color: var(--dim);
+  }
+  .tb-redline { color: var(--red); font-family: 'Orbitron', sans-serif; }
+  
   /* MAIN CONTENT AREA */
   .main-content {
-    flex: 1; display: flex; position: relative; overflow: hidden;
+    flex: 1; display: flex; position: relative; z-index: 10;
   }
   
   /* PANELS */
   .side-panel {
-    width: 240px; display: flex; flex-direction: column; gap: 12px;
-    padding: 12px; z-index: 5; justify-content: center;
+    width: 250px; display: flex; flex-direction: column; gap: 10px;
+    z-index: 5; justify-content: space-between;
   }
   .panel-box {
-    background: var(--bg-panel); border: var(--hud-border);
-    padding: 12px; position: relative; box-shadow: var(--hud-glow);
-    clip-path: polygon(0 10px, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+    background: var(--bg-panel); border: var(--hud-border); border-radius: 8px;
+    padding: 12px; position: relative; display: flex; flex-direction: column;
   }
-  .panel-box::before {
-    content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--cyan);
-  }
-  .panel-title { font-size: 10px; color: var(--dim); letter-spacing: 2px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+  /* Chamfered corners style */
+  .panel-box.left { clip-path: polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px)); }
+  .panel-box.right { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%); }
   
-  /* LEFT PANEL: ECT & TPS */
-  .ect-container { display: flex; align-items: flex-end; gap: 10px; height: 120px; }
-  .ect-bar-bg { width: 16px; height: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); position: relative; }
-  .ect-bar-fill { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: var(--cyan); transition: height 0.3s, background 0.3s; box-shadow: 0 0 10px var(--cyan); }
-  .ect-info { display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
-  .ect-val { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; color: #fff; }
-  html.light-theme .ect-val { color: #111; }
+  .panel-title { font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
   
-  .tps-container { margin-top: 12px; }
-  .tps-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); position: relative; margin-top: 4px; }
-  .tps-bar-fill { height: 100%; width: 0%; background: var(--cyan); transition: width 0.1s; box-shadow: 0 0 8px var(--cyan); }
-  .tps-header { display: flex; justify-content: space-between; font-size: 12px; }
+  /* LEFT PANEL - ECT */
+  .ect-layout { display: flex; align-items: flex-start; justify-content: space-between; }
+  .ect-val-box { display: flex; flex-direction: column; }
+  .ect-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; color: #fff; display: flex; align-items: baseline; gap: 2px; }
+  .ect-unit { font-size: 12px; }
   
-  .trip-info-box { display: flex; flex-direction: column; gap: 6px; }
-  .trip-row { display: flex; justify-content: space-between; align-items: baseline; }
-  .trip-lbl { font-size: 10px; color: var(--dim); }
-  .trip-v { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 500; }
+  /* Segmented Bar Chart - ECT */
+  .ect-bars { display: flex; flex-direction: column-reverse; gap: 2px; height: 60px; }
+  .ect-segment { width: 12px; height: 4px; background: rgba(255,255,255,0.1); }
+  .ect-segment.active { background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
+  
+  /* LEFT PANEL - TPS */
+  .tps-layout { display: flex; flex-direction: column; gap: 8px; }
+  .tps-val-box { display: flex; align-items: baseline; gap: 6px; }
+  .tps-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; color: #fff; }
+  
+  /* Stepped Bar Chart - TPS */
+  .tps-bars { display: flex; align-items: flex-end; gap: 2px; height: 35px; }
+  .tps-segment { width: 8px; background: rgba(255,255,255,0.1); }
+  .tps-segment.active { background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
+  
+  /* LEFT PANEL - TRIP */
+  .trip-list { display: flex; flex-direction: column; gap: 4px; font-size: 11px; }
+  .trip-item { display: flex; justify-content: space-between; }
+  .trip-lbl { color: var(--dim); }
+  .trip-v { font-family: 'Orbitron', sans-serif; font-weight: 500; }
 
-  /* RIGHT PANEL: BATT & DIAG */
-  .batt-status { display: flex; justify-content: space-between; align-items: baseline; }
-  .batt-val { font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 700; color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
-  .batt-lbl { font-size: 12px; color: var(--green); }
+  /* RIGHT PANEL - BATT */
+  .batt-layout { display: flex; flex-direction: column; gap: 8px; }
+  .batt-val-box { display: flex; align-items: baseline; justify-content: flex-end; gap: 6px; }
+  .batt-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; color: #fff; }
+  .batt-status-txt { font-size: 12px; color: var(--green); }
   
-  .diag-list { display: flex; flex-direction: column; gap: 8px; }
-  .diag-item { display: flex; justify-content: space-between; font-size: 11px; padding: 4px; background: rgba(255,255,255,0.02); }
-  .diag-ok { color: var(--green); text-shadow: 0 0 4px var(--green); }
-  .diag-fault { color: var(--red); text-shadow: 0 0 4px var(--red); animation: blink 1s infinite; }
+  /* Segmented Bar Chart - BATT */
+  .batt-bars { display: flex; align-items: flex-end; justify-content: space-between; height: 40px; }
+  .batt-segment { width: 6px; background: rgba(255,255,255,0.1); }
+  .batt-segment.active { background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
+  
+  /* RIGHT PANEL - DIAGNOSTICS */
+  .diag-list { display: flex; flex-direction: column; gap: 6px; }
+  .diag-item { display: flex; justify-content: space-between; font-size: 11px; align-items: center; }
+  .diag-icon { font-size: 14px; width: 20px; text-align: center; }
+  .diag-ok { color: var(--green); }
+  .diag-fault { color: var(--red); animation: blink 1s infinite; }
   @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+  
+  /* RIGHT PANEL - TIME */
+  .time-layout { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .time-date { font-size: 10px; color: var(--dim); text-transform: uppercase; }
+  .time-clock { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; color: #fff; }
 
   /* CENTER GAUGE */
   .center-gauge-container {
-    flex: 1; display: flex; justify-content: center; align-items: center; position: relative; z-index: 1;
+    flex: 1; display: flex; justify-content: center; align-items: center; position: relative; z-index: 10;
   }
-  .gauge-svg { width: min(95%, 85vh); height: auto; filter: drop-shadow(0 0 15px rgba(43,231,255,0.2)); overflow: visible; }
-  .gauge-tick { transition: stroke 0.05s, filter 0.05s; }
+  .gauge-svg { width: min(100%, 90vh); height: auto; overflow: visible; filter: drop-shadow(0 0 10px rgba(0,229,255,0.3)); }
+  .gauge-path-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 16; stroke-linecap: round; }
+  .gauge-path-fill { fill: none; stroke: url(#gaugeGrad); stroke-width: 16; stroke-linecap: round; transition: stroke-dasharray 0.1s linear, stroke-dashoffset 0.1s linear; }
+  .gauge-tick { stroke: rgba(255,255,255,0.3); stroke-width: 2; }
+  .gauge-tick.active { stroke: #fff; }
+  .gauge-text { fill: #fff; font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 700; text-anchor: middle; }
+  .gauge-text.red { fill: var(--red); }
   
   .speed-display {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    width: min(50%, 45vh); height: min(50%, 45vh);
-    background: radial-gradient(circle, rgba(10,12,16,0.9) 0%, transparent 70%);
-    border-radius: 50%;
+    width: 200px; height: 200px;
   }
-  html.light-theme .speed-display { background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 70%); }
   
-  .speed-val { font-family: 'Orbitron', sans-serif; font-size: min(150px, 15vh); font-weight: 900; line-height: 0.8; letter-spacing: -2px; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
-  .speed-unit { font-size: 16px; color: var(--cyan); letter-spacing: 4px; margin-top: 5px; }  
+  .speed-lbl { font-size: 14px; color: var(--dim); letter-spacing: 2px; margin-bottom: -10px; }
+  .speed-val { font-family: 'Orbitron', sans-serif; font-size: 110px; font-weight: 900; line-height: 1; letter-spacing: -2px; color: var(--cyan); text-shadow: 0 0 20px rgba(0,229,255,0.5); }
+  .speed-unit { font-size: 16px; color: var(--dim); letter-spacing: 2px; margin-top: -5px; }
+  
+  .center-bottom-info {
+    position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 30px; font-size: 12px; color: var(--dim); align-items: baseline;
+  }
+  .cbi-val { font-family: 'Orbitron', sans-serif; font-size: 16px; color: #fff; font-weight: 500; margin-left: 6px; }
+
   /* SPEED LIMIT SIGN */
   .speed-limit-sign {
     position: absolute; top: 15%; right: 15%;
     width: 48px; height: 48px; border-radius: 50%;
     border: 4px solid var(--red); background: rgba(255,255,255,0.95);
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 15px rgba(255,33,48,0.5); z-index: 20; transition: opacity 0.3s;
+    box-shadow: 0 0 15px rgba(255,0,60,0.5); z-index: 20;
   }
-  .speed-limit-sign.hidden { opacity: 0; pointer-events: none; }
   .speed-limit-val { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900; color: #111; }
-  
-  /* GPS SPEED */
-  .gps-speed { position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%); font-size: 14px; color: var(--dim); display: flex; align-items: baseline; gap: 6px; }
-  .gps-speed-val { font-family: 'Orbitron', sans-serif; font-size: 20px; color: var(--cyan); text-shadow: 0 0 8px var(--cyan); }
 
   /* BOTTOM BAR */
   .bottom-bar {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 16px; border-top: var(--hud-border);
-    background: linear-gradient(90deg, transparent, rgba(43,231,255,0.1), transparent);
-    flex-shrink: 0; z-index: 10;
+    padding: 0 20px; z-index: 10; height: 30px; margin-top: 5px; font-size: 11px;
   }
-  .bb-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-  .bb-lbl { font-size: 9px; color: var(--dim); letter-spacing: 1px; }
-  .bb-val { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 500; color: #fff; }
-  html.light-theme .bb-val { color: #111; }
-  .bb-val.cyan { color: var(--cyan); text-shadow: 0 0 5px var(--cyan); }
+  .bb-connection { color: var(--green); display: flex; align-items: center; gap: 8px; }
+  .bb-settings { color: var(--dim); cursor: pointer; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 4px;}
   
-  .btn-gear {
-    width: 36px; height: 36px; background: transparent; border: 1px solid var(--cyan);
-    color: var(--cyan); font-size: 18px; cursor: pointer;
-    clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
-    transition: all 0.2s; display: flex; align-items: center; justify-content: center;
-  }
-  .btn-gear:active { background: rgba(43,231,255,0.2); box-shadow: inset 0 0 10px var(--cyan); }
-  html.light-theme .btn-gear { border-color: #008eb3; color: #008eb3; }
-
-  /* MUSIC FAB (Copied pattern) */
-  .music-fab {
-    position: absolute; bottom: 70px; right: 20px;
-    width: 48px; height: 48px; border-radius: 50%;
-    background: rgba(10,12,16,0.8); border: 2px solid var(--cyan);
-    color: var(--cyan); font-size: 20px;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 12px rgba(43,231,255,0.4);
-    cursor: pointer; z-index: 100; transition: all 0.2s;
-  }
-  .music-fab:active { transform: scale(0.9); }
-  .music-fab.hidden { display: none; }
-
-  /* TRIP TRACKER INTEGRATION */
-  .btn-trip-hud {
-    background: transparent; border: 1px solid var(--cyan); color: var(--cyan);
-    padding: 6px 12px; font-family: 'Share Tech Mono', monospace; font-size: 12px;
-    clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
-    cursor: pointer; position: relative; overflow: hidden;
-  }
-  .btn-trip-hud.recording { border-color: var(--red); color: var(--red); box-shadow: 0 0 10px rgba(255,33,48,0.4); animation: btnRecPulse 1.5s infinite; }
-  .btn-trip-hud .progress { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--red); width: 0%; transition: width 0.1s linear; }
-
-  /* RESPONSIVE */
-  @media (orientation: portrait) {
-    .main-content { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
-    .side-panel { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 4px; gap: 4px; }
-    .panel-box { flex: 1; min-width: 45%; padding: 8px; }
-    .center-gauge-container { min-height: 50vh; }
-    .speed-val { font-size: min(100px, 12vh); }
-    .music-fab { bottom: 80px; right: 10px; width: 40px; height: 40px; font-size: 16px; }
-  }
-  @media (orientation: landscape) {
-    .main-content { flex-direction: row; }
+  /* RESPONSIVE SCALING */
+  @media (max-width: 700px) {
+    .side-panel { width: 180px; }
+    .speed-val { font-size: 80px; }
+    .panel-box { padding: 8px; }
   }
 
-  /* POPUPS from race.html can be added here if needed, keeping music overlay logic */
 </style>
-<script>
-  if (localStorage.getItem('light_mode') === 'true') { document.documentElement.classList.add('light-theme'); }
-</script>
-<script src="js/ios_statusbar.js"></script>
 </head>
-<body id="body">
+<body>
+
 <div id="app">
+  <div class="bg-glow"></div>
+  
   <!-- TOP BAR -->
   <div class="top-bar">
-    <div class="top-bar-side">
-      <span class="tb-label">STATUS</span>
-      <span class="tb-val" style="color:var(--green)">ONLINE</span>
-      <span class="tb-label">LEAN</span>
-      <span class="tb-val" id="leanVal">0°</span>
+    <div class="tb-title">STATUS</div>
+    <div class="tb-center">
+      <span>LEAN ANGLE: <span style="color:#fff">0°</span></span>
+      <span>REDLINE: <span class="tb-redline">11,500</span></span>
     </div>
-    <div class="top-bar-side">
-      <span class="tb-label">REDLINE</span>
-      <span class="tb-val" style="color:var(--red)">12000</span>
-      <span class="tb-label">TELEMETRY</span>
-    </div>
+    <div class="tb-title">TELEMETRY</div>
   </div>
-
-  <!-- MAIN -->
-  <div class="main-content" id="mainContent">
+  
+  <div class="main-content">
+    
     <!-- LEFT PANEL -->
     <div class="side-panel">
-      <div class="panel-box">
-        <div class="panel-title">ENGINE COOLANT</div>
-        <div class="ect-container">
-          <div class="ect-bar-bg"><div class="ect-bar-fill" id="ectFill"></div></div>
-          <div class="ect-info">
-            <span style="font-size: 10px; color: var(--dim)">TEMP</span>
-            <span class="ect-val"><span id="ectVal">--</span>°C</span>
+      <!-- ECT -->
+      <div class="panel-box left" style="flex: 1.2;">
+        <div class="panel-title">ENGINE COOLANT TEMP</div>
+        <div class="ect-layout">
+          <div class="ect-bars" id="ectBars">
+            <!-- segments -->
+          </div>
+          <div class="ect-val-box">
+            <span class="ect-val"><span id="ectVal">--</span><span class="ect-unit">°C</span></span>
           </div>
         </div>
       </div>
-      <div class="panel-box">
-        <div class="panel-title">THROTTLE</div>
-        <div class="tps-container">
-          <div class="tps-header"><span>TPS</span><span id="tpsVal" style="font-family:'Orbitron',sans-serif; color:var(--cyan)">0%</span></div>
-          <div class="tps-bar-bg"><div class="tps-bar-fill" id="tpsFill"></div></div>
+      
+      <!-- TPS -->
+      <div class="panel-box left" style="flex: 1;">
+        <div class="panel-title">THROTTLE POSITION</div>
+        <div class="tps-layout">
+          <div class="tps-val-box">
+            <span class="tps-val">TPS: <span id="tpsVal">--</span>%</span>
+          </div>
+          <div class="tps-bars" id="tpsBars">
+            <!-- segments -->
+          </div>
         </div>
       </div>
-      <div class="panel-box trip-info-box">
-        <div class="panel-title">TRIP DATA</div>
-        <div class="trip-row"><span class="trip-lbl">TRIP 1</span><span class="trip-v" id="tripVal">0.0 km</span></div>
-        <div class="trip-row"><span class="trip-lbl">AVG FUEL</span><span class="trip-v" id="fuelVal">-- L/100</span></div>
-        <div class="trip-row"><span class="trip-lbl">FUEL LVL</span><span class="trip-v">-- %</span></div>
-        <button class="btn-trip-hud" id="btnTrip">▶ REC TRIP<div class="progress" id="btnTripProgress"></div></button>
+      
+      <!-- TRIP -->
+      <div class="panel-box left" style="flex: 1;">
+        <div class="trip-list">
+          <div class="trip-item"><span class="trip-lbl">Trip A:</span><span class="trip-v"><span id="tripVal">0.0</span> km</span></div>
+          <div class="trip-item"><span class="trip-lbl">Avg Fuel:</span><span class="trip-v"><span id="fuelVal">0.0</span> L/100</span></div>
+          <div class="trip-item"><span class="trip-lbl">Fuel:</span><span class="trip-v">100%</span></div>
+        </div>
       </div>
     </div>
-
+    
     <!-- CENTER GAUGE -->
     <div class="center-gauge-container">
-      <svg class="gauge-svg" viewBox="-110 -110 220 220" id="gaugeSvg">
-        <!-- SVG generated in JS -->
+      <svg class="gauge-svg" viewBox="-130 -130 260 260" id="gaugeSvg">
+        <defs>
+          <linearGradient id="gaugeGrad" x1="0%" y1="100%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="var(--cyan)" />
+            <stop offset="60%" stop-color="var(--cyan)" />
+            <stop offset="85%" stop-color="var(--red)" />
+            <stop offset="100%" stop-color="var(--red)" />
+          </linearGradient>
+        </defs>
+        <!-- The background track -->
+        <path class="gauge-path-bg" d="M -91.92 91.92 A 130 130 0 1 1 91.92 91.92" />
+        <!-- The fill track -->
+        <path class="gauge-path-fill" id="gaugePathFill" d="M -91.92 91.92 A 130 130 0 1 1 91.92 91.92" />
+        <!-- Ticks generated by JS -->
+        <g id="gaugeTicks"></g>
+        <g id="gaugeLabels"></g>
       </svg>
+      
       <div class="speed-display">
+        <div class="speed-lbl">SPEED</div>
         <div class="speed-val" id="speedVal">0</div>
         <div class="speed-unit">km/h</div>
       </div>
+      
+      <div class="center-bottom-info">
+        <span>RPM <span class="cbi-val" id="rpmBotVal">0</span></span>
+        <span>ODO <span class="cbi-val">12,450 km</span></span>
+      </div>
+      
       <div class="speed-limit-sign" id="speedLimitSign">
         <span class="speed-limit-val" id="speedLimitVal">--</span>
       </div>
-      <div class="gps-speed">
-        <span>GPS</span><span class="gps-speed-val" id="gpsSpeedVal">--</span><span>km/h</span>
-      </div>
     </div>
-
+    
     <!-- RIGHT PANEL -->
     <div class="side-panel">
-      <div class="panel-box">
-        <div class="panel-title">POWER SYSTEM</div>
-        <div class="batt-status">
-          <span class="batt-val"><span id="battVal">--</span>V</span>
-          <span class="batt-lbl" id="battStatus">GOOD</span>
-        </div>
-      </div>
-      <div class="panel-box" style="flex:1">
-        <div class="panel-title">DIAGNOSTICS</div>
-        <div class="diag-list">
-          <div class="diag-item"><span>ENGINE</span><span class="diag-ok">OK</span></div>
-          <div class="diag-item"><span>ABS</span><span class="diag-ok">OK</span></div>
-          <div class="diag-item"><span>FUEL SYS</span><span class="diag-ok">OK</span></div>
-          <div class="diag-item" style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
-            <span style="color:var(--dim)">DTCs</span><span style="color:var(--cyan); font-family:'Orbitron',sans-serif">0</span>
+      <!-- BATT -->
+      <div class="panel-box right" style="flex: 1.2;">
+        <div class="panel-title" style="text-align: right;">BATTERY VOLTAGE</div>
+        <div class="batt-layout">
+          <div class="batt-val-box">
+            <span class="batt-val"><span id="battVal">--</span>V</span>
+            <span class="batt-status-txt" id="battStatus">GOOD</span>
+          </div>
+          <div class="batt-bars" id="battBars">
+            <!-- segments -->
           </div>
         </div>
       </div>
+      
+      <!-- DIAGNOSTICS -->
+      <div class="panel-box right" style="flex: 1.2;">
+        <div class="panel-title" style="text-align: right;">ENGINE DIAGNOSTICS</div>
+        <div class="diag-list" style="margin-top: 4px;">
+          <div class="diag-item"><span class="diag-icon">🟢</span><span>Engine:</span><span class="diag-ok">OK</span></div>
+          <div class="diag-item"><span class="diag-icon">🟡</span><span>ABS:</span><span class="diag-ok">OK</span></div>
+          <div class="diag-item"><span class="diag-icon">🔵</span><span>Fuel Sys:</span><span class="diag-ok">OK</span></div>
+          <div class="diag-item"><span class="diag-icon">🔴</span><span>Faults:</span><span class="diag-ok">NONE</span></div>
+        </div>
+      </div>
+      
+      <!-- TIME -->
+      <div class="panel-box right" style="flex: 0.8; justify-content: center;">
+        <div class="time-layout">
+          <span class="time-date" id="dateStr">SAT, 26 OCT</span>
+          <span class="time-clock" id="clock">00:00:00</span>
+        </div>
+      </div>
     </div>
-  </div>
-
-  <!-- BOTTOM BAR -->
-  <div class="bottom-bar">
-    <div class="bb-item">
-      <span class="bb-lbl">BLE STAT</span>
-      <span class="bb-val cyan">CONNECTED</span>
-    </div>
-    <div class="bb-item">
-      <span class="bb-lbl">RPM</span>
-      <span class="bb-val" id="rpmBotVal">0</span>
-    </div>
-    <div class="bb-item">
-      <span class="bb-lbl">ODO</span>
-      <span class="bb-val">12450 km</span>
-    </div>
-    <div class="bb-item">
-      <span class="bb-lbl">TIME</span>
-      <span class="bb-val cyan" id="clock">00:00</span>
-    </div>
-    <div class="bb-item">
-      <span class="bb-lbl">ELAPSED</span>
-      <span class="bb-val" id="tripTime">00:00</span>
-    </div>
-    <button class="btn-gear" id="btnGear">⚙</button>
+    
   </div>
   
-  <div class="music-fab hidden" id="musicFab">🎵</div>
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <div class="bb-connection">
+      <span style="font-size: 14px;">🔌</span> DIAGNOSTIC CONNECTION: <span style="font-weight:bold;">CONNECTED</span>
+    </div>
+    <div class="bb-settings" id="btnGear">
+      PROFILE SETTINGS ⚙
+    </div>
+  </div>
+  
 </div>
 
 <script src="js/data_engine.js"></script>
 <script src="js/trip_tracker.js"></script>
 <script>
-  // Setup SVG Gauge (270 degree arc, from -135 to 135)
-  const gaugeSvg = document.getElementById('gaugeSvg');
-  const MAX_RPM = 14000;
-  const NUM_TICKS = 56;
-  const START_ANGLE = -135;
-  const END_ANGLE = 135;
-  const RADIUS_OUTER = 100;
-  const RADIUS_INNER = 85;
-  
-  const cCyan = [43,231,255], cAmber = [255,183,3], cRed = [255,33,48];
-  function lerp(a,b,t){ return a+(b-a)*t; }
-  function rgbStr(r,g,b){ return `rgb(${r},${g},${b})`; }
-  function getGaugeColor(ratio) {
-    if(ratio <= 10/14) return rgbStr(...cCyan);
-    if(ratio <= 12/14) return rgbStr(...cAmber);
-    return rgbStr(...cRed);
+  // --- CLOCK ---
+  function updateClock() {
+    const n = new Date();
+    document.getElementById('clock').textContent = 
+      String(n.getHours()).padStart(2,'0') + ':' + 
+      String(n.getMinutes()).padStart(2,'0') + ':' + 
+      String(n.getSeconds()).padStart(2,'0');
+    
+    const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    document.getElementById('dateStr').textContent = days[n.getDay()] + ', ' + n.getDate() + ' ' + months[n.getMonth()];
+  }
+  setInterval(updateClock, 1000); updateClock();
+
+  // --- SETTINGS ---
+  document.getElementById('btnGear').addEventListener('click', () => {
+    window.location.href = 'settings.html';
+  });
+
+  // --- BUILD CHARTS ---
+  const ectBars = document.getElementById('ectBars');
+  const numEct = 10;
+  for(let i=0; i<numEct; i++) {
+    const seg = document.createElement('div');
+    seg.className = 'ect-segment';
+    ectBars.appendChild(seg);
+  }
+  function updateEctChart(temp) {
+    const ratio = Math.min(Math.max((temp - 40) / 80, 0), 1);
+    const active = Math.round(ratio * numEct);
+    const segs = ectBars.children;
+    for(let i=0; i<numEct; i++) {
+      if(i < active) {
+        segs[numEct - 1 - i].classList.add('active');
+        if(temp >= 110) { segs[numEct - 1 - i].style.background = 'var(--red)'; segs[numEct - 1 - i].style.boxShadow = '0 0 5px var(--red)'; }
+        else if (temp > 100) { segs[numEct - 1 - i].style.background = 'var(--amber)'; segs[numEct - 1 - i].style.boxShadow = '0 0 5px var(--amber)'; }
+        else { segs[numEct - 1 - i].style.background = ''; segs[numEct - 1 - i].style.boxShadow = ''; }
+      } else {
+        segs[numEct - 1 - i].classList.remove('active');
+      }
+    }
   }
 
-  const ticks = [];
-  for(let i=0; i<NUM_TICKS; i++) {
-    const ratio = i / (NUM_TICKS - 1);
+  const tpsBars = document.getElementById('tpsBars');
+  const numTps = 15;
+  for(let i=0; i<numTps; i++) {
+    const seg = document.createElement('div');
+    seg.className = 'tps-segment';
+    seg.style.height = (10 + (i * 1.5)) + 'px';
+    tpsBars.appendChild(seg);
+  }
+  function updateTpsChart(tps) {
+    const active = Math.round((tps / 100) * numTps);
+    const segs = tpsBars.children;
+    for(let i=0; i<numTps; i++) {
+      if(i < active) segs[i].classList.add('active');
+      else segs[i].classList.remove('active');
+    }
+  }
+
+  const battBars = document.getElementById('battBars');
+  const numBatt = 20;
+  const battHeights = [15,25,35,20,30,40,25,15,35,25,40,20,30,25,15,35,20,30,25,40];
+  for(let i=0; i<numBatt; i++) {
+    const seg = document.createElement('div');
+    seg.className = 'batt-segment';
+    seg.style.height = battHeights[i] + 'px';
+    battBars.appendChild(seg);
+  }
+  function updateBattChart(volt) {
+    const ratio = Math.min(Math.max((volt - 10) / 5, 0), 1);
+    const active = Math.round(ratio * numBatt);
+    const segs = battBars.children;
+    for(let i=0; i<numBatt; i++) {
+      if(i < active) {
+        segs[i].classList.add('active');
+        if(volt > 14.8 || volt < 11.5) { segs[i].style.background = 'var(--red)'; segs[i].style.boxShadow = '0 0 5px var(--red)'; }
+        else if (volt <= 12.0) { segs[i].style.background = 'var(--amber)'; segs[i].style.boxShadow = '0 0 5px var(--amber)'; }
+        else { segs[i].style.background = ''; segs[i].style.boxShadow = ''; }
+      }
+      else segs[i].classList.remove('active');
+    }
+  }
+
+  // --- SVG GAUGE ---
+  const MAX_RPM = 14000;
+  const START_ANGLE = -135;
+  const END_ANGLE = 135;
+  const RADIUS = 130;
+  const PATH_LEN = 2 * Math.PI * RADIUS * (270 / 360);
+  
+  const pathFill = document.getElementById('gaugePathFill');
+  pathFill.style.strokeDasharray = PATH_LEN;
+  pathFill.style.strokeDashoffset = PATH_LEN;
+
+  const gTicks = document.getElementById('gaugeTicks');
+  const gLabels = document.getElementById('gaugeLabels');
+  const numGaugeTicks = 56;
+  for(let i=0; i<numGaugeTicks; i++) {
+    const ratio = i / (numGaugeTicks - 1);
     const angleDeg = START_ANGLE + (END_ANGLE - START_ANGLE) * ratio;
     const angleRad = angleDeg * Math.PI / 180;
     
-    const x1 = Math.sin(angleRad) * RADIUS_INNER;
-    const y1 = -Math.cos(angleRad) * RADIUS_INNER;
-    const x2 = Math.sin(angleRad) * RADIUS_OUTER;
-    const y2 = -Math.cos(angleRad) * RADIUS_OUTER;
+    const isMajor = i % 4 === 0;
+    const r1 = RADIUS - (isMajor ? 12 : 5);
+    const r2 = RADIUS - 2;
+    
+    const x1 = Math.sin(angleRad) * r1;
+    const y1 = -Math.cos(angleRad) * r1;
+    const x2 = Math.sin(angleRad) * r2;
+    const y2 = -Math.cos(angleRad) * r2;
     
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     line.setAttribute('x1', x1); line.setAttribute('y1', y1);
     line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-    line.setAttribute('stroke', '#1e1e24');
-    line.setAttribute('stroke-width', '3');
-    line.setAttribute('stroke-linecap', 'round');
-    line.classList.add('gauge-tick');
-    
-    gaugeSvg.appendChild(line);
-    ticks.push({ el: line, color: getGaugeColor(ratio) });
-  }
+    line.setAttribute('class', 'gauge-tick');
+    line.setAttribute('id', 'gtick_' + i);
+    gTicks.appendChild(line);
 
-  // Draw numbers
-  for(let i=0; i<=14; i+=2) {
-    const ratio = i / 14;
-    const angleDeg = START_ANGLE + (END_ANGLE - START_ANGLE) * ratio;
-    const angleRad = angleDeg * Math.PI / 180;
-    const rLabel = 72;
-    const x = Math.sin(angleRad) * rLabel;
-    const y = -Math.cos(angleRad) * rLabel;
-    
-    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    txt.setAttribute('x', x);
-    txt.setAttribute('y', y + 4); // manual vertical center adjust
-    txt.setAttribute('text-anchor', 'middle');
-    txt.setAttribute('fill', i>=12 ? 'var(--red)' : 'var(--dim)');
-    txt.setAttribute('font-family', "'Orbitron', sans-serif");
-    txt.setAttribute('font-size', '10px');
-    txt.setAttribute('font-weight', '700');
-    txt.textContent = i;
-    gaugeSvg.appendChild(txt);
+    if (isMajor) {
+      const num = i / 4;
+      if (num <= 14) {
+        const lr = RADIUS - 28;
+        const lx = Math.sin(angleRad) * lr;
+        const ly = -Math.cos(angleRad) * lr;
+        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        txt.setAttribute('x', lx);
+        txt.setAttribute('y', ly + 5);
+        txt.setAttribute('class', num >= 11 ? 'gauge-text red' : 'gauge-text');
+        txt.textContent = num;
+        gLabels.appendChild(txt);
+      }
+    }
   }
 
   function updateGauge(rpm) {
     if(rpm > MAX_RPM) rpm = MAX_RPM;
     const ratio = rpm / MAX_RPM;
-    const activeTicks = Math.round(ratio * NUM_TICKS);
+    const offset = PATH_LEN - (ratio * PATH_LEN);
+    pathFill.style.strokeDashoffset = offset;
     
-    for(let i=0; i<NUM_TICKS; i++) {
-      if(i < activeTicks) {
-        ticks[i].el.setAttribute('stroke', ticks[i].color);
-        ticks[i].el.style.filter = `drop-shadow(0 0 4px ${ticks[i].color})`;
-      } else {
-        ticks[i].el.setAttribute('stroke', '#1e1e24');
-        ticks[i].el.style.filter = 'none';
-      }
+    const activeTicks = Math.round(ratio * numGaugeTicks);
+    for(let i=0; i<numGaugeTicks; i++) {
+      const el = document.getElementById('gtick_'+i);
+      if(i < activeTicks) el.classList.add('active');
+      else el.classList.remove('active');
     }
   }
 
-  // Boot sweep animation
-  async function bootSweep() {
-    for(let i=0; i<NUM_TICKS; i++) {
-      ticks[i].el.setAttribute('stroke', ticks[i].color);
-      ticks[i].el.style.filter = `drop-shadow(0 0 4px ${ticks[i].color})`;
-      await new Promise(r => setTimeout(r, 10));
-    }
-    await new Promise(r => setTimeout(r, 500));
-    for(let i=NUM_TICKS-1; i>=0; i--) {
-      ticks[i].el.setAttribute('stroke', '#1e1e24');
-      ticks[i].el.style.filter = 'none';
-      await new Promise(r => setTimeout(r, 8));
-    }
-  }
-  bootSweep();
-
-  // Clock
-  setInterval(() => {
-    const d = new Date();
-    document.getElementById('clock').textContent = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-  }, 1000);
-
-  // Settings & Navigation
-  document.getElementById('btnGear').addEventListener('click', (e) => { e.stopPropagation(); window.location.href = 'settings.html'; });
-  document.getElementById('body').addEventListener('dblclick', () => { window.location.href = 'race.html'; });
-
-  // StatusBar hiding for iOS
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar) {
-    window.Capacitor.Plugins.StatusBar.hide();
-    window.Capacitor.Plugins.StatusBar.setOverlaysWebView({ overlay: true });
-  }
-
-  // Data integration
+  // --- ECU EVENT ---
   let lastECUSpeed = 0;
   window.addEventListener('ecu_data', (e) => {
     const data = e.detail;
-    updateGauge(data.rpm);
+    lastECUSpeed = data.speed;
     
-    lastECUSpeed = Math.round(data.speed);
-    document.getElementById('speedVal').textContent = lastECUSpeed;
+    document.getElementById('speedVal').textContent = Math.round(data.speed);
     document.getElementById('rpmBotVal').textContent = Math.round(data.rpm);
     
-    const ectVal = document.getElementById('ectVal');
-    ectVal.textContent = Math.round(data.ect);
-    if (data.ect >= 110) ectVal.style.color = 'var(--red)';
-    else if (data.ect > 100) ectVal.style.color = 'var(--amber)';
-    else ectVal.style.color = '';
-
-    let ectRatio = Math.min(data.ect / 120, 1);
-    let ectFill = document.getElementById('ectFill');
-    ectFill.style.height = (ectRatio * 100) + '%';
-    if (data.ect >= 110) ectFill.style.background = 'var(--red)';
-    else if (data.ect > 100) ectFill.style.background = 'var(--amber)';
-    else ectFill.style.background = 'var(--cyan)';
+    updateGauge(data.rpm);
     
-    document.getElementById('tpsVal').textContent = Math.round(data.tps) + '%';
-    document.getElementById('tpsFill').style.width = Math.round(data.tps) + '%';
+    const ectEl = document.getElementById('ectVal');
+    ectEl.textContent = Math.round(data.ect);
+    if (data.ect >= 110) ectEl.style.color = 'var(--red)';
+    else if (data.ect > 100) ectEl.style.color = 'var(--amber)';
+    else ectEl.style.color = '';
+    updateEctChart(data.ect);
     
-    const battVal = document.getElementById('battVal');
-    battVal.textContent = data.battery.toFixed(1);
-    if (data.battery > 14.8 || data.battery < 11.5) battVal.style.color = 'var(--red)';
-    else if (data.battery <= 12.0) battVal.style.color = 'var(--amber)';
-    else battVal.style.color = '';
-
+    document.getElementById('tpsVal').textContent = Math.round(data.tps);
+    updateTpsChart(data.tps);
+    
+    const battEl = document.getElementById('battVal');
+    battEl.textContent = data.battery.toFixed(1);
+    if (data.battery > 14.8 || data.battery < 11.5) battEl.style.color = 'var(--red)';
+    else if (data.battery <= 12.0) battEl.style.color = 'var(--amber)';
+    else battEl.style.color = '';
+    
     const battStatus = document.getElementById('battStatus');
     if (data.battery > 14.8) {
       battStatus.textContent = 'HIGH';
@@ -475,124 +510,25 @@
       battStatus.textContent = 'GOOD';
       battStatus.style.color = 'var(--green)';
     }
+    updateBattChart(data.battery);
     
-    document.getElementById('tripVal').textContent = data.tripA.toFixed(1) + ' km';
-    if(document.getElementById('fuelVal')) document.getElementById('fuelVal').textContent = data.instantL100km.toFixed(1) + ' L/100';
+    document.getElementById('tripVal').textContent = data.tripA.toFixed(1);
+    if(document.getElementById('fuelVal')) document.getElementById('fuelVal').textContent = data.instantL100km.toFixed(1);
     
     if (window.TripTracker && TripTracker.isRecording()) {
-      TripTracker.addECUData(lastECUSpeed, data.rpm, data.ect, data.tps, data.battery);
+      TripTracker.addECUData(Math.round(data.speed), data.rpm, data.ect, data.tps, data.battery);
     }
   });
 
-  // Trip tracker logic
-  const btnTrip = document.getElementById('btnTrip');
-  const btnTripProg = document.getElementById('btnTripProgress');
-  let tripHoldStart = 0;
-  let tripHoldFrame = null;
-  
-  btnTrip.addEventListener('click', () => {
-    if(!window.TripTracker) return;
-    if(!TripTracker.isRecording()) {
-      TripTracker.start();
-      btnTrip.innerHTML = '■ STOP REC<div class="progress" id="btnTripProgress"></div>';
-      btnTrip.classList.add('recording');
+  // --- SPEED LIMIT EVENT ---
+  let currentSpeedLimit = 0;
+  window.addEventListener('speed_limit_data', (e) => {
+    currentSpeedLimit = e.detail.limit;
+    const valEl = document.getElementById('speedLimitVal');
+    if (valEl) {
+      valEl.textContent = currentSpeedLimit > 0 ? currentSpeedLimit : '--';
     }
   });
-  
-  btnTrip.addEventListener('pointerdown', (e) => {
-    if(!window.TripTracker || !TripTracker.isRecording()) return;
-    tripHoldStart = Date.now();
-    document.getElementById('btnTripProgress').style.width = '0%';
-    
-    function anim() {
-      const elap = Date.now() - tripHoldStart;
-      const prog = Math.min(elap / 1500 * 100, 100);
-      document.getElementById('btnTripProgress').style.width = prog + '%';
-      if(elap >= 1500) {
-        const id = TripTracker.stop();
-        btnTrip.innerHTML = '▶ REC TRIP<div class="progress" id="btnTripProgress"></div>';
-        btnTrip.classList.remove('recording');
-        if(id) window.location.href = `trip_result.html?id=${id}`;
-        return;
-      }
-      tripHoldFrame = requestAnimationFrame(anim);
-    }
-    tripHoldFrame = requestAnimationFrame(anim);
-  });
-  
-  btnTrip.addEventListener('pointerup', () => {
-    if(tripHoldFrame) cancelAnimationFrame(tripHoldFrame);
-    if(document.getElementById('btnTripProgress')) document.getElementById('btnTripProgress').style.width = '0%';
-  });
-  btnTrip.addEventListener('pointerleave', () => {
-    if(tripHoldFrame) cancelAnimationFrame(tripHoldFrame);
-    if(document.getElementById('btnTripProgress')) document.getElementById('btnTripProgress').style.width = '0%';
-  });
-  
-  setInterval(() => {
-    if(window.TripTracker && TripTracker.isRecording()) {
-      const stats = TripTracker.getCurrentStats();
-      const s = Math.floor(stats.duration / 1000);
-      const m = Math.floor(s/60);
-      document.getElementById('tripTime').textContent = String(m).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
-    }
-  }, 1000);
-
-  // GPS & Speed Limit
-  const tomtomKey = 'TNsjEBPR6I6MSu4Lwq1O3YO8udmg5aU3';
-  let lastSpeedCheck = 0;
-  let currLimit = 0;
-  let lastGPSSpeed = 0;
-  
-  if(window.Capacitor && Capacitor.Plugins.Geolocation) {
-    Capacitor.Plugins.Geolocation.watchPosition({enableHighAccuracy: true, timeout: 10000}, (pos, err) => {
-      if(!pos) return;
-      const speed = pos.coords.speed;
-      if(speed !== null && speed >= 0) {
-        lastGPSSpeed = Math.round(speed * 3.6);
-        document.getElementById('gpsSpeedVal').textContent = lastGPSSpeed;
-      }
-      if(window.TripTracker && TripTracker.isRecording()) {
-        TripTracker.addGPSPoint(pos.coords.latitude, pos.coords.longitude, lastGPSSpeed, Date.now(), pos.coords.accuracy);
-      }
-      
-      const now = Date.now();
-      if(now - lastSpeedCheck > 10000) {
-        lastSpeedCheck = now;
-        fetch(`https://api.tomtom.com/search/2/reverseGeocode/${pos.coords.latitude},${pos.coords.longitude}.json?key=${tomtomKey}&returnSpeedLimit=true`)
-          .then(r=>r.json())
-          .then(d => {
-            const sl = d.addresses?.[0]?.address?.speedLimit;
-            if(sl) {
-              const lm = parseInt(sl.replace(/\\D/g,''));
-              if(lm>0) {
-                currLimit = lm;
-                document.getElementById('speedLimitVal').textContent = lm;
-                document.getElementById('speedLimitSign').classList.remove('hidden');
-                return;
-              }
-            }
-            currLimit = 0;
-            document.getElementById('speedLimitSign').classList.add('hidden');
-          }).catch(e=>{});
-      }
-    });
-  }
-
-  // Music poll stub (simplified for HUD)
-  async function pollMusic(){
-    try{
-      if(!window.Capacitor||!Capacitor.Plugins.MediaControlPlugin) return;
-      const info=await Capacitor.Plugins.MediaControlPlugin.getPlayingInfo();
-      if(info.title){
-        document.getElementById('musicFab').classList.remove('hidden');
-      }else{
-        document.getElementById('musicFab').classList.add('hidden');
-      }
-    }catch(e){}
-  }
-  setInterval(pollMusic,2000);pollMusic();
-
 </script>
 </body>
 </html>
