@@ -17,6 +17,7 @@
             --cyan: #008eb3;
             --cyan-glow: none;
             --bg-grad: radial-gradient(circle at center, #f4f6f8 0%, #e5e7eb 100%);
+            background: #e5e7eb;
         }
         * { box-sizing: border-box; margin: 0; padding: 0;
             -webkit-user-select: none; user-select: none;
@@ -24,7 +25,7 @@
             -webkit-tap-highlight-color: transparent;
             -webkit-text-size-adjust: none;
         }
-        html { overflow: hidden; position: fixed; width: 100%; height: 100%; }
+        html { overflow: hidden; position: fixed; width: 100%; height: 100%; background: #02080d; }
         body {
             background: var(--bg-grad);
             color: white;
@@ -628,44 +629,151 @@
     try{await Capacitor.Plugins.MediaControlPlugin.next();}catch(e){}
   });
 
-            if (!routingControl) {
-               miniMap.setView([lat,lng],16,{animate:true,duration:0.5});
-            } else {
-               const waypoints = routingControl.getWaypoints();
-               waypoints[0].latLng = newLatLng;
-               routingControl.setWaypoints(waypoints);
+  // --- GPS AND SPEED LIMIT LOGIC ---
+  let lastGPSSpeed = 0;
+  let currentSpeedLimit = 0;
+
+  function initGPS() {
+    if (window.Capacitor && Capacitor.Plugins.Geolocation) {
+      Capacitor.Plugins.Geolocation.watchPosition({ enableHighAccuracy: true, timeout: 5000 }, (pos, err) => {
+        if (pos && pos.coords) {
+          const speed = (pos.coords.speed || 0) * 3.6;
+          lastGPSSpeed = speed;
+          document.getElementById('gpsSpeedVal').textContent = Math.round(speed);
+
+          if (window.TripTracker && TripTracker.isRecording()) {
+            TripTracker.addGPSPoint(pos.coords.latitude, pos.coords.longitude, speed, pos.timestamp, pos.coords.accuracy);
+            
+            const stats = TripTracker.getCurrentStats();
+            document.getElementById('tripDist').textContent = stats.totalDistance.toFixed(2) + ' km';
+            document.getElementById('tripMax').textContent = Math.round(stats.maxSpeedECU || stats.maxSpeedGPS) + ' km/h';
+          }
+          checkSpeedLimit(pos.coords.latitude, pos.coords.longitude);
+        }
+      });
+    }
+  }
+
+  function checkSpeedLimit(lat, lng) {
+    const tomtomKey = 'TNsjEBPR6I6MSu4Lwq1O3YO8udmg5aU3';
+    const url = `https://api.tomtom.com/search/2/reverseGeocode/${lat},${lng}.json?key=${tomtomKey}&returnSpeedLimit=true`;
+    
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        const signEl = document.getElementById('speedLimitSign');
+        const valEl = document.getElementById('speedLimitVal');
+        if (data && data.addresses && data.addresses.length > 0) {
+          const addr = data.addresses[0].address;
+          if (addr && addr.speedLimit) {
+            let sl = addr.speedLimit;
+            let limitNum = parseInt(sl.replace(/\D/g, ''));
+            if (!isNaN(limitNum) && limitNum > 0) {
+              signEl.classList.remove('hidden');
+              valEl.textContent = limitNum;
+              currentSpeedLimit = limitNum;
+              updateSpeedLimitWarning();
+              return;
             }
           }
-        });
-      }
-      
-      // Map Control Events
-      const mapContainer = document.getElementById('mapContainer');
-      const btnMapExpand = document.getElementById('btnMapExpand');
-      if(btnMapExpand) {
-        btnMapExpand.addEventListener('click', (e) => {
-          e.stopPropagation();
-          mapContainer.classList.toggle('map-fullscreen');
-          setTimeout(() => miniMap.invalidateSize(), 300);
-        });
-      }
-      
-      // Auto-fullscreen on search focus
-      setTimeout(() => {
-        const geocoderInput = document.querySelector('.leaflet-control-geocoder-form input');
-        if (geocoderInput) {
-          geocoderInput.addEventListener('focus', () => {
-            mapContainer.classList.add('map-fullscreen');
-            setTimeout(() => miniMap.invalidateSize(), 300);
-          });
         }
-      }, 2000);
-
-      setTimeout(()=>miniMap.invalidateSize(),500);
-    }catch(e){console.log('Map init error:',e);}
+        signEl.classList.add('hidden');
+        currentSpeedLimit = 0;
+      }).catch(e => console.log(e));
   }
-  setTimeout(initMap,1000);
-  window.addEventListener('resize',()=>{if(miniMap)setTimeout(()=>miniMap.invalidateSize(),200);});
+
+  function updateSpeedLimitWarning() {
+    const signEl = document.getElementById('speedLimitSign');
+    if (currentSpeedLimit > 0) {
+      const spd = Math.max(currentSpeed, lastGPSSpeed);
+      if (spd >= currentSpeedLimit) {
+        signEl.classList.add('overspeed');
+      } else {
+        signEl.classList.remove('overspeed');
+      }
+    }
+  }
+
+  function formatDuration(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+
+  setTimeout(initGPS, 500);
+
+  // --- TRIP BUTTON ---
+  const btnTrip = document.getElementById('btnTrip');
+  const tripBar = document.getElementById('tripBar');
+  let tripHoldStart = 0;
+  let tripHoldAnimFrame = null;
+
+  btnTrip.addEventListener('click', () => {
+    if (!window.TripTracker) return;
+    if (!TripTracker.isRecording()) {
+      TripTracker.start();
+      btnTrip.innerHTML = '■ STOP<div class="btn-progress" id="btnTripProgress"></div>';
+      btnTrip.classList.add('recording');
+      tripBar.classList.add('active');
+      document.getElementById('tripDist').textContent = '0.0 km';
+      document.getElementById('tripTime').textContent = '00:00';
+      document.getElementById('tripMax').textContent = '0 km/h';
+    }
+  });
+
+  btnTrip.addEventListener('pointerdown', (e) => {
+    if (!window.TripTracker || !TripTracker.isRecording()) return;
+    const prog = document.getElementById('btnTripProgress');
+    if(prog) prog.style.width = '0%';
+    tripHoldStart = Date.now();
+    
+    function animateHold() {
+      const elapsed = Date.now() - tripHoldStart;
+      const progress = Math.min(elapsed / 1500 * 100, 100);
+      const progEl = document.getElementById('btnTripProgress');
+      if(progEl) progEl.style.width = progress + '%';
+      
+      if (elapsed >= 1500) {
+        const tripId = TripTracker.stop();
+        btnTrip.innerHTML = '▶ TRIP<div class="btn-progress" id="btnTripProgress"></div>';
+        btnTrip.classList.remove('recording');
+        tripBar.classList.remove('active');
+        if (tripId) window.location.href = `trip_result.html?id=${tripId}`;
+        return;
+      }
+      tripHoldAnimFrame = requestAnimationFrame(animateHold);
+    }
+    tripHoldAnimFrame = requestAnimationFrame(animateHold);
+  });
+
+  btnTrip.addEventListener('pointerup', () => {
+    if (tripHoldAnimFrame) cancelAnimationFrame(tripHoldAnimFrame);
+    const prog = document.getElementById('btnTripProgress');
+    if(prog) prog.style.width = '0%';
+  });
+  btnTrip.addEventListener('pointerleave', () => {
+    if (tripHoldAnimFrame) cancelAnimationFrame(tripHoldAnimFrame);
+    const prog = document.getElementById('btnTripProgress');
+    if(prog) prog.style.width = '0%';
+  });
+
+  setInterval(() => {
+    if (window.TripTracker && TripTracker.isRecording()) {
+      const stats = TripTracker.getCurrentStats();
+      document.getElementById('tripTime').textContent = formatDuration(stats.duration);
+    }
+    updateSpeedLimitWarning();
+  }, 1000);
+
+  // --- SETTINGS BUTTON ---
+  document.getElementById('btnGear').addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.location.href = 'settings.html';
+  });
+
     </script>
 </body>
 </html>
