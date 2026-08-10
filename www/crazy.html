@@ -120,9 +120,7 @@
   html.light-theme .speed-display { background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 70%); }
   
   .speed-val { font-family: 'Orbitron', sans-serif; font-size: min(150px, 15vh); font-weight: 900; line-height: 0.8; letter-spacing: -2px; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
-  .speed-unit { font-size: 16px; color: var(--cyan); letter-spacing: 4px; margin-top: 5px; }
-  .gear-val { font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 700; color: var(--amber); margin-top: 5px; text-shadow: 0 0 10px var(--amber); border: 2px solid var(--amber); padding: 0 12px; border-radius: 4px; }
-  
+  .speed-unit { font-size: 16px; color: var(--cyan); letter-spacing: 4px; margin-top: 5px; }  
   /* SPEED LIMIT SIGN */
   .speed-limit-sign {
     position: absolute; top: 15%; right: 15%;
@@ -258,10 +256,9 @@
       <div class="speed-display">
         <div class="speed-val" id="speedVal">0</div>
         <div class="speed-unit">km/h</div>
-        <div class="gear-val" id="gearVal">N</div>
       </div>
-      <div class="speed-limit-sign hidden" id="speedLimitSign">
-        <span class="speed-limit-val" id="speedLimitVal">60</span>
+      <div class="speed-limit-sign" id="speedLimitSign">
+        <span class="speed-limit-val" id="speedLimitVal">--</span>
       </div>
       <div class="gps-speed">
         <span>GPS</span><span class="gps-speed-val" id="gpsSpeedVal">--</span><span>km/h</span>
@@ -458,12 +455,6 @@
     document.getElementById('tripVal').textContent = data.tripA.toFixed(1) + ' km';
     if(document.getElementById('fuelVal')) document.getElementById('fuelVal').textContent = data.instantL100km.toFixed(1) + ' L/100';
     
-    if (data.speed > 0) {
-       document.getElementById('gearVal').textContent = Math.max(1, Math.min(6, Math.floor(data.speed / 20))); // Fake gear calculation
-    } else {
-       document.getElementById('gearVal').textContent = 'N';
-    }
-
     if (window.TripTracker && TripTracker.isRecording()) {
       TripTracker.addECUData(lastECUSpeed, data.rpm, data.ect, data.tps, data.battery);
     }
