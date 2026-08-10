@@ -440,8 +440,8 @@
               <circle class='classic-cap-inner' cx='100' cy='100' r='4'/>
               <ellipse class='classic-glass' cx='80' cy='75' rx='70' ry='55'/>
             </svg>
-            <div class="speed-limit-sign hidden" id="speedLimitSign">
-                <span class="speed-limit-val" id="speedLimitVal">60</span>
+            <div class="speed-limit-sign" id="speedLimitSign">
+                <span class="speed-limit-val" id="speedLimitVal">--</span>
             </div>
             <div class="gps-speed-line">
                 <span class="gps-label">GPS</span>
@@ -808,9 +808,14 @@
             }
           }
         }
-        signEl.classList.add('hidden');
+        valEl.textContent = '--';
+        signEl.classList.remove('overspeed');
         currentSpeedLimit = 0;
-      }).catch(e => console.log(e));
+      }).catch(e => {
+        const valEl = document.getElementById('speedLimitVal');
+        if(valEl) valEl.textContent = '--';
+        console.log(e);
+      });
   }
 
   function updateSpeedLimitWarning() {

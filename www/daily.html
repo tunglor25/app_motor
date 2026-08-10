@@ -370,8 +370,8 @@
             <g id="ticks"></g>
         </svg>
         <div class="daily-readout">
-            <div class="speed-limit-sign hidden" id="speedLimitSign">
-                <span class="speed-limit-val" id="speedLimitVal">60</span>
+            <div class="speed-limit-sign" id="speedLimitSign">
+                <span class="speed-limit-val" id="speedLimitVal">--</span>
             </div>
             <div class="daily-speed">
                 <span id="speed">0</span>
@@ -677,9 +677,14 @@
             }
           }
         }
-        signEl.classList.add('hidden');
+        valEl.textContent = '--';
+        signEl.classList.remove('overspeed');
         currentSpeedLimit = 0;
-      }).catch(e => console.log(e));
+      }).catch(e => {
+        const valEl = document.getElementById('speedLimitVal');
+        if(valEl) valEl.textContent = '--';
+        console.log(e);
+      });
   }
 
   function updateSpeedLimitWarning() {
