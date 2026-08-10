@@ -180,31 +180,31 @@
           align-items: center;
           justify-content: center;
         }
-        }
-        .btn-gear:active { background: rgba(43,231,255,0.15); color: #2BE7FF; }
+        .btn-gear:active { background: rgba(201,185,140,0.15); color: #c9b98c; }
 
         /* Speed Limit Sign */
         .speed-limit-sign {
             position: absolute;
-            top: -10px; right: -10px;
-            width: 44px; height: 44px;
+            top: 25px; left: 50%;
+            transform: translateX(-50%);
+            width: 54px; height: 54px;
             border-radius: 50%;
-            border: 3px solid #c23b2c;
-            background: rgba(255,255,255,0.95);
+            border: 3px solid #332d25;
+            background: radial-gradient(circle at center, #f4ead0 0%, #e7d8ac 100%);
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 12px rgba(194,59,44,0.4), 0 4px 8px rgba(0,0,0,0.5);
-            z-index: 20;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.6);
+            z-index: 100;
             transition: opacity 0.3s, transform 0.3s;
         }
-        .speed-limit-sign.hidden { opacity: 0; transform: scale(0.5); pointer-events: none; }
-        .speed-limit-sign.overspeed { animation: overspeedPulse 0.5s infinite alternate; }
+        .speed-limit-sign.hidden { opacity: 0; transform: translateX(-50%) scale(0.5); pointer-events: none; }
+        .speed-limit-sign.overspeed { animation: overspeedPulse 0.5s infinite alternate; border-color: #c23b2c; }
         @keyframes overspeedPulse {
-            0% { box-shadow: 0 0 12px rgba(194,59,44,0.4); }
-            100% { box-shadow: 0 0 30px rgba(194,59,44,0.9), 0 0 60px rgba(194,59,44,0.3); }
+            0% { box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+            100% { box-shadow: 0 0 20px rgba(194,59,44,0.8), inset 0 0 15px rgba(194,59,44,0.3); }
         }
         .speed-limit-val {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 18px; font-weight: 900; color: #111;
+            font-family: 'Playfair Display', serif;
+            font-size: 24px; font-weight: 700; color: #332d25;
             line-height: 1;
         }
 
@@ -395,6 +395,9 @@
 
     <div class="dashboard" id="dashboard">
       <div class="app-main">
+        <div class="speed-limit-sign" id="speedLimitSign">
+            <span class="speed-limit-val" id="speedLimitVal">--</span>
+        </div>
         <!-- Speed Dial -->
         <div class="dial-container">
             <svg viewBox='0 0 200 200'>
@@ -440,9 +443,6 @@
               <circle class='classic-cap-inner' cx='100' cy='100' r='4'/>
               <ellipse class='classic-glass' cx='80' cy='75' rx='70' ry='55'/>
             </svg>
-            <div class="speed-limit-sign" id="speedLimitSign">
-                <span class="speed-limit-val" id="speedLimitVal">--</span>
-            </div>
             <div class="gps-speed-line">
                 <span class="gps-label">GPS</span>
                 <span class="gps-val" id="gpsSpeedVal">--</span>
