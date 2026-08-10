@@ -66,8 +66,8 @@
   /* Speed Limit Sign - Vietnamese/European circular red border */
   .speed-limit-sign {
     position: absolute;
-    top: 0; right: 16px;
-    width: 64px; height: 64px;
+    top: 60px; right: 20px;
+    width: 60px; height: 60px;
     border-radius: 50%;
     border: 5px solid var(--red);
     background: rgba(255,255,255,0.95);
@@ -253,7 +253,7 @@
     .v-card{min-width:30%;}
     .tacho-zone{padding:0 4px;}
     .speed-zone{margin-top:-2vh;}
-    .speed-limit-sign { width: 56px; height: 56px; border-width: 4px; top: -4px; right: 12px; }
+    .speed-limit-sign { width: 52px; height: 52px; border-width: 4px; top: 50px; right: 12px; }
     .speed-limit-val { font-size: 18px; }
     .gps-speed-line .gps-val { font-size: 14px; }
   }
@@ -277,7 +277,7 @@
     .ect-bar{height:2px;margin:0 8px;}
     .trip-bar.active{padding:3px 12px;}
     .trip-stat-val{font-size:10px;}
-    .speed-limit-sign { width: 52px; height: 52px; top: 0; right: 12px; }
+    .speed-limit-sign { width: 48px; height: 48px; top: 40px; right: 10px; }
     .speed-limit-val { font-size: 17px; }
   }
 
@@ -324,6 +324,10 @@
       <button class="btn-gear" id="btnGear">⚙</button>
     </div>
   </div>
+  
+  <div class="speed-limit-sign" id="speedLimitSign">
+    <span class="speed-limit-val" id="speedLimitVal">--</span>
+  </div>
 
   <!-- TACHOMETER -->
   <div class="tacho-zone">
@@ -332,12 +336,8 @@
     </svg>
   </div>
 
-  <!-- SPEED ZONE (with Speed Limit Sign + GPS Speed) -->
+  <!-- SPEED ZONE (with GPS Speed) -->
   <div class="speed-zone">
-    <!-- Speed Limit Sign -->
-    <div class="speed-limit-sign" id="speedLimitSign">
-      <span class="speed-limit-val" id="speedLimitVal">--</span>
-    </div>
 
     <div class="speed-row">
       <span class="speed-num" id="speedVal">0</span>
