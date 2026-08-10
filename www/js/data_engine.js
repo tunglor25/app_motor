@@ -48,7 +48,8 @@ window.ECUData = {
 
     // State
     isConnected: false,
-    isMocking: false
+    isMocking: false,
+    isBooting: false
 };
 
 const ECUController = {
@@ -61,16 +62,49 @@ const ECUController = {
         ECUData.tripB = parseFloat(localStorage.getItem('tripB') || 0);
         ECUData.fuelConsumed = parseFloat(localStorage.getItem('fuelConsumed') || 0);
         
-        // Start Mock Data if enabled in settings
-        if (!ECUData.isConnected && localStorage.getItem('demo_mode') === 'true') {
-            this.startMockData();
-        } else {
-            // Dispatch initial empty data so UI has 0 values instead of NaN
-            this.dispatchUpdate('ecu_data', ECUData);
-        }
+        ECUData.isBooting = true;
+        const bootStart = Date.now();
+        const bootDuration = 1800; // 1.8s sweep
+        
+        const bootInterval = setInterval(() => {
+            const elapsed = Date.now() - bootStart;
+            if (elapsed >= bootDuration) {
+                clearInterval(bootInterval);
+                ECUData.isBooting = false;
+                
+                // Start Mock Data if enabled in settings
+                if (!ECUData.isConnected && localStorage.getItem('demo_mode') === 'true') {
+                    this.startMockData();
+                } else {
+                    this.dispatchUpdate('ecu_data', ECUData);
+                }
+                return;
+            }
+            
+            let progress = 0;
+            const halfDuration = bootDuration / 2;
+            if (elapsed <= halfDuration) {
+                progress = Math.sin((elapsed / halfDuration) * (Math.PI / 2));
+            } else {
+                progress = Math.cos(((elapsed - halfDuration) / halfDuration) * (Math.PI / 2));
+            }
+            
+            const bootData = {
+                ...ECUData,
+                rpm: progress * 14000,
+                speed: progress * 199,
+                tps: progress * 100,
+                ect: Math.max(ECUData.ect, progress * 120),
+                battery: 12.0 + (progress * 2.5)
+            };
+            this.dispatchUpdate('ecu_data', bootData);
+            
+        }, 33);
     },
 
     updateComputed() {
+        if (ECUData.isBooting) return;
+        
         const now = Date.now();
         const deltaMs = now - this._lastUpdateTime;
         this._lastUpdateTime = now;
