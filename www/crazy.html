@@ -120,10 +120,10 @@
   }
   .svg-gauge { width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: visible;}
   
-  .speed-container { display: flex; flex-direction: column; align-items: center; position: absolute; top: 40%; transform: translateY(-50%); }
-  .speed-lbl { font-size: 12px; color: var(--dim); letter-spacing: 2px; margin-bottom: -5px; }
-  .speed-val { font-family: 'Orbitron', sans-serif; font-size: 110px; font-weight: 900; line-height: 1; color: var(--cyan); text-shadow: 0 0 25px rgba(0,229,255,0.6); letter-spacing: -2px; }
-  .speed-unit { font-size: 16px; color: var(--cyan); margin-top: -5px; }
+  .speed-container { display: flex; flex-direction: column; align-items: center; position: absolute; top: 45%; transform: translateY(-50%); }
+  .speed-lbl { font-size: 12px; color: var(--dim); letter-spacing: 2px; margin-bottom: -2px; }
+  .speed-val { font-family: 'Orbitron', sans-serif; font-size: 90px; font-weight: 900; line-height: 1; color: var(--cyan); text-shadow: 0 0 25px rgba(0,229,255,0.6); letter-spacing: -2px; }
+  .speed-unit { font-size: 16px; color: var(--cyan); margin-top: 0px; }
   
   .gear-container { position: absolute; bottom: 20%; display: flex; flex-direction: column; align-items: center; }
   .gear-val { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; color: var(--red); text-shadow: 0 0 15px rgba(255,0,60,0.6); line-height: 1; border: 1px solid rgba(255,0,60,0.5); padding: 4px 12px; border-radius: 4px; background: rgba(255,0,60,0.1); }
@@ -223,11 +223,11 @@
         <g id="rpmLabels"></g>
         
         <!-- Inner thin decorative border -->
-        <path d="M -134.35 134.35 A 190 190 0 1 1 134.35 134.35" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="2" />
-        <path d="M -115.26 115.26 A 163 163 0 1 1 115.26 115.26" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="22" stroke-linecap="butt" />
+        <path d="M -109.6 109.6 A 155 155 0 1 1 109.6 109.6" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="2" />
+        <path d="M -99 99 A 140 140 0 1 1 99 99" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="22" stroke-linecap="butt" />
         
         <!-- Active RPM arc -->
-        <path id="rpmArc" d="M -115.26 115.26 A 163 163 0 1 1 115.26 115.26" fill="none" stroke="url(#glowGrad)" stroke-width="22" stroke-linecap="butt" filter="url(#neonGlow)" />
+        <path id="rpmArc" d="M -99 99 A 140 140 0 1 1 99 99" fill="none" stroke="url(#glowGrad)" stroke-width="22" stroke-linecap="butt" filter="url(#neonGlow)" />
       </svg>
       
       <div class="speed-container">
@@ -345,8 +345,8 @@
     if(ratio > 0.7) color = '#ffb703';
     if(ratio > 0.85) color = '#ff003c';
     
-    const inner = polar(0, 0, 180, angle);
-    const outer = polar(0, 0, i%5===0 ? 195 : 188, angle);
+    const inner = polar(0, 0, 165, angle);
+    const outer = polar(0, 0, i%5===0 ? 175 : 170, angle);
     
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     line.setAttribute('x1', inner.x); line.setAttribute('y1', inner.y);
@@ -366,7 +366,7 @@
     if(i >= 10) color = '#ffb703';
     if(i >= 12) color = '#ff003c';
     
-    const pos = polar(0, 0, 215, angle); // Outside the outer ticks
+    const pos = polar(0, 0, 192, angle); // Outside the outer ticks
     
     const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     txt.setAttribute('x', pos.x);
@@ -382,8 +382,8 @@
   
   // 3. RPM Arc Animation
   const rpmArc = document.getElementById('rpmArc');
-  // Radius = 163, angle = 270 deg
-  const PATH_LEN = 2 * Math.PI * 163 * (270 / 360);
+  // Radius = 140, angle = 270 deg
+  const PATH_LEN = 2 * Math.PI * 140 * (270 / 360);
   rpmArc.style.strokeDasharray = PATH_LEN;
   rpmArc.style.strokeDashoffset = PATH_LEN;
   rpmArc.style.transition = 'stroke-dashoffset 0.1s linear';
