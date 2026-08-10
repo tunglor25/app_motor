@@ -9,6 +9,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/trip_tracker.js"></script>
 <script src="js/ios_statusbar.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <style>
   :root {
     --cyan: #00e5ff;
@@ -85,16 +86,20 @@
     margin-top: 2px;
   }
   
-  /* Back Button */
+  /* Buttons Area */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
   .btn-back {
-    display: block;
-    width: 100%;
+    flex: 1;
     padding: 14px;
     background: transparent;
     border: 1px solid var(--cyan);
     color: var(--cyan);
     font-family: 'Orbitron', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     text-align: center;
     cursor: pointer;
@@ -105,6 +110,54 @@
     background: var(--cyan);
     color: var(--bg);
   }
+  .btn-share {
+    flex: 1;
+    padding: 14px;
+    background: rgba(0, 229, 255, 0.15);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .btn-share:active {
+    background: var(--cyan);
+    color: var(--bg);
+  }
+  .btn-save {
+    padding: 14px 18px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .btn-save:active {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+
+  /* Share overlay */
+  .share-loading {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    color: var(--cyan);
+    display: none;
+  }
+  .share-loading.show { display: flex; }
 
   /* Map invert for dark mode */
   .leaflet-layer { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
@@ -163,8 +216,14 @@
     </div>
   </div>
   
-  <button class="btn-back" onclick="history.back()">Quay Lại</button>
+  <div class="btn-row">
+    <button class="btn-back" onclick="history.back()">← Quay Lại</button>
+    <button class="btn-share" id="btnShare">📤 Chia Sẻ</button>
+    <button class="btn-save" id="btnSave">💾</button>
+  </div>
 </div>
+
+<div class="share-loading" id="shareLoading">⏳ Đang tạo ảnh...</div>
 
 <script>
   function formatTime(ms) {
@@ -264,6 +323,104 @@
       // Default view if no GPS data
       map.setView([10.8, 106.65], 13);
     }
+
+    // --- SHARE & SAVE LOGIC ---
+    const shareLoading = document.getElementById('shareLoading');
+
+    async function captureScreenshot() {
+      shareLoading.classList.add('show');
+      
+      // Wait for map tiles to fully load
+      await new Promise(r => setTimeout(r, 500));
+      
+      try {
+        const canvas = await html2canvas(document.body, {
+          backgroundColor: '#030304',
+          scale: 2, // High quality
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          width: document.body.scrollWidth,
+          height: document.body.scrollHeight,
+          windowWidth: document.body.scrollWidth,
+          windowHeight: document.body.scrollHeight,
+          onclone: function(clonedDoc) {
+            // Hide buttons in screenshot
+            const btnRow = clonedDoc.querySelector('.btn-row');
+            if (btnRow) btnRow.style.display = 'none';
+          }
+        });
+        
+        shareLoading.classList.remove('show');
+        return canvas;
+      } catch(e) {
+        shareLoading.classList.remove('show');
+        console.error('Screenshot failed:', e);
+        alert('Không thể tạo ảnh: ' + e.message);
+        return null;
+      }
+    }
+
+    // Share button
+    document.getElementById('btnShare').addEventListener('click', async () => {
+      const canvas = await captureScreenshot();
+      if (!canvas) return;
+
+      try {
+        canvas.toBlob(async (blob) => {
+          if (!blob) {
+            alert('Lỗi tạo ảnh');
+            return;
+          }
+          
+          const file = new File([blob], `moto_trip_${Date.now()}.png`, { type: 'image/png' });
+          
+          // Use Web Share API if available (native share sheet)
+          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                title: 'Moto Dash - Hành Trình',
+                text: `🏍️ Hành trình ${document.getElementById('valDist').textContent} | ${document.getElementById('valTime').textContent}`,
+                files: [file]
+              });
+            } catch(shareErr) {
+              if (shareErr.name !== 'AbortError') {
+                // Fallback to download
+                downloadBlob(blob);
+              }
+            }
+          } else {
+            // Fallback: download the image
+            downloadBlob(blob);
+          }
+        }, 'image/png');
+      } catch(e) {
+        console.error('Share error:', e);
+        alert('Lỗi chia sẻ: ' + e.message);
+      }
+    });
+
+    // Save button (download image)
+    document.getElementById('btnSave').addEventListener('click', async () => {
+      const canvas = await captureScreenshot();
+      if (!canvas) return;
+
+      canvas.toBlob((blob) => {
+        if (blob) downloadBlob(blob);
+      }, 'image/png');
+    });
+
+    function downloadBlob(blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `moto_trip_${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
   });
 </script>
 </body>

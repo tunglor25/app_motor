@@ -170,7 +170,7 @@
 
   /* Radio Options (Theme selector) */
   .theme-grid {
-    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 10px; padding: 14px 16px;
   }
   .theme-option {
@@ -369,6 +369,11 @@
           <div class="theme-check">✓</div>
           <div class="theme-icon">⏱️</div>
           <div class="theme-name">CLASSIC</div>
+        </div>
+        <div class="theme-option" data-theme="crazy" id="themeCrazy">
+          <div class="theme-check">✓</div>
+          <div class="theme-icon">🔥</div>
+          <div class="theme-name">CRAZY</div>
         </div>
       </div>
     </div>
@@ -693,7 +698,7 @@
 
   // --- Back button ---
   document.getElementById('backBtn').addEventListener('click', () => {
-    const pages = { sport:'race.html', daily:'daily.html', classic:'classic.html' };
+    const pages = { sport:'race.html', daily:'daily.html', classic:'classic.html', crazy:'crazy.html' };
     window.location.href = pages[settings.theme] || 'race.html';
   });
 
@@ -708,7 +713,7 @@
   });
 
   // --- Theme selector ---
-  const themeMap = { sport:'themeRace', daily:'themeDaily', classic:'themeClassic' };
+  const themeMap = { sport:'themeRace', daily:'themeDaily', classic:'themeClassic', crazy:'themeCrazy' };
   document.getElementById(themeMap[settings.theme])?.classList.add('active');
   
   document.querySelectorAll('.theme-option').forEach(el => {

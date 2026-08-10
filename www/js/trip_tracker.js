@@ -102,6 +102,11 @@ const TripTracker = (function() {
       trips.push(currentTrip);
       saveTrips(trips);
 
+      // Sync to Firebase cloud
+      if (window.FirebaseSync) {
+        FirebaseSync.syncTrip(currentTrip);
+      }
+
       const savedId = currentTrip.id;
       currentTrip = null;
       return savedId;
@@ -202,14 +207,42 @@ const TripTracker = (function() {
       return loadTrips().sort((a, b) => b.startTime - a.startTime); // newest first
     },
 
+    /**
+     * Get all trips merged with Firebase cloud data
+     * Returns a Promise
+     */
+    getAllTripsCloud: async function() {
+      const local = loadTrips();
+      if (window.FirebaseSync && FirebaseSync.isReady()) {
+        try {
+          const cloud = await FirebaseSync.loadAllTrips();
+          const merged = FirebaseSync.mergeWithLocal(local, cloud);
+          // Update local cache with merged data
+          saveTrips(merged);
+          return merged;
+        } catch(e) {
+          console.error('Cloud merge failed:', e);
+        }
+      }
+      return local.sort((a, b) => b.startTime - a.startTime);
+    },
+
     deleteTrip: function(id) {
       let trips = loadTrips();
       trips = trips.filter(t => t.id !== id);
       saveTrips(trips);
+      // Also delete from cloud
+      if (window.FirebaseSync) {
+        FirebaseSync.deleteTrip(id);
+      }
     },
 
     clearAllTrips: function() {
       localStorage.removeItem(STORAGE_KEY);
+      // Also clear cloud
+      if (window.FirebaseSync) {
+        FirebaseSync.clearAllTrips();
+      }
     }
   };
 })();
