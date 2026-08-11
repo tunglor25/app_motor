@@ -11,14 +11,17 @@ import android.media.MediaMetadata;
 import android.media.session.PlaybackState;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.provider.Settings;
 import android.util.Base64;
+import androidx.core.app.NotificationManagerCompat;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import vn.ab.dash.services.NotificationListener;
 import android.util.Log;
 
-@CapacitorPlugin(name = "MediaControl")
+@CapacitorPlugin(name = "MediaControlPlugin")
 public class MediaControlPlugin extends Plugin {
 
     private MediaController getActiveController() {
@@ -53,6 +56,23 @@ public class MediaControlPlugin extends Plugin {
         } catch (Exception e) {
             return "";
         }
+    }
+
+    @PluginMethod
+    public void isNotificationAccessGranted(PluginCall call) {
+        boolean enabled = NotificationManagerCompat.getEnabledListenerPackages(getContext())
+                .contains(getContext().getPackageName());
+        JSObject ret = new JSObject();
+        ret.put("granted", enabled);
+        call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void openNotificationAccessSettings(PluginCall call) {
+        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(intent);
+        call.resolve();
     }
 
     @PluginMethod

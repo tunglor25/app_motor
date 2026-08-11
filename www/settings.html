@@ -648,6 +648,16 @@
           </div>
           <div class="toggle on" id="toggleMusicAuto" data-key="auto_hide_music"></div>
         </div>
+        <div class="row" id="notifAccessRow">
+          <div class="row-left">
+            <div class="row-icon red" id="notifAccessIcon">⚠️</div>
+            <div>
+              <div class="row-label">Quyền truy cập thông báo</div>
+              <div class="row-desc" id="notifAccessDesc">Cần cấp để nhận diện nhạc đang phát</div>
+            </div>
+          </div>
+          <button class="btn primary scan-btn" id="notifAccessBtn">CẤP QUYỀN</button>
+        </div>
       </div>
     </div>
   </div> <!-- end tab-music -->
@@ -784,6 +794,42 @@
     });
   }
   initNumInput('rpmWarnUp', 'rpmWarnDown', 'rpmWarnVal', 'rpm_warn_val', 4, 16, 1);
+
+  // --- Notification Access (needed for Music detection) ---
+  async function refreshNotifAccessStatus() {
+    const icon = document.getElementById('notifAccessIcon');
+    const desc = document.getElementById('notifAccessDesc');
+    const btn = document.getElementById('notifAccessBtn');
+    if (!window.Capacitor || !Capacitor.Plugins.MediaControlPlugin) {
+      document.getElementById('notifAccessRow').style.display = 'none';
+      return;
+    }
+    try {
+      const { granted } = await Capacitor.Plugins.MediaControlPlugin.isNotificationAccessGranted();
+      if (granted) {
+        icon.classList.remove('red'); icon.classList.add('green');
+        icon.textContent = '✓';
+        desc.textContent = 'Đã cấp quyền, nhạc sẽ tự hiện khi phát';
+        btn.textContent = 'ĐÃ BẬT';
+        btn.disabled = true;
+      } else {
+        icon.classList.remove('green'); icon.classList.add('red');
+        icon.textContent = '⚠️';
+        desc.textContent = 'Cần cấp để nhận diện nhạc đang phát';
+        btn.textContent = 'CẤP QUYỀN';
+        btn.disabled = false;
+      }
+    } catch (e) {
+      document.getElementById('notifAccessRow').style.display = 'none';
+    }
+  }
+  document.getElementById('notifAccessBtn').addEventListener('click', async () => {
+    try { await Capacitor.Plugins.MediaControlPlugin.openNotificationAccessSettings(); } catch(e) {}
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refreshNotifAccessStatus();
+  });
+  refreshNotifAccessStatus();
 
   // --- BLE Scan ---
   document.getElementById('scanBtn').addEventListener('click', async () => {
