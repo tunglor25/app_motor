@@ -27,7 +27,7 @@
         }
         html { overflow: hidden; position: fixed; width: 100%; height: 100%; background: #02080d; }
         body {
-            background: var(--bg-grad);
+            background-color: #0d1115;
             color: white;
             font-family: 'Rajdhani', sans-serif;
             height: 100vh;
@@ -53,17 +53,14 @@
         }
         .vignette {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-              linear-gradient(rgba(43,231,255,0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(43,231,255,0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
-            box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
+            background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+            background-size: 14px 14px;
+            box-shadow: inset 0 0 120px rgba(0,0,0,0.9);
             pointer-events: none; z-index: 10;
         }
         .bg-glow {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 80vw; height: 80vw; max-width: 600px; max-height: 600px;
-            background: radial-gradient(circle, rgba(43,231,255,0.08) 0%, transparent 60%);
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 0%, rgba(30, 144, 255, 0.1) 0%, transparent 60%);
             z-index: 1; pointer-events: none;
         }
         .top-bar {
@@ -177,10 +174,25 @@
             0% { box-shadow: 0 0 12px rgba(255,33,48,0.4); }
             100% { box-shadow: 0 0 30px rgba(255,33,48,0.9), 0 0 60px rgba(255,33,48,0.3); }
         }
-        .speed-limit-val {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 20px; font-weight: 900; color: #111;
-            line-height: 1;
+        .speed-limit-val { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 900; color: #111; }
+        
+        /* Aggressive Screen Warning */
+        @keyframes screenFlash {
+            0% { box-shadow: inset 0 0 120px rgba(0,0,0,0.9); }
+            50% { box-shadow: inset 0 0 150px rgba(255,33,48,0.5); }
+            100% { box-shadow: inset 0 0 120px rgba(0,0,0,0.9); }
+        }
+        .vignette.alert-flash {
+            animation: screenFlash 0.5s infinite;
+        }
+        .speed-alert {
+            color: var(--red) !important;
+            text-shadow: 0 0 40px rgba(255,33,48,0.9) !important;
+            animation: speedPulse 0.5s infinite alternate;
+        }
+        @keyframes speedPulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
         }
 
         /* GPS Speed Display */
@@ -357,6 +369,7 @@
     </style>
     <script src="js/data_engine.js"></script>
     <script src="js/trip_tracker.js"></script>
+    <script src="js/gps_manager.js"></script>
     <script>
         if (localStorage.getItem('light_mode') === 'true') {
             document.documentElement.classList.add('light-theme');
@@ -664,75 +677,56 @@
     try{await Capacitor.Plugins.MediaControlPlugin.next();}catch(e){}
   });
 
-  // --- GPS AND SPEED LIMIT LOGIC ---
-  let lastGPSSpeed = 0;
-  let currentSpeedLimit = 0;
+  // --- GPS AND SPEED LIMIT LOGIC (Managed by gps_manager.js) ---
+  window.lastGPSSpeed = 0;
 
-  function initGPS() {
-    if (window.Capacitor && Capacitor.Plugins.Geolocation) {
-      Capacitor.Plugins.Geolocation.watchPosition({ enableHighAccuracy: true, timeout: 5000 }, (pos, err) => {
-        if (pos && pos.coords) {
-          const speed = (pos.coords.speed || 0) * 3.6;
-          lastGPSSpeed = speed;
-          document.getElementById('gpsSpeedVal').textContent = Math.round(speed);
-
-          if (window.TripTracker && TripTracker.isRecording()) {
-            TripTracker.addGPSPoint(pos.coords.latitude, pos.coords.longitude, speed, pos.timestamp, pos.coords.accuracy);
-            
-            const stats = TripTracker.getCurrentStats();
-            document.getElementById('tripDist').textContent = stats.totalDistance.toFixed(2) + ' km';
-            document.getElementById('tripMax').textContent = Math.round(stats.maxSpeedECU || stats.maxSpeedGPS) + ' km/h';
-          }
-          checkSpeedLimit(pos.coords.latitude, pos.coords.longitude);
-        }
-      });
+  window.addEventListener('gps_data', (e) => {
+    const data = e.detail;
+    if (data.speed !== null && data.speed >= 0) {
+      window.lastGPSSpeed = Math.round(data.speed);
+      const gpsSpeedEl = document.getElementById('gpsSpeedVal');
+      if(gpsSpeedEl) gpsSpeedEl.textContent = window.lastGPSSpeed;
     }
-  }
-
-  function checkSpeedLimit(lat, lng) {
-    const tomtomKey = 'TNsjEBPR6I6MSu4Lwq1O3YO8udmg5aU3';
-    const url = `https://api.tomtom.com/search/2/reverseGeocode/${lat},${lng}.json?key=${tomtomKey}&returnSpeedLimit=true`;
     
-    fetch(url)
-      .then(r => r.json())
-      .then(data => {
-        const signEl = document.getElementById('speedLimitSign');
-        const valEl = document.getElementById('speedLimitVal');
-        if (data && data.addresses && data.addresses.length > 0) {
-          const addr = data.addresses[0].address;
-          if (addr && addr.speedLimit) {
-            let sl = addr.speedLimit;
-            let limitNum = parseInt(sl.replace(/\D/g, ''));
-            if (!isNaN(limitNum) && limitNum > 0) {
-              signEl.classList.remove('hidden');
-              valEl.textContent = limitNum;
-              currentSpeedLimit = limitNum;
-              updateSpeedLimitWarning();
-              return;
-            }
-          }
-        }
+    // Feed GPS to trip tracker UI
+    if (window.TripTracker && TripTracker.isRecording()) {
+      const stats = TripTracker.getCurrentStats();
+      const distEl = document.getElementById('tripDist');
+      if(distEl) distEl.textContent = stats.totalDistance.toFixed(2) + ' km';
+      const maxEl = document.getElementById('tripMax');
+      if(maxEl) maxEl.textContent = Math.round(Math.max(stats.maxSpeedECU, stats.maxSpeedGPS)) + ' km/h';
+    }
+  });
+
+  window.addEventListener('speed_warning', (e) => {
+    const isWarn = e.detail.warning;
+    const signEl = document.getElementById('speedLimitSign');
+    const speedVal = document.getElementById('speed');
+    const vignetteEl = document.querySelector('.vignette');
+    if (isWarn) {
+        if(signEl) signEl.classList.add('overspeed');
+        if(speedVal) speedVal.classList.add('speed-alert');
+        if(vignetteEl) vignetteEl.classList.add('alert-flash');
+    } else {
+        if(signEl) signEl.classList.remove('overspeed');
+        if(speedVal) speedVal.classList.remove('speed-alert');
+        if(vignetteEl) vignetteEl.classList.remove('alert-flash');
+    }
+  });
+
+  window.addEventListener('speed_limit_data', (e) => {
+    const limit = e.detail.limit;
+    const signEl = document.getElementById('speedLimitSign');
+    const valEl = document.getElementById('speedLimitVal');
+    if (!signEl || !valEl) return;
+    if (limit > 0) {
+        signEl.classList.remove('hidden');
+        valEl.textContent = limit;
+    } else {
         valEl.textContent = '--';
         signEl.classList.remove('overspeed');
-        currentSpeedLimit = 0;
-      }).catch(e => {
-        const valEl = document.getElementById('speedLimitVal');
-        if(valEl) valEl.textContent = '--';
-        console.log(e);
-      });
-  }
-
-  function updateSpeedLimitWarning() {
-    const signEl = document.getElementById('speedLimitSign');
-    if (currentSpeedLimit > 0) {
-      const spd = Math.max(currentSpeed, lastGPSSpeed);
-      if (spd >= currentSpeedLimit) {
-        signEl.classList.add('overspeed');
-      } else {
-        signEl.classList.remove('overspeed');
-      }
     }
-  }
+  });
 
   function formatDuration(ms) {
     const totalSec = Math.floor(ms / 1000);
@@ -743,7 +737,8 @@
     return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   }
 
-  setTimeout(initGPS, 500);
+  // Init GPS after page load
+  // GPS is now auto-initialized by gps_manager.js
 
   // --- TRIP BUTTON ---
   const btnTrip = document.getElementById('btnTrip');

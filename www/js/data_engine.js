@@ -175,10 +175,18 @@ const ECUController = {
             }
             // Speed Warning Logic
             const warnEnabled = localStorage.getItem('speed_warn_enabled') === 'true';
-            const speedLimit = parseInt(localStorage.getItem('speed_warn_val') || '80');
-            this.dispatchUpdate('speed_limit_data', { limit: warnEnabled ? speedLimit : 0 });
             
-            const isWarning = warnEnabled && ECUData.speed > speedLimit;
+            let speedLimit = 0;
+            if (ECUData.isMocking) {
+                speedLimit = 60; // Mock speed limit
+            } else if (window.GPSManager) {
+                speedLimit = GPSManager.getSpeedLimit();
+            }
+
+            // Note: speed_limit_data event is now dispatched by gps_manager.js when API responds
+            // We just need to check if we are over the current limit
+            const isWarning = speedLimit > 0 && Math.max(ECUData.speed, (window.lastGPSSpeed || 0)) >= speedLimit;
+            
             if (isWarning !== this._lastSpeedWarning) {
                 this._lastSpeedWarning = isWarning;
                 this.dispatchUpdate('speed_warning', { warning: isWarning });
@@ -245,6 +253,13 @@ const ECUController = {
 
             // O2 sensor oscillates
             ECUData.o2Voltage = 0.1 + (Math.sin(phase * 5) * 0.4) + 0.4;
+            
+            // Mock GPS and Speed Limit
+            const mockGpsSpeed = Math.max(0, ECUData.speed - (1 + Math.random()*2));
+            window.dispatchEvent(new CustomEvent('gps_data', { 
+                detail: { lat: 10.762622, lon: 106.660172, speed: mockGpsSpeed / 3.6, accuracy: 5 } 
+            }));
+            window.dispatchEvent(new CustomEvent('speed_limit_data', { detail: { limit: 60 } }));
             
             this.updateComputed();
             

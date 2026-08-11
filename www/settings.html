@@ -456,23 +456,10 @@
           <div class="row-icon red">⚠️</div>
           <div>
             <div class="row-label">Cảnh báo quá tốc</div>
-            <div class="row-desc">Rung + flash khi vượt giới hạn</div>
+            <div class="row-desc">Dựa theo bản đồ GPS (TomTom)</div>
           </div>
         </div>
         <div class="toggle" id="toggleSpeedWarn" data-key="speed_warn_enabled"></div>
-      </div>
-      <div class="row" id="speedWarnRow" style="opacity:0.4;">
-        <div class="row-left">
-          <div class="row-icon red">⚠️</div>
-          <div>
-            <div class="row-label">Giới hạn <span id="speedWarnUnit">km/h</span></div>
-          </div>
-        </div>
-        <div class="num-input">
-          <button class="btn num-btn" id="speedWarnDown">-</button>
-          <div class="num-val" id="speedWarnVal">80</div>
-          <button class="btn num-btn" id="speedWarnUp">+</button>
-        </div>
       </div>
     </div>
   </div>
@@ -677,7 +664,6 @@
     unit_speed: localStorage.getItem('unit_speed') || 'kmh',
     unit_temp: localStorage.getItem('unit_temp') || 'c',
     speed_warn_enabled: localStorage.getItem('speed_warn_enabled') === 'true',
-    speed_warn_val: parseInt(localStorage.getItem('speed_warn_val') || '80'),
     shift_warn_enabled: localStorage.getItem('shift_warn_enabled') !== 'false',
     rpm_warn_val: parseInt(localStorage.getItem('rpm_warn_val') || '11'),
     auto_connect: localStorage.getItem('auto_connect') !== 'false',
@@ -735,10 +721,6 @@
       el.classList.toggle('on');
       save(key, el.classList.contains('on'));
       
-      // Special handling
-      if (key === 'speed_warn_enabled') {
-        document.getElementById('speedWarnRow').style.opacity = settings[key] ? '1' : '0.4';
-      }
       if (key === 'light_mode') {
         if (settings[key]) {
           document.documentElement.classList.add('light-theme');
@@ -756,9 +738,6 @@
   initToggle('toggleLightMode', 'light_mode');
   initToggle('toggleMusicAuto', 'auto_hide_music');
   initToggle('toggleDemoMode', 'demo_mode');
-
-  // Speed warning row opacity
-  document.getElementById('speedWarnRow').style.opacity = settings.speed_warn_enabled ? '1' : '0.4';
 
   // --- Unit & Selectors ---
   function initSelector(id, key) {
@@ -804,8 +783,7 @@
       valEl.textContent = v;
     });
   }
-  initNumInput('speedWarnUp', 'speedWarnDown', 'speedWarnVal', 'speed_warn_val', 20, 140, 5);
-  initNumInput('rpmWarnUp', 'rpmWarnDown', 'rpmWarnVal', 'rpm_warn_val', 5, 14, 1);
+  initNumInput('rpmWarnUp', 'rpmWarnDown', 'rpmWarnVal', 'rpm_warn_val', 4, 16, 1);
 
   // --- BLE Scan ---
   document.getElementById('scanBtn').addEventListener('click', async () => {

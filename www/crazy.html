@@ -26,8 +26,20 @@
   
   .ambient-glow {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;
-    background: radial-gradient(circle at 35% 50%, rgba(0,229,255,0.1) 0%, transparent 55%),
-                radial-gradient(circle at 65% 50%, rgba(255,0,60,0.1) 0%, transparent 55%);
+    background: radial-gradient(circle at 35% 50%, rgba(0,229,255,0.1) 0%, transparent 60%),
+                radial-gradient(circle at 65% 50%, rgba(255,0,60,0.1) 0%, transparent 60%);
+  }
+  .ambient-glow::after {
+    content: ""; position: absolute; bottom: 0; left: -25%; width: 150%; height: 70%;
+    background-image: 
+      linear-gradient(rgba(0, 229, 255, 0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.15) 1px, transparent 1px);
+    background-size: 30px 30px;
+    transform: perspective(400px) rotateX(70deg);
+    transform-origin: bottom center;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 80%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 80%);
+    z-index: -1;
   }
 
   .hud-wrapper {
@@ -138,7 +150,27 @@
     border: 4px solid var(--red); background: #ffffff; display: flex; align-items: center; justify-content: center;
     box-shadow: 0 0 15px rgba(255,0,60,0.6); z-index: 20; transition: opacity 0.3s; opacity: 0;
   }
-  .speed-limit-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: #000; }
+  .speed-limit-val { font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: 900; color: #111; line-height: 1; }
+  
+  /* Aggressive Screen Warning */
+  @keyframes screenFlash {
+    0% { box-shadow: inset 0 0 100px rgba(0,0,0,0.8); }
+    50% { box-shadow: inset 0 0 150px rgba(255,0,60,0.6); }
+    100% { box-shadow: inset 0 0 100px rgba(0,0,0,0.8); }
+  }
+  .hud-wrapper.alert-flash::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 100;
+    animation: screenFlash 0.5s infinite;
+  }
+  .speed-alert {
+    color: var(--red) !important;
+    text-shadow: 0 0 40px rgba(255,0,60,0.9) !important;
+    animation: speedPulse 0.5s infinite alternate;
+  }
+  @keyframes speedPulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+  }
   
   @keyframes flash-alert { 0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.3; transform:scale(1.1); box-shadow: 0 0 25px rgba(255,0,0,0.8); border-color: red;} }
   .flash-alert { animation: flash-alert 0.3s infinite; }
@@ -301,7 +333,15 @@
 
 <script src="js/data_engine.js"></script>
 <script src="js/trip_tracker.js"></script>
+<script src="js/gps_manager.js"></script>
 <script>
+  window.lastGPSSpeed = 0;
+  window.addEventListener('gps_data', (e) => {
+    if (e.detail.speed !== null && e.detail.speed >= 0) {
+      window.lastGPSSpeed = Math.round(e.detail.speed);
+    }
+  });
+
   // --- CLOCK ---
   function updateClock() {
     const n = new Date();
@@ -531,14 +571,15 @@
     const isWarn = e.detail.warning;
     const signEl = document.getElementById('speedLimitSign');
     const speedVal = document.getElementById('speedVal');
+    const hudWrapper = document.querySelector('.hud-wrapper');
     if (isWarn) {
-        signEl.classList.add('flash-alert');
-        speedVal.style.color = 'var(--red)';
-        speedVal.style.textShadow = '0 0 25px rgba(255,0,60,0.8)';
+        if(signEl) signEl.classList.add('flash-alert');
+        if(speedVal) speedVal.classList.add('speed-alert');
+        if(hudWrapper) hudWrapper.classList.add('alert-flash');
     } else {
-        signEl.classList.remove('flash-alert');
-        speedVal.style.color = 'var(--cyan)';
-        speedVal.style.textShadow = '0 0 25px rgba(0,229,255,0.6)';
+        if(signEl) signEl.classList.remove('flash-alert');
+        if(speedVal) speedVal.classList.remove('speed-alert');
+        if(hudWrapper) hudWrapper.classList.remove('alert-flash');
     }
   });
 </script>
