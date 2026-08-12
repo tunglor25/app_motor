@@ -68,7 +68,7 @@
   .center-line{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:0.5;stroke-dasharray:4,3;}
 
   /* === SPEED ZONE (WITH SPEED LIMIT + GPS) === */
-  .speed-zone{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:5;margin-top:-1vh;position:relative;}
+  .speed-zone{flex:1;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:5;margin-top:-1vh;position:relative;}
   .speed-row{display:flex;align-items:baseline;gap:8px;}
   .speed-num{font-size:min(22vh,130px);font-weight:700;line-height:0.85;letter-spacing:-1px;text-shadow:0 0 25px rgba(255,255,255,0.2);}
   .speed-unit{font-size:18px;color:var(--dim);letter-spacing:3px;}
@@ -76,7 +76,7 @@
   /* Speed Limit Sign - Vietnamese/European circular red border */
   .speed-limit-sign {
     position: absolute;
-    bottom: 90px; right: 20px;
+    top: 4px; right: 8px;
     width: 60px; height: 60px;
     border-radius: 50%;
     border: 5px solid var(--red);
@@ -201,7 +201,7 @@
 
   /* === MUSIC FAB & POPUP === */
   .music-fab {
-    position: absolute; bottom: 20px; right: 20px;
+    position: absolute; bottom: 8px; left: 8px;
     width: 48px; height: 48px; border-radius: 50%;
     background: rgba(10,12,16,0.8); border: 2px solid var(--cyan);
     color: var(--cyan); font-size: 20px;
@@ -282,7 +282,7 @@
     .v-card{min-width:30%;}
     .tacho-zone{padding:0 4px;}
     .speed-zone{margin-top:-2vh;}
-    .speed-limit-sign { width: 52px; height: 52px; border-width: 4px; bottom: 90px; right: 12px; top: auto; }
+    .speed-limit-sign { width: 52px; height: 52px; border-width: 4px; }
     .speed-limit-val { font-size: 18px; }
     .gps-speed-line .gps-val { font-size: 14px; }
   }
@@ -306,7 +306,7 @@
     .ect-bar{height:2px;margin:0 8px;}
     .trip-bar.active{padding:3px 12px;}
     .trip-stat-val{font-size:10px;}
-    .speed-limit-sign { width: 48px; height: 48px; bottom: 70px; right: 10px; top: auto; }
+    .speed-limit-sign { width: 48px; height: 48px; }
     .speed-limit-val { font-size: 17px; }
   }
 
@@ -354,10 +354,6 @@
     </div>
   </div>
   
-  <div class="speed-limit-sign" id="speedLimitSign">
-    <span class="speed-limit-val" id="speedLimitVal">--</span>
-  </div>
-
   <!-- TACHOMETER -->
   <div class="tacho-zone">
     <svg class="tacho-svg" viewBox="0 0 400 90" id="tachoSvg">
@@ -368,21 +364,25 @@
   <!-- SPEED ZONE (with GPS Speed) -->
   <div class="speed-zone">
 
+    <div class="speed-limit-sign" id="speedLimitSign">
+      <span class="speed-limit-val" id="speedLimitVal">--</span>
+    </div>
+
     <div class="speed-row">
       <span class="speed-num" id="speedVal">0</span>
       <span class="speed-unit">km/h</span>
     </div>
-    
+
     <!-- GPS Speed Line -->
     <div class="gps-speed-line">
       <span class="gps-label">GPS</span>
       <span class="gps-val" id="gpsSpeedVal">--</span>
       <span class="gps-unit">km/h</span>
     </div>
-  </div>
 
-  <!-- MUSIC FAB -->
-  <div class="music-fab hidden" id="musicFab">🎵</div>
+    <!-- MUSIC FAB -->
+    <div class="music-fab hidden" id="musicFab">🎵</div>
+  </div>
 
   <!-- MUSIC POPUP -->
   <div class="music-popup-overlay" id="musicOverlay">
@@ -468,7 +468,9 @@
       points:`${(x1+slant).toFixed(1)},${(y1-sw/2).toFixed(1)} ${(x2+slant).toFixed(1)},${(y2-sw/2).toFixed(1)} ${x2.toFixed(1)},${(y2+sw/2).toFixed(1)} ${x1.toFixed(1)},${(y1+sw/2).toFixed(1)}`,
       class:'seg'
     });
-    poly.style.fill='#1e1e24';
+    poly.style.fill='#33333c';
+    poly.style.stroke='rgba(255,255,255,0.06)';
+    poly.style.strokeWidth='0.5';
     svg.appendChild(poly);
     segs.push(poly);
   }

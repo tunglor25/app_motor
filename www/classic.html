@@ -207,6 +207,17 @@
             0% { box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
             100% { box-shadow: 0 0 20px rgba(194,59,44,0.8), inset 0 0 15px rgba(194,59,44,0.3); }
         }
+        /* In portrait, .app-main is vertically centered and only 60vh tall, so a
+           "top" anchored to it lands on top of the first dial. Anchor to the
+           viewport instead, level with the topbar, where there's empty space. */
+        @media (orientation: portrait) {
+            .speed-limit-sign {
+                position: fixed;
+                top: 1.5vh; left: 50%;
+                transform: translateX(-50%);
+            }
+            .speed-limit-sign.hidden { transform: translateX(-50%) scale(0.5); }
+        }
         .speed-limit-val {
             font-family: 'Playfair Display', serif;
             font-size: 24px; font-weight: 700; color: #332d25;
@@ -433,19 +444,19 @@
               <circle fill='url(#faceGrad)' cx='100' cy='100' r='92'/>
               
               <text class='classic-brand' x='100' y='65'>MOTO · CLASSIC</text>
-              <text class='classic-value' x='100' y='110' id='classic-speed'>0</text>
-              <text class='classic-unit' x='100' y='138'>km/h</text>
-              
+
               <g id='classicSpeedTicks'></g>
               <g id='classicSpeedNums'></g>
-              
+
               <g id='classicSpeedNeedle' style='transform-origin:100px 100px; transform:rotate(-135deg); transition:transform 0.1s linear;'>
                 <polygon class='classic-needle-tail' points='98,100 102,100 101,120 99,120'/>
                 <polygon class='classic-needle-body' points='99.2,100 100.8,100 100,25'/>
               </g>
-              
+
               <circle class='classic-cap-outer' cx='100' cy='100' r='9'/>
               <circle class='classic-cap-inner' cx='100' cy='100' r='4'/>
+              <text class='classic-value' x='100' y='110' id='classic-speed'>0</text>
+              <text class='classic-unit' x='100' y='138'>km/h</text>
               <ellipse class='classic-glass' cx='80' cy='75' rx='70' ry='55'/>
             </svg>
             <div class="gps-speed-line">
@@ -463,19 +474,19 @@
               <circle fill='url(#faceGrad)' cx='100' cy='100' r='92'/>
               
               <text class='classic-brand' x='100' y='65'>TACHOMETER</text>
-              <text class='classic-value' x='100' y='110' id='classic-rpm'>0.0</text>
-              <text class='classic-unit' x='100' y='138'>×1000 RPM</text>
-              
+
               <g id='classicRpmTicks'></g>
               <g id='classicRpmNums'></g>
-              
+
               <g id='classicRpmNeedle' style='transform-origin:100px 100px; transform:rotate(-135deg); transition:transform 0.1s linear;'>
                 <polygon class='classic-needle-tail' points='98,100 102,100 101,120 99,120'/>
                 <polygon class='classic-needle-body' points='99.2,100 100.8,100 100,25'/>
               </g>
-              
+
               <circle class='classic-cap-outer' cx='100' cy='100' r='9'/>
               <circle class='classic-cap-inner' cx='100' cy='100' r='4'/>
+              <text class='classic-value' x='100' y='110' id='classic-rpm'>0.0</text>
+              <text class='classic-unit' x='100' y='138'>×1000 RPM</text>
               <ellipse class='classic-glass' cx='80' cy='75' rx='70' ry='55'/>
             </svg>
         </div>

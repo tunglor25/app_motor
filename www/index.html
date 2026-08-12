@@ -11,7 +11,7 @@
   
   // Redirect to saved theme or default to race
   const theme = localStorage.getItem('theme') || 'sport';
-  const pages = { sport: 'race.html', daily: 'daily.html', classic: 'classic.html' };
+  const pages = { sport: 'race.html', daily: 'daily.html', classic: 'classic.html', crazy: 'crazy.html' };
   window.location.replace(pages[theme] || 'race.html');
 </script>
 <script src="js/ios_statusbar.js"></script>

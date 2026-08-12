@@ -144,9 +144,10 @@
   .bottom-info { position: absolute; bottom: 10%; width: 60%; display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); }
   .bottom-info span { color: #fff; font-weight: bold;}
 
-  /* Speed limit sign */
+  /* Speed limit sign - sits in the empty gap above the center gauge, not on top of it */
   .speed-limit-sign {
-    position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%;
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 50px; height: 50px; border-radius: 50%;
     border: 4px solid var(--red); background: #ffffff; display: flex; align-items: center; justify-content: center;
     box-shadow: 0 0 15px rgba(255,0,60,0.6); z-index: 20; transition: opacity 0.3s; opacity: 0;
   }
@@ -182,9 +183,35 @@
     .hud-box { padding: 6px; }
   }
 
+  /* This HUD only fits a wide landscape layout (fixed-width side panels +
+     circular gauge). Rather than squeeze/overlap in portrait, show a
+     rotate prompt instead. */
+  .rotate-hint {
+    display: none;
+    position: fixed; inset: 0; z-index: 1000;
+    background: var(--bg-dark);
+    flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    text-align: center; padding: 24px;
+  }
+  .rotate-hint .icon { font-size: 48px; animation: rotateHintSpin 1.8s ease-in-out infinite; }
+  .rotate-hint .msg { font-family: 'Orbitron', sans-serif; font-size: 14px; letter-spacing: 1px; color: var(--dim); max-width: 280px; }
+  @keyframes rotateHintSpin {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(90deg); }
+  }
+  @media (orientation: portrait) {
+    .hud-wrapper, .ambient-glow { display: none; }
+    .rotate-hint { display: flex; }
+  }
+
 </style>
 </head>
 <body>
+
+<div class="rotate-hint">
+  <div class="icon">📱</div>
+  <div class="msg">XOAY NGANG MÁY ĐỂ XEM MÀN HÌNH NÀY</div>
+</div>
 
 <div class="ambient-glow"></div>
 <div class="hud-wrapper">
@@ -280,12 +307,12 @@
         <div>RPM <span id="rpmBotVal">0</span></div>
         <div>ODO <span>12,875 km</span></div>
       </div>
-
-      <div class="speed-limit-sign" id="speedLimitSign">
-        <span class="speed-limit-val" id="speedLimitVal">--</span>
-      </div>
     </div>
-    
+
+    <div class="speed-limit-sign" id="speedLimitSign">
+      <span class="speed-limit-val" id="speedLimitVal">--</span>
+    </div>
+
     <!-- RIGHT PANEL -->
     <div class="side-panel">
       <!-- BATT -->
