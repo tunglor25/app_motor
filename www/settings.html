@@ -282,6 +282,7 @@
 </script>
 <script src="js/ios_statusbar.js"></script>
 <script src="js/trip_tracker.js"></script>
+<script src="js/ble_manager.js"></script>
 </head>
 <body>
 
@@ -831,17 +832,49 @@
   });
   refreshNotifAccessStatus();
 
-  // --- BLE Scan ---
+  // --- BLE Scan (Capacitor BluetoothLe plugin — navigator.bluetooth khong chay trong app di dong) ---
+  function renderBleStatus(status, extra) {
+    const dot = document.getElementById('bleDot');
+    const text = document.getElementById('bleText');
+    const btn = document.getElementById('scanBtn');
+    dot.classList.toggle('connected', status === 'connected');
+    switch (status) {
+      case 'scanning':
+        text.textContent = 'ĐANG QUÉT...';
+        break;
+      case 'connecting':
+        text.textContent = 'ĐANG KẾT NỐI...';
+        break;
+      case 'connected':
+        text.textContent = 'ĐÃ KẾT NỐI';
+        btn.textContent = '✓ OK';
+        break;
+      case 'disconnected':
+        text.textContent = 'MẤT KẾT NỐI';
+        btn.textContent = 'SCAN';
+        break;
+      case 'error':
+        text.textContent = 'LỖI: ' + (extra || '');
+        btn.textContent = 'SCAN';
+        break;
+    }
+  }
+
+  if (window.BLEManager) {
+    BLEManager.onStatus(renderBleStatus);
+    if (BLEManager.deviceId) renderBleStatus('connecting');
+  }
+
   document.getElementById('scanBtn').addEventListener('click', async () => {
+    if (!window.BLEManager || !BLEManager.isAvailable()) {
+      document.getElementById('bleText').textContent = 'CHỈ CHẠY TRÊN APP THẬT (không phải trình duyệt)';
+      return;
+    }
     try {
-      const device = await navigator.bluetooth.requestDevice({
-        filters: [{ name: 'Honda_AB2025_Dash' }],
-        optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b']
-      });
-      document.getElementById('bleDot').classList.add('connected');
-      document.getElementById('bleText').textContent = device.name || 'ĐÃ TÌM THẤY';
+      const device = await BLEManager.scanAndConnect();
+      document.getElementById('bleText').textContent = device.name || 'ĐÃ KẾT NỐI';
       document.getElementById('scanBtn').textContent = '✓ OK';
-    } catch(e) {
+    } catch (e) {
       document.getElementById('bleText').textContent = 'LỖI: ' + e.message;
     }
   });

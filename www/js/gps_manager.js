@@ -27,7 +27,7 @@ const GPSManager = (function() {
         isQuerying = true;
         
         try {
-            const url = \`https://api.tomtom.com/search/2/reverseGeocode/\${lat},\${lon}.json?key=\${tomtomKey}&returnSpeedLimit=true\`;
+            const url = `https://api.tomtom.com/search/2/reverseGeocode/${lat},${lon}.json?key=${tomtomKey}&returnSpeedLimit=true`;
             const response = await fetch(url);
             if (response.ok) {
                 const data = await response.json();
