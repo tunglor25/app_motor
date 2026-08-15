@@ -24,6 +24,17 @@
         return new DataView(bytes.buffer);
     }
 
+    // App nay la nhieu trang HTML rieng (khong phai SPA) — moi lan chuyen trang,
+    // toan bo JS (ke ca trang thai BLE dang theo dõi) bi huy va nap lai tu dau.
+    // Tren iOS, goi connect() lai khi thiet bi THUC RA van dang ket noi o tang he
+    // dieu hanh de bi ket o "connecting" mai. Bao ve bang timeout + kiem tra truoc.
+    function withTimeout(promise, ms, label) {
+        return Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timeout sau ${ms}ms`)), ms))
+        ]);
+    }
+
     const BLEManager = {
         deviceId: null,
         _statusCb: null,
@@ -78,6 +89,16 @@
         },
 
         async _connectAndSubscribe() {
+            if (this._connecting) return; // tranh 2 lan connect chong cheo tren cung 1 trang
+            this._connecting = true;
+            try {
+                await this._doConnectAndSubscribe();
+            } finally {
+                this._connecting = false;
+            }
+        },
+
+        async _doConnectAndSubscribe() {
             const ble = this._plugin();
             const deviceId = this.deviceId;
 
@@ -91,8 +112,20 @@
                 }, 3000);
             });
 
-            this._setStatus('connecting');
-            await ble.connect({ deviceId });
+            // Thiet bi co the DA ket noi san o tang he dieu hanh (tu trang truoc do,
+            // JS bi huy khi chuyen trang nhung ket noi native van con) — kiem tra
+            // truoc, tranh goi connect() thua gay ket "connecting" tren iOS.
+            let alreadyConnected = false;
+            try {
+                const result = await withTimeout(ble.getConnectedDevices({ services: [SERVICE_UUID] }), 3000, 'getConnectedDevices');
+                const devices = (result && result.devices) || [];
+                alreadyConnected = devices.some(d => d.deviceId === deviceId);
+            } catch (e) { /* khong xac dinh duoc, cu thu connect binh thuong */ }
+
+            if (!alreadyConnected) {
+                this._setStatus('connecting');
+                await withTimeout(ble.connect({ deviceId }), 10000, 'connect');
+            }
 
             if (typeof ECUData !== 'undefined') ECUData.isConnected = true;
             if (typeof ECUController !== 'undefined' && ECUController.stopMockData) {
