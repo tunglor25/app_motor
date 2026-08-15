@@ -127,18 +127,25 @@
             });
         },
 
+        // Tu bat loi rieng cho tung characteristic — 1 characteristic moi (vd IAT/O2)
+        // chua co tren firmware dang chay (chua nap ban moi) KHONG duoc lam hong
+        // toan bo qua trinh ket noi/subscribe cac characteristic khac.
         async _subscribe(charUuid, handler) {
             const ble = this._plugin();
             const deviceId = this.deviceId;
             const key = `notification|${deviceId}|${SERVICE_UUID}|${charUuid}`;
-            await ble.addListener(key, (event) => {
-                const dv = hexToDataView(event && event.value);
-                handler(dv);
-                if (typeof ECUController !== 'undefined') {
-                    ECUController.updateComputed();
-                }
-            });
-            await ble.startNotifications({ deviceId, service: SERVICE_UUID, characteristic: charUuid });
+            try {
+                await ble.addListener(key, (event) => {
+                    const dv = hexToDataView(event && event.value);
+                    handler(dv);
+                    if (typeof ECUController !== 'undefined') {
+                        ECUController.updateComputed();
+                    }
+                });
+                await ble.startNotifications({ deviceId, service: SERVICE_UUID, characteristic: charUuid });
+            } catch (e) {
+                console.warn(`[BLE] Khong subscribe duoc characteristic ${charUuid} (co the firmware chua co):`, e && e.message);
+            }
         },
 
         async disconnect() {
