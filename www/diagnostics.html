@@ -127,10 +127,10 @@
             </div>
         </div>
 
-        <div class="section-title" style="margin-top:30px;">DIAGNOSTIC TROUBLE CODES</div>
+        <div class="section-title" style="margin-top:30px;">DIAGNOSTIC TROUBLE CODES <span style="color:var(--dim); font-size:11px; letter-spacing:0;">(DEMO — chưa nối ECU thật)</span></div>
         <div class="dtc-box" id="dtcBox">
             <div class="dtc-none" id="dtcMsg">NO DTC DETECTED</div>
-            <button class="btn-clear" id="btnClearDtc">Clear DTC Memory</button>
+            <button class="btn-clear" id="btnClearDtc">Clear DTC Memory (Demo)</button>
         </div>
         
         <div class="terminal" id="termLog">
@@ -153,10 +153,11 @@
 
         window.addEventListener('ecu_data', (e) => {
             const data = e.detail;
-            document.getElementById('diag-map').textContent = Math.round(data.map);
+            // MAP va Injector Pulse: chua co PID that cho ECU nay, chi hien so gia lap luc demo
+            document.getElementById('diag-map').textContent = data.isMocking ? Math.round(data.map) : '--';
             document.getElementById('diag-iat').textContent = Math.round(data.iat);
             document.getElementById('diag-o2').textContent = data.o2Voltage.toFixed(2);
-            document.getElementById('diag-inj').textContent = data.injectorPulse.toFixed(1);
+            document.getElementById('diag-inj').textContent = data.isMocking ? data.injectorPulse.toFixed(1) : '--';
             document.getElementById('diag-batt').textContent = data.battery.toFixed(1);
             document.getElementById('diag-ect').textContent = Math.round(data.ect);
             

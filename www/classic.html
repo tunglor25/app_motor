@@ -738,7 +738,7 @@
         if(mpPlayPause) mpPlayPause.textContent=info.isPlaying?'⏸':'▶';
         
         if(info.albumArt && mpArt){
-          mpArt.src=`data:image/jpeg;base64,${info.albumArt}`;
+          mpArt.src=info.albumArt;
         }
         if(musicFab) musicFab.classList.remove('hidden');
       }else{

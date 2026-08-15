@@ -11,6 +11,8 @@
     const CHAR_ECT = 'e3b1c67d-94bb-4286-904b-3cc34a4c6a99';
     const CHAR_TPS = '19a28e8d-71b5-4148-84be-97b7cbce39fa';
     const CHAR_BATTERY = 'c19f5615-585a-4712-b062-1bd074a1a5b8';
+    const CHAR_IAT = 'd4e8f1a2-3b5c-4d6e-8f9a-0b1c2d3e4f5a';
+    const CHAR_O2 = 'f6a8b1c2-4d5e-4f6a-8b9c-1d2e3f4a5b6c';
     const STORAGE_KEY = 'ble_device_id';
 
     function hexToDataView(hex) {
@@ -114,6 +116,14 @@
                 const str = new TextDecoder().decode(dv.buffer);
                 const v = parseFloat(str);
                 if (!isNaN(v)) ECUData.battery = v;
+            });
+            await this._subscribe(CHAR_IAT, (dv) => {
+                if (dv.byteLength >= 1) ECUData.iat = dv.getInt8(0);
+            });
+            await this._subscribe(CHAR_O2, (dv) => {
+                const str = new TextDecoder().decode(dv.buffer);
+                const v = parseFloat(str);
+                if (!isNaN(v)) ECUData.o2Voltage = v;
             });
         },
 

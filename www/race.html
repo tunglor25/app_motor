@@ -608,7 +608,7 @@
     }
 
     const fuelVal = document.getElementById('fuelInstVal');
-    if(fuelVal) fuelVal.textContent = data.instantL100km.toFixed(1);
+    if(fuelVal) fuelVal.textContent = data.isMocking ? data.instantL100km.toFixed(1) : '--';
 
     // Feed ECU data to trip tracker if recording
     if (window.TripTracker && TripTracker.isRecording()) {
@@ -687,8 +687,7 @@
         mpPlayPause.textContent=info.isPlaying?'⏸':'▶';
         
         if(info.albumArt){
-          const src=`data:image/jpeg;base64,${info.albumArt}`;
-          mpArt.src=src;
+          mpArt.src=info.albumArt;
         }
         musicFab.classList.remove('hidden');
       }else{

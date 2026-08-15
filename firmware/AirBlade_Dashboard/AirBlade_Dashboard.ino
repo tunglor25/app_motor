@@ -11,6 +11,8 @@
 #define CHAR_UUID_ECT          "e3b1c67d-94bb-4286-904b-3cc34a4c6a99"
 #define CHAR_UUID_TPS          "19a28e8d-71b5-4148-84be-97b7cbce39fa"
 #define CHAR_UUID_BATTERY      "c19f5615-585a-4712-b062-1bd074a1a5b8"
+#define CHAR_UUID_IAT          "d4e8f1a2-3b5c-4d6e-8f9a-0b1c2d3e4f5a"
+#define CHAR_UUID_O2           "f6a8b1c2-4d5e-4f6a-8b9c-1d2e3f4a5b6c"
 
 BLEServer* pServer = NULL;
 BLECharacteristic* pCharRPM = NULL;
@@ -18,6 +20,8 @@ BLECharacteristic* pCharSpeed = NULL;
 BLECharacteristic* pCharECT = NULL;
 BLECharacteristic* pCharTPS = NULL;
 BLECharacteristic* pCharBattery = NULL;
+BLECharacteristic* pCharIAT = NULL;
+BLECharacteristic* pCharO2 = NULL;
 bool deviceConnected = false;
 
 // Hardware Serial cho K-Line (L9637D)
@@ -32,8 +36,8 @@ HardwareSerial KLineSerial(1);
 bool ecuConnected = false;
 unsigned long lastConnectAttempt = 0;
 unsigned long lastPoll = 0;
-const unsigned long CONNECT_RETRY_MS = 5000;
-const unsigned long POLL_INTERVAL_MS = 500;
+const unsigned long CONNECT_RETRY_MS = 2000;
+const unsigned long POLL_INTERVAL_MS = 250;
 
 // Biến lưu trữ dữ liệu
 uint16_t currentRPM = 0;
@@ -41,11 +45,17 @@ uint8_t currentSpeed = 0;
 int8_t currentECT = 0;
 uint8_t currentTPS = 0;
 float currentVolt = 12.5;
+int8_t currentIAT = 0;
+float currentO2Voltage = 0;
 
 // Callback xử lý kết nối BLE
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
       deviceConnected = true;
+      // Cho phep loop() thu bat tay K-Line ngay lap tuc thay vi doi
+      // toi chu ky CONNECT_RETRY_MS tiep theo.
+      ecuConnected = false;
+      lastConnectAttempt = 0;
       Serial.println("App da ket noi BLE!");
     };
 
@@ -79,6 +89,12 @@ void setupBLE() {
 
   pCharBattery = pService->createCharacteristic(CHAR_UUID_BATTERY, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
   pCharBattery->addDescriptor(new BLE2902());
+
+  pCharIAT = pService->createCharacteristic(CHAR_UUID_IAT, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+  pCharIAT->addDescriptor(new BLE2902());
+
+  pCharO2 = pService->createCharacteristic(CHAR_UUID_O2, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+  pCharO2->addDescriptor(new BLE2902());
 
   pService->start();
 
@@ -126,14 +142,23 @@ int sendKWPRequest(uint8_t *payload, int payloadLen) {
   return idx;
 }
 
-// Doc cac byte tren bus trong 1 khoang thoi gian co dinh (ms)
+// Doc cac byte tren bus. windowMs la thoi gian cho TOI DA neu ECU khong phan
+// hoi gi ca (de con phat hien "mat ket noi"). Nhung ngay khi da nhan duoc byte
+// dau tien, chi can bus im lang IDLE_GAP_MS la coi nhu het khung — khong can
+// cho het windowMs nua. Giup giam do tre tu vai tram ms xuong con vai chuc ms
+// cho moi lan hoi (10400 baud rat cham, 1 khung thuong xong trong <20ms).
+const unsigned long IDLE_GAP_MS = 12;
 int readKLineBytes(uint8_t *buf, int maxLen, unsigned long windowMs) {
   unsigned long start = millis();
+  unsigned long lastByteAt = start;
   int count = 0;
   while (millis() - start < windowMs) {
     if (KLineSerial.available()) {
       uint8_t b = KLineSerial.read();
       if (count < maxLen) buf[count++] = b;
+      lastByteAt = millis();
+    } else if (count > 0 && (millis() - lastByteAt) > IDLE_GAP_MS) {
+      break; // da nhan xong khung, bus im lang
     }
   }
   return count;
@@ -169,6 +194,20 @@ bool tryConnectECU() {
     Serial.print("[K-LINE] ECU PHAN HOI THAT, ");
     Serial.print(n - sentLen);
     Serial.println(" byte keybytes.");
+
+    // Do thu Mode 0x03 (Show Stored DTCs) mot lan de xem ECU co ho tro doc
+    // ma loi thuc su khong — hien chi log raw, chua giai ma DTC.
+    delay(20);
+    uint8_t dtcReq[] = {0x03};
+    int dtcSentLen = sendKWPRequest(dtcReq, sizeof(dtcReq));
+    uint8_t dtcResp[32];
+    int dtcN = readKLineBytes(dtcResp, sizeof(dtcResp), 300);
+    if (dtcN > dtcSentLen) {
+      printHexSerial(dtcResp + dtcSentLen, dtcN - dtcSentLen, "[K-LINE] Mode 03 (DTC) phan hoi: ");
+    } else {
+      Serial.println("[K-LINE] Mode 03 (DTC): khong phan hoi.");
+    }
+
     return true;
   }
 
@@ -189,36 +228,20 @@ int requestPID(uint8_t pid, uint8_t *out, int maxOut) {
 
   uint8_t resp[16];
   int n = readKLineBytes(resp, sizeof(resp), 200);
-
-  Serial.print("[PID 0x");
-  if (pid < 0x10) Serial.print("0");
-  Serial.print(pid, HEX);
-  Serial.print("] ");
-  if (n <= sentLen) {
-    Serial.println("KHONG PHAN HOI");
-    return 0;
-  }
-  printHexSerial(resp + sentLen, n - sentLen, "RAW: ");
+  if (n <= sentLen) return 0; // khong phan hoi — im lang, cap tren se xu ly mat ket noi
 
   // Phan hoi cua ECU la 1 khung KWP2000 day du: [format][target][source][payload...][checksum]
   // — GIONG het cau truc khung ma chinh minh gui di — chu KHONG PHAI chi la [0x41][pid][data...].
   // Phai bo qua 3 byte header nay truoc khi doc phan payload (0x41/pid/gia tri).
   uint8_t *frame = resp + sentLen;
   int frameLen = n - sentLen;
-  if (frameLen < 4) { // toi thieu: format+target+source+1 checksum
-    Serial.println("[PID] -> Khung qua ngan, bo qua.");
-    return 0;
-  }
+  if (frameLen < 4) return 0; // toi thieu: format+target+source+1 checksum
+
   int payloadLen = frame[0] & 0x3F;
-  if (frameLen < 3 + payloadLen + 1) {
-    Serial.println("[PID] -> Khung chua du byte, bo qua.");
-    return 0;
-  }
+  if (frameLen < 3 + payloadLen + 1) return 0; // khung chua du byte
+
   uint8_t *payload = frame + 3;
-  if (payloadLen < 2 || payload[0] != 0x41 || payload[1] != pid) {
-    Serial.println("[PID] -> Frame khong hop le, bo qua.");
-    return 0;
-  }
+  if (payloadLen < 2 || payload[0] != 0x41 || payload[1] != pid) return 0; // frame khong hop le
 
   int valLen = payloadLen - 2;
   if (valLen > maxOut) valLen = maxOut;
@@ -255,6 +278,12 @@ void pollECU() {
   if (requestPID(0x42, val, 2) == 2) {                 // Control Module Voltage
     currentVolt = (((uint16_t)val[0] * 256) + val[1]) / 1000.0;
   }
+  if (requestPID(0x0F, val, 1) == 1) {                 // Intake Air Temp
+    currentIAT = (int)val[0] - 40;
+  }
+  if (requestPID(0x14, val, 2) == 2) {                 // O2 Sensor Bank1-Sensor1 Voltage
+    currentO2Voltage = val[0] / 200.0;
+  }
 
   Serial.print("[LIVE] RPM=");
   Serial.print(currentRPM);
@@ -265,7 +294,12 @@ void pollECU() {
   Serial.print("C TPS=");
   Serial.print(currentTPS);
   Serial.print("% Volt=");
-  Serial.println(currentVolt);
+  Serial.print(currentVolt);
+  Serial.print(" IAT=");
+  Serial.print(currentIAT);
+  Serial.print("C O2=");
+  Serial.print(currentO2Voltage, 2);
+  Serial.println("V");
 }
 
 void setup() {
@@ -298,29 +332,57 @@ void loop() {
     }
 
     // ==========================================
-    // KHU VỰC 2: BAO CAO DU LIEU (hien tai la 0 vi chua giai ma duoc PID
-    // that cua ECU — xem log "[PROBE LID ...]" tren Serial de doi chieu)
+    // KHU VỰC 2: BAO CAO DU LIEU THAT QUA BLE
+    // Chi notify khi gia tri thuc su thay doi — giam nhieu song BLE thua,
+    // do RPM/Speed/TPS thay doi lien tuc con ECT/Volt hau nhu dung yen.
     // ==========================================
+    static uint16_t lastRPM = 0xFFFF;
+    static uint8_t lastSpeed = 0xFF;
+    static int8_t lastECT = -128;
+    static uint8_t lastTPS = 0xFF;
+    static float lastVolt = -1;
+    static int8_t lastIAT = -128;
+    static float lastO2Voltage = -1;
 
-    // Bắn dữ liệu qua BLE
-    pCharRPM->setValue((uint8_t*)&currentRPM, 2);
-    pCharRPM->notify();
+    if (currentRPM != lastRPM) {
+      pCharRPM->setValue((uint8_t*)&currentRPM, 2);
+      pCharRPM->notify();
+      lastRPM = currentRPM;
+    }
+    if (currentSpeed != lastSpeed) {
+      pCharSpeed->setValue(&currentSpeed, 1);
+      pCharSpeed->notify();
+      lastSpeed = currentSpeed;
+    }
+    if (currentECT != lastECT) {
+      pCharECT->setValue((uint8_t*)&currentECT, 1);
+      pCharECT->notify();
+      lastECT = currentECT;
+    }
+    if (currentTPS != lastTPS) {
+      pCharTPS->setValue(&currentTPS, 1);
+      pCharTPS->notify();
+      lastTPS = currentTPS;
+    }
+    if (abs(currentVolt - lastVolt) >= 0.05) {
+      String voltStr = String(currentVolt, 1);
+      pCharBattery->setValue(voltStr.c_str());
+      pCharBattery->notify();
+      lastVolt = currentVolt;
+    }
+    if (currentIAT != lastIAT) {
+      pCharIAT->setValue((uint8_t*)&currentIAT, 1);
+      pCharIAT->notify();
+      lastIAT = currentIAT;
+    }
+    if (abs(currentO2Voltage - lastO2Voltage) >= 0.02) {
+      String o2Str = String(currentO2Voltage, 2);
+      pCharO2->setValue(o2Str.c_str());
+      pCharO2->notify();
+      lastO2Voltage = currentO2Voltage;
+    }
 
-    pCharSpeed->setValue(&currentSpeed, 1);
-    pCharSpeed->notify();
-
-    pCharECT->setValue((uint8_t*)&currentECT, 1);
-    pCharECT->notify();
-
-    pCharTPS->setValue(&currentTPS, 1);
-    pCharTPS->notify();
-
-    // Gửi dạng chuỗi hoặc số thực, ở đây dùng string cho dễ xử lý bên App
-    String voltStr = String(currentVolt, 1);
-    pCharBattery->setValue(voltStr.c_str());
-    pCharBattery->notify();
-
-    delay(50); // Refresh rate ~20 FPS (cực mượt)
+    delay(20); // Vong lap nhanh de bat kip thay doi RPM/toc do, khong lam gi neu khong co gi moi
   } else {
     // Không có ai kết nối, nghỉ ngơi 1 xíu
     delay(500);

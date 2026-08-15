@@ -593,7 +593,9 @@
             document.getElementById('speed').innerText = Math.round(data.speed);
             
             document.getElementById('trip').innerText = data.tripA.toFixed(1);
-            document.getElementById('avg').innerText = data.avgKmL.toFixed(1);
+            // Avg km/L can only he tinh tu du lieu tieu hao xang that (chua co PID
+            // that cho ECU nay) — chi hien so gia lap luc demo, con lai hien '--'.
+            document.getElementById('avg').innerText = data.isMocking ? data.avgKmL.toFixed(1) : '--';
             
             document.getElementById('tps').innerText = Math.round(data.tps);
             const voltEl = document.getElementById('volt');
@@ -649,8 +651,7 @@
         mpPlayPause.textContent=info.isPlaying?'⏸':'▶';
         
         if(info.albumArt){
-          const src=`data:image/jpeg;base64,${info.albumArt}`;
-          mpArt.src=src;
+          mpArt.src=info.albumArt;
         }
         musicFab.classList.remove('hidden');
       }else{

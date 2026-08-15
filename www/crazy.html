@@ -204,6 +204,69 @@
     .rotate-hint { display: flex; }
   }
 
+  /* === MUSIC FAB & POPUP === */
+  .music-fab {
+    position: absolute; bottom: 8px; left: 8px;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(10,12,16,0.8); border: 2px solid var(--cyan);
+    color: var(--cyan); font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 12px rgba(43,231,255,0.4);
+    cursor: pointer; z-index: 100; transition: all 0.2s;
+  }
+  .music-fab:active { transform: scale(0.9); }
+  .music-fab.hidden { display: none; }
+
+  .music-popup-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px); z-index: 999;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .music-popup-overlay.show { opacity: 1; pointer-events: auto; }
+
+  .music-popup {
+    background: rgba(10,12,16,0.95);
+    border: 1px solid var(--cyan);
+    border-radius: 16px; padding: 20px;
+    width: 280px; max-width: 90vw;
+    box-shadow: 0 0 20px rgba(43,231,255,0.3);
+    display: flex; flex-direction: column; align-items: center;
+    transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .music-popup-overlay.show .music-popup { transform: translateY(0); }
+
+  .mp-art {
+    width: 160px; height: 160px; border-radius: 12px;
+    object-fit: cover; border: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 16px; background: #111;
+  }
+  .mp-title {
+    font-family: 'Share Tech Mono', monospace; font-size: 16px;
+    color: var(--cyan); text-align: center; margin-bottom: 4px;
+    width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mp-artist {
+    font-family: 'Share Tech Mono', monospace; font-size: 12px;
+    color: var(--dim); text-align: center; margin-bottom: 20px;
+    width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mp-controls {
+    display: flex; align-items: center; gap: 24px;
+  }
+  .mp-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .mp-btn:active { background: rgba(255,255,255,0.15); transform: scale(0.9); }
+  .mp-btn.play {
+    width: 56px; height: 56px; background: var(--cyan); color: #000; font-size: 24px;
+    box-shadow: 0 0 15px rgba(43,231,255,0.5); border: none;
+  }
+  .mp-btn.play:active { background: #fff; }
+
 </style>
 </head>
 <body>
@@ -355,7 +418,24 @@
       PROFILE SETTINGS ⚙
     </div>
   </div>
-  
+
+  <!-- MUSIC FAB -->
+  <div class="music-fab hidden" id="musicFab">🎵</div>
+
+</div>
+
+<!-- MUSIC POPUP -->
+<div class="music-popup-overlay" id="musicOverlay">
+  <div class="music-popup" id="musicPopup">
+    <img class="mp-art" id="mpArt" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Art"/>
+    <div class="mp-title" id="mpTitle">No music playing</div>
+    <div class="mp-artist" id="mpArtist"></div>
+    <div class="mp-controls">
+      <button class="mp-btn" id="mpPrev">⏮</button>
+      <button class="mp-btn play" id="mpPlayPause">▶</button>
+      <button class="mp-btn" id="mpNext">⏭</button>
+    </div>
+  </div>
 </div>
 
 <script src="js/data_engine.js"></script>
@@ -550,7 +630,7 @@
     
     // Trip
     document.getElementById('tripVal').textContent = data.tripA.toFixed(1) + ' km';
-    if(document.getElementById('fuelVal')) document.getElementById('fuelVal').textContent = data.instantL100km.toFixed(1) + ' L/100km';
+    if(document.getElementById('fuelVal')) document.getElementById('fuelVal').textContent = data.isMocking ? (data.instantL100km.toFixed(1) + ' L/100km') : '--';
     
     // Diagnostics
     let faults = 0;
@@ -610,6 +690,55 @@
         if(hudWrapper) hudWrapper.classList.remove('alert-flash');
     }
   });
+
+  // --- MUSIC CONTROLS ---
+  const musicFab = document.getElementById('musicFab');
+  const musicOverlay = document.getElementById('musicOverlay');
+
+  const mpTitle = document.getElementById('mpTitle');
+  const mpArtist = document.getElementById('mpArtist');
+  const mpArt = document.getElementById('mpArt');
+  const mpPlayPause = document.getElementById('mpPlayPause');
+
+  musicFab.addEventListener('click', () => { musicOverlay.classList.add('show'); });
+  musicOverlay.addEventListener('click', (e) => { if (e.target === musicOverlay) musicOverlay.classList.remove('show'); });
+
+  async function togglePlay() {
+    try {
+      const info = await Capacitor.Plugins.MediaControlPlugin.getPlayingInfo();
+      if(info.isPlaying) await Capacitor.Plugins.MediaControlPlugin.pause();
+      else await Capacitor.Plugins.MediaControlPlugin.play();
+      setTimeout(pollMusic,300);
+    } catch(e){}
+  }
+  mpPlayPause.addEventListener('click', togglePlay);
+
+  document.getElementById('mpPrev').addEventListener('click', async () => {
+    try{await Capacitor.Plugins.MediaControlPlugin.prev();}catch(e){}
+  });
+  document.getElementById('mpNext').addEventListener('click', async () => {
+    try{await Capacitor.Plugins.MediaControlPlugin.next();}catch(e){}
+  });
+
+  async function pollMusic(){
+    try{
+      if(!window.Capacitor||!Capacitor.Plugins.MediaControlPlugin) return;
+      const info=await Capacitor.Plugins.MediaControlPlugin.getPlayingInfo();
+      if(info.title){
+        mpTitle.textContent=info.title;
+        mpArtist.textContent=info.artist||'';
+        mpPlayPause.textContent=info.isPlaying?'⏸':'▶';
+
+        if(info.albumArt){
+          mpArt.src=info.albumArt;
+        }
+        musicFab.classList.remove('hidden');
+      }else{
+        musicFab.classList.add('hidden');
+      }
+    }catch(e){}
+  }
+  setInterval(pollMusic,2000);pollMusic();
 </script>
 </body>
 </html>
