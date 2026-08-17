@@ -48,10 +48,23 @@ float currentVolt = 12.5;
 int8_t currentIAT = 0;
 float currentO2Voltage = 0;
 
+// Bao loop() gui lai TOAN BO gia tri hien tai trong vai giay dau sau khi co
+// client BLE moi ket noi, du gia tri khong doi so voi lan gui truoc — vi "gui
+// khi doi" la so sanh voi client CU, con client MOI subscribe thi chua tung
+// nhan duoc gi ca (BLE notify khong "phat lai" gia tri cu cho subscriber moi).
+// Gui lien tuc trong 1 khoang thoi gian (khong phai 1 lan duy nhat) vi client
+// can vai chuc ms - vai giay de hoan tat dang ky nhan thong bao (CCCD) cho tung
+// characteristic; gui qua som se bi mat, khong ai luu lai de gui lai.
+bool forceResendData = true;
+unsigned long forceResendUntil = 0;
+const unsigned long FORCE_RESEND_WINDOW_MS = 5000;
+
 // Callback xử lý kết nối BLE
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
       deviceConnected = true;
+      forceResendData = true;
+      forceResendUntil = millis() + FORCE_RESEND_WINDOW_MS;
       // Cho phep loop() thu bat tay K-Line ngay lap tuc thay vi doi
       // toi chu ky CONNECT_RETRY_MS tiep theo.
       ecuConnected = false;
@@ -142,23 +155,27 @@ int sendKWPRequest(uint8_t *payload, int payloadLen) {
   return idx;
 }
 
-// Doc cac byte tren bus. windowMs la thoi gian cho TOI DA neu ECU khong phan
-// hoi gi ca (de con phat hien "mat ket noi"). Nhung ngay khi da nhan duoc byte
-// dau tien, chi can bus im lang IDLE_GAP_MS la coi nhu het khung — khong can
-// cho het windowMs nua. Giup giam do tre tu vai tram ms xuong con vai chuc ms
-// cho moi lan hoi (10400 baud rat cham, 1 khung thuong xong trong <20ms).
-const unsigned long IDLE_GAP_MS = 12;
-int readKLineBytes(uint8_t *buf, int maxLen, unsigned long windowMs) {
+// Doc phan hoi tren bus: [echo cua chinh minh — dung sentLen byte] roi den
+// [khung ECU that: format][target][source][payload...][checksum].
+// windowMs la thoi gian cho TOI DA neu khong co gi ca (de phat hien "mat ket noi").
+// Ngay khi doc duoc byte format cua khung ECU (byte ngay sau phan echo), tinh
+// chinh xac tong so byte can doc tu do dai khai bao trong format byte roi thoat
+// NGAY LAP TUC khi du — KHONG doan theo "im lang bao lau", vi khoang cach xu ly
+// giua echo va phan hoi that cua ECU co the dai hon vai chuc ms, doan sai se cat
+// mat phan hoi that (da tung gay bug "chi thay echo, ECU khong tra loi").
+int readKLineBytes(uint8_t *buf, int maxLen, int sentLen, unsigned long windowMs) {
   unsigned long start = millis();
-  unsigned long lastByteAt = start;
   int count = 0;
-  while (millis() - start < windowMs) {
+  int expectedTotal = maxLen; // chua biet do dai that, mac dinh doc toi khi het windowMs
+  while (millis() - start < windowMs && count < maxLen) {
     if (KLineSerial.available()) {
       uint8_t b = KLineSerial.read();
-      if (count < maxLen) buf[count++] = b;
-      lastByteAt = millis();
-    } else if (count > 0 && (millis() - lastByteAt) > IDLE_GAP_MS) {
-      break; // da nhan xong khung, bus im lang
+      buf[count++] = b;
+      if (count == sentLen + 1) {
+        int payloadLen = buf[sentLen] & 0x3F;
+        if (payloadLen > 0) expectedTotal = sentLen + 3 + payloadLen + 1;
+      }
+      if (count >= expectedTotal) break; // du dung so byte can, thoat ngay
     }
   }
   return count;
@@ -187,7 +204,7 @@ bool tryConnectECU() {
   int sentLen = sendKWPRequest(startComm, sizeof(startComm));
 
   uint8_t resp[32];
-  int n = readKLineBytes(resp, sizeof(resp), 300);
+  int n = readKLineBytes(resp, sizeof(resp), sentLen, 300);
   printHexSerial(resp, n, "[K-LINE RX] ");
 
   if (n > sentLen) {
@@ -201,7 +218,7 @@ bool tryConnectECU() {
     uint8_t dtcReq[] = {0x03};
     int dtcSentLen = sendKWPRequest(dtcReq, sizeof(dtcReq));
     uint8_t dtcResp[32];
-    int dtcN = readKLineBytes(dtcResp, sizeof(dtcResp), 300);
+    int dtcN = readKLineBytes(dtcResp, sizeof(dtcResp), dtcSentLen, 300);
     if (dtcN > dtcSentLen) {
       printHexSerial(dtcResp + dtcSentLen, dtcN - dtcSentLen, "[K-LINE] Mode 03 (DTC) phan hoi: ");
     } else {
@@ -227,7 +244,7 @@ int requestPID(uint8_t pid, uint8_t *out, int maxOut) {
   int sentLen = sendKWPRequest(req, sizeof(req));
 
   uint8_t resp[16];
-  int n = readKLineBytes(resp, sizeof(resp), 200);
+  int n = readKLineBytes(resp, sizeof(resp), sentLen, 200);
   if (n <= sentLen) return 0; // khong phan hoi — im lang, cap tren se xu ly mat ket noi
 
   // Phan hoi cua ECU la 1 khung KWP2000 day du: [format][target][source][payload...][checksum]
@@ -254,7 +271,7 @@ void pollECU() {
   uint8_t testerPresent[] = {0x3E, 0x01};
   int sentLen = sendKWPRequest(testerPresent, sizeof(testerPresent));
   uint8_t tpResp[16];
-  int n = readKLineBytes(tpResp, sizeof(tpResp), 150);
+  int n = readKLineBytes(tpResp, sizeof(tpResp), sentLen, 150);
   if (n <= sentLen) {
     Serial.println("[K-LINE] Mat phan hoi ECU — se thu ket noi lai.");
     ecuConnected = false;
@@ -343,43 +360,74 @@ void loop() {
     static float lastVolt = -1;
     static int8_t lastIAT = -128;
     static float lastO2Voltage = -1;
+    static unsigned long lastForceResendBurst = 0;
+
+    if (forceResendData) {
+      if (millis() < forceResendUntil) {
+        // Van con trong khoang thoi gian dam bao — ep gui lai vai lan (khong
+        // chi 1 lan, nhung cung khong phai moi vong lap de tranh nghen BLE)
+        // de chac chan trung luc client da dang ky xong CCCD.
+        if (millis() - lastForceResendBurst >= 300) {
+          lastForceResendBurst = millis();
+          lastRPM = 0xFFFF; lastSpeed = 0xFF; lastECT = -128; lastTPS = 0xFF;
+          lastVolt = -1; lastIAT = -128; lastO2Voltage = -1;
+        }
+      } else {
+        forceResendData = false;
+      }
+    }
+
+    // Giua moi lan notify() cach nhau vai ms — gui nhieu characteristic lien
+    // tiep khong co khoang cach de ngan xep BLE cua ESP32 xu ly kip se khien
+    // vai goi tin bi ROI MAT AM THAM (khong bao loi), client van "ket noi
+    // binh thuong" nhung mai khong nhan duoc gia tri that cho characteristic
+    // do — day chinh la nguyen nhan ECT/Volt bi ket o so mac dinh du RPM/TPS
+    // van cap nhat dung.
+    const int NOTIFY_GAP_MS = 8;
 
     if (currentRPM != lastRPM) {
       pCharRPM->setValue((uint8_t*)&currentRPM, 2);
       pCharRPM->notify();
       lastRPM = currentRPM;
+      delay(NOTIFY_GAP_MS);
     }
     if (currentSpeed != lastSpeed) {
       pCharSpeed->setValue(&currentSpeed, 1);
       pCharSpeed->notify();
       lastSpeed = currentSpeed;
+      delay(NOTIFY_GAP_MS);
     }
     if (currentECT != lastECT) {
       pCharECT->setValue((uint8_t*)&currentECT, 1);
       pCharECT->notify();
       lastECT = currentECT;
+      delay(NOTIFY_GAP_MS);
     }
     if (currentTPS != lastTPS) {
       pCharTPS->setValue(&currentTPS, 1);
       pCharTPS->notify();
       lastTPS = currentTPS;
+      delay(NOTIFY_GAP_MS);
     }
     if (abs(currentVolt - lastVolt) >= 0.05) {
       String voltStr = String(currentVolt, 1);
       pCharBattery->setValue(voltStr.c_str());
       pCharBattery->notify();
       lastVolt = currentVolt;
+      delay(NOTIFY_GAP_MS);
     }
     if (currentIAT != lastIAT) {
       pCharIAT->setValue((uint8_t*)&currentIAT, 1);
       pCharIAT->notify();
       lastIAT = currentIAT;
+      delay(NOTIFY_GAP_MS);
     }
     if (abs(currentO2Voltage - lastO2Voltage) >= 0.02) {
       String o2Str = String(currentO2Voltage, 2);
       pCharO2->setValue(o2Str.c_str());
       pCharO2->notify();
       lastO2Voltage = currentO2Voltage;
+      delay(NOTIFY_GAP_MS);
     }
 
     delay(20); // Vong lap nhanh de bat kip thay doi RPM/toc do, khong lam gi neu khong co gi moi

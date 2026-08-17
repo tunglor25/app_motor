@@ -77,7 +77,10 @@ public class MediaControlPlugin: CAPPlugin, CAPBridgedPlugin {
             if let artData = info["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data,
                let image = UIImage(data: artData),
                let jpegData = image.jpegData(compressionQuality: 0.7) {
-                result["albumArt"] = jpegData.base64EncodedString()
+                // Phai co tien to data URI day du — khop voi Android (bitmapToBase64() cung
+                // tra ve "data:image/jpeg;base64,..."), vi JS ("mpArt.src = info.albumArt")
+                // dung chung 1 dong code cho ca 2 platform, khong tu them tien to nua.
+                result["albumArt"] = "data:image/jpeg;base64," + jpegData.base64EncodedString()
             }
             guard let getIsPlaying = MediaControlPlugin.getIsPlaying else {
                 call.resolve(result)

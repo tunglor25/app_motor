@@ -480,10 +480,6 @@
                 <div class="lcd-val" id="trip">0.0</div>
             </div>
             <div class="lcd-box">
-                <div class="lcd-lbl">AVG km/L</div>
-                <div class="lcd-val" id="avg">0.0</div>
-            </div>
-            <div class="lcd-box">
                 <div class="lcd-lbl">TPS %</div>
                 <div class="lcd-val" id="tps">0</div>
             </div>
@@ -593,10 +589,7 @@
             document.getElementById('speed').innerText = Math.round(data.speed);
             
             document.getElementById('trip').innerText = data.tripA.toFixed(1);
-            // Avg km/L can only he tinh tu du lieu tieu hao xang that (chua co PID
-            // that cho ECU nay) — chi hien so gia lap luc demo, con lai hien '--'.
-            document.getElementById('avg').innerText = data.isMocking ? data.avgKmL.toFixed(1) : '--';
-            
+
             document.getElementById('tps').innerText = Math.round(data.tps);
             const voltEl = document.getElementById('volt');
             if (voltEl) {

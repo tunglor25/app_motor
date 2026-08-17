@@ -321,8 +321,6 @@
       <div class="hud-box chamfer-bl" style="flex: 0.8;">
         <div class="trip-layout">
           <div class="trip-row"><span>Trip 1:</span><span id="tripVal">0.0 km</span></div>
-          <div class="trip-row"><span>Avg Fuel:</span><span id="fuelVal">0.0 L/100km</span></div>
-          <div class="trip-row"><span>Fuel:</span><span>100%</span></div>
         </div>
       </div>
     </div>
@@ -630,8 +628,6 @@
     
     // Trip
     document.getElementById('tripVal').textContent = data.tripA.toFixed(1) + ' km';
-    if(document.getElementById('fuelVal')) document.getElementById('fuelVal').textContent = data.isMocking ? (data.instantL100km.toFixed(1) + ' L/100km') : '--';
-    
     // Diagnostics
     let faults = 0;
     const statEng = document.getElementById('statEng'); const iconEng = document.getElementById('iconEng');

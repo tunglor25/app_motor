@@ -78,6 +78,7 @@
 	<array>
 		<string>location</string>
 		<string>audio</string>
+		<string>bluetooth-central</string>
 	</array>
 </dict>
 </plist>

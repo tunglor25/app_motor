@@ -607,9 +607,6 @@
       else battEl.style.color = '';
     }
 
-    const fuelVal = document.getElementById('fuelInstVal');
-    if(fuelVal) fuelVal.textContent = data.isMocking ? data.instantL100km.toFixed(1) : '--';
-
     // Feed ECU data to trip tracker if recording
     if (window.TripTracker && TripTracker.isRecording()) {
       TripTracker.addECUData(lastECUSpeed, data.rpm, data.ect, data.tps, data.battery);

@@ -102,20 +102,12 @@
         <div class="section-title">LIVE SENSOR DATA</div>
         <div class="grid-2">
             <div class="data-card">
-                <div class="data-lbl">MANIFOLD PRESSURE</div>
-                <div><span class="data-val" id="diag-map">--</span><span class="data-unit">kPa</span></div>
-            </div>
-            <div class="data-card">
                 <div class="data-lbl">INTAKE AIR TEMP</div>
                 <div><span class="data-val" id="diag-iat">--</span><span class="data-unit">°C</span></div>
             </div>
             <div class="data-card">
                 <div class="data-lbl">O2 SENSOR VOLT</div>
                 <div><span class="data-val" id="diag-o2">--</span><span class="data-unit">V</span></div>
-            </div>
-            <div class="data-card">
-                <div class="data-lbl">INJECTOR PULSE</div>
-                <div><span class="data-val" id="diag-inj">--</span><span class="data-unit">ms</span></div>
             </div>
             <div class="data-card">
                 <div class="data-lbl">BATTERY HEALTH</div>
@@ -126,56 +118,17 @@
                 <div><span class="data-val" id="diag-ect">--</span><span class="data-unit">°C</span></div>
             </div>
         </div>
-
-        <div class="section-title" style="margin-top:30px;">DIAGNOSTIC TROUBLE CODES <span style="color:var(--dim); font-size:11px; letter-spacing:0;">(DEMO — chưa nối ECU thật)</span></div>
-        <div class="dtc-box" id="dtcBox">
-            <div class="dtc-none" id="dtcMsg">NO DTC DETECTED</div>
-            <button class="btn-clear" id="btnClearDtc">Clear DTC Memory (Demo)</button>
-        </div>
-        
-        <div class="terminal" id="termLog">
-            <p>> CONNECTING TO K-LINE ISO 9141-2...</p>
-            <p>> FAST INIT SUCCESS</p>
-            <p>> READING LIVE DATA STREAM...</p>
-        </div>
     </div>
 
     <script src="js/data_engine.js"></script>
     <script src="js/ble_manager.js"></script>
     <script>
-        const term = document.getElementById('termLog');
-        function logMsg(msg) {
-            const p = document.createElement('p');
-            p.textContent = '> ' + msg;
-            term.appendChild(p);
-            term.scrollTop = term.scrollHeight;
-        }
-
         window.addEventListener('ecu_data', (e) => {
             const data = e.detail;
-            // MAP va Injector Pulse: chua co PID that cho ECU nay, chi hien so gia lap luc demo
-            document.getElementById('diag-map').textContent = data.isMocking ? Math.round(data.map) : '--';
             document.getElementById('diag-iat').textContent = Math.round(data.iat);
             document.getElementById('diag-o2').textContent = data.o2Voltage.toFixed(2);
-            document.getElementById('diag-inj').textContent = data.isMocking ? data.injectorPulse.toFixed(1) : '--';
             document.getElementById('diag-batt').textContent = data.battery.toFixed(1);
             document.getElementById('diag-ect').textContent = Math.round(data.ect);
-            
-            // Randomly log hex data for hacker effect
-            if(Math.random() < 0.1) {
-                const hex = Array.from({length: 8}, () => Math.floor(Math.random()*256).toString(16).padStart(2, '0')).join(' ');
-                logMsg('RX: ' + hex.toUpperCase());
-            }
-        });
-        
-        document.getElementById('btnClearDtc').addEventListener('click', () => {
-            logMsg('SENDING CLEAR DTC COMMAND...');
-            setTimeout(() => {
-                logMsg('CLEAR DTC SUCCESS (0x44)');
-                document.getElementById('dtcMsg').textContent = 'NO DTC DETECTED';
-                document.getElementById('dtcMsg').className = 'dtc-none';
-                document.getElementById('dtcBox').style.borderColor = 'rgba(0,255,170,0.5)';
-            }, 800);
         });
     </script>
 </body>

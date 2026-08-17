@@ -206,14 +206,6 @@
       <div class="stat-value" id="valMaxECT">0 °C</div>
     </div>
     
-    <div class="stat-card">
-      <div class="stat-label">Nhiên liệu</div>
-      <div class="stat-value" id="valFuel">0.0 L</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Tiêu hao TB</div>
-      <div class="stat-value" id="valFuelAvg">0.0 km/L</div>
-    </div>
   </div>
   
   <div class="btn-row">
@@ -268,14 +260,6 @@
     document.getElementById('valAvgRPM').textContent = Math.round(trip.avgRPM);
     
     document.getElementById('valMaxECT').textContent = Math.round(trip.maxECT) + ' °C';
-    
-    document.getElementById('valFuel').textContent = (trip.fuelConsumed || 0).toFixed(2) + ' L';
-    
-    let kmPerL = 0;
-    if (trip.fuelConsumed > 0) {
-      kmPerL = trip.totalDistance / trip.fuelConsumed;
-    }
-    document.getElementById('valFuelAvg').textContent = kmPerL.toFixed(1) + ' km/L';
 
     // Init Map
     const tomtomKey = 'CxlMrnIOFG5ygAG7eSGR2GAwGj3gq12h';

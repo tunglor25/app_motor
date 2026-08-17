@@ -127,6 +127,16 @@
                 await withTimeout(ble.connect({ deviceId }), 10000, 'connect');
             }
 
+            // Android/iOS cache bang service/characteristic cua thiet bi theo dia chi
+            // Bluetooth — neu firmware doi (vd them IAT/O2 characteristic moi) ma dia
+            // chi khong doi, may vAn dung bang CU va bao "Characteristic not found"
+            // cho characteristic moi. discoverServices() ep quet lai bang moi that su.
+            try {
+                await withTimeout(ble.discoverServices({ deviceId }), 5000, 'discoverServices');
+            } catch (e) {
+                console.warn('[BLE] discoverServices that bai (co the khong ho tro tren platform nay):', e && e.message);
+            }
+
             if (typeof ECUData !== 'undefined') ECUData.isConnected = true;
             if (typeof ECUController !== 'undefined' && ECUController.stopMockData) {
                 ECUController.stopMockData();
