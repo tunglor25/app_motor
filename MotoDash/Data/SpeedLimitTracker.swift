@@ -70,7 +70,12 @@ final class SpeedLimitTracker: NSObject, ObservableObject, CLLocationManagerDele
         inFlightTask = Task { [weak self] in
             guard let self else { return }
             let fromTomTom = await self.fetchFromTomTom(lat: lat, lng: lng)
-            let result = fromTomTom ?? (await self.fetchFromOverpass(lat: lat, lng: lng))
+            let result: Int?
+            if let fromTomTom {
+                result = fromTomTom
+            } else {
+                result = await self.fetchFromOverpass(lat: lat, lng: lng)
+            }
             if !Task.isCancelled {
                 self.speedLimitKmh = result ?? 0
             }

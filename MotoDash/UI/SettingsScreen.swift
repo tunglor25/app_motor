@@ -279,8 +279,8 @@ private struct MusicTab: View {
                     color: notificationAccessGranted ? .dashGreen : .dashRed,
                     label: "Quy\u{1EC1}n truy c\u{1EAD}p th\u{01B0} vi\u{1EC7}n nh\u{1EA1}c",
                     desc: notificationAccessGranted ? "\u{0110}\u{00E3} c\u{1EA5}p quy\u{1EC1}n" : "C\u{1EA7}n c\u{1EA5}p \u{0111}\u{1EC3} nh\u{1EAD}n di\u{1EC7}n nh\u{1EA1}c đang ph\u{00E1}t",
-                    onClick: onOpenNotificationAccessSettings,
-                    chevron: notificationAccessGranted ? "\u{2713}" : "C\u{1EA4}P QUY\u{1EC0}N"
+                    chevron: notificationAccessGranted ? "\u{2713}" : "C\u{1EA4}P QUY\u{1EC0}N",
+                    onClick: onOpenNotificationAccessSettings
                 )
             }
         }
