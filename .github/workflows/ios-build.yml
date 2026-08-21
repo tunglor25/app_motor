@@ -1,0 +1,57 @@
+name: iOS Build
+
+on:
+  push:
+    branches:
+      - ios-native
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Unsigned iOS IPA
+    runs-on: macos-15
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Resolve SPM Dependencies
+        run: xcodebuild -project MotoDash.xcodeproj -resolvePackageDependencies
+
+      - name: Build iOS App (Unsigned)
+        run: |
+          xcodebuild -project MotoDash.xcodeproj \
+            -scheme MotoDash \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            SYMROOT=$(pwd)/build \
+            build
+
+      - name: Package into Unsigned IPA
+        run: |
+          APP_PATH=$(find build -name "*.app" -type d 2>/dev/null | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: .app not found!"
+            find build -type f 2>/dev/null | head -30
+            exit 1
+          fi
+          echo "Found app at: $APP_PATH"
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          zip -r motodash-ios-unsigned.ipa Payload
+          ls -la motodash-ios-unsigned.ipa
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: motodash-ios-unsigned
+          path: motodash-ios-unsigned.ipa

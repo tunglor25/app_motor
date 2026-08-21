@@ -1,0 +1,49 @@
+name: MotoDash
+options:
+  bundleIdPrefix: vn.ab
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: ""
+    CODE_SIGNING_REQUIRED: NO
+    CODE_SIGNING_ALLOWED: NO
+
+targets:
+  MotoDash:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: MotoDash
+    resources:
+      - path: MotoDash/Resources
+        optional: true
+    info:
+      path: MotoDash/Info.plist
+      properties:
+        CFBundleDisplayName: MotoDash
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIRequiresFullScreen: true
+        ITSAppUsesNonExemptEncryption: false
+        NSBluetoothAlwaysUsageDescription: "MotoDash cần Bluetooth để kết nối với bộ đọc ECU trên xe."
+        NSBluetoothPeripheralUsageDescription: "MotoDash cần Bluetooth để kết nối với bộ đọc ECU trên xe."
+        NSLocationWhenInUseUsageDescription: "MotoDash cần vị trí để ghi lại hành trình và tốc độ giới hạn."
+        NSLocationAlwaysAndWhenInUseUsageDescription: "MotoDash cần vị trí để ghi lại hành trình khi chạy nền."
+        UIBackgroundModes:
+          - bluetooth-central
+          - location
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: vn.ab.dashnative
+        TARGETED_DEVICE_FAMILY: "1"
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
