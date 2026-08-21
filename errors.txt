@@ -20,5 +20,3 @@
 205:    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
 207:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:252:10: note: add 'nonisolated' to 'peripheral(_:didUpdateNotificationStateFor:error:)' to make this instance method not isolated to the actor
 208:    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
-211:/Users/runner/work/app_motor/app_motor/MotoDash/UI/SettingsScreen.swift:283:21: error: argument 'chevron' must precede argument 'onClick'
-214:/Users/runner/work/app_motor/app_motor/MotoDash/Data/SpeedLimitTracker.swift:73:47: error: 'async' call in an autoclosure that does not support concurrency
