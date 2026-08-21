@@ -28,6 +28,7 @@ final class EcuBleManager: NSObject, ObservableObject {
 
     private var centralManager: CBCentralManager!
     private var activePeripheral: CBPeripheral?
+    private var controlCharacteristic: CBCharacteristic?
 
     private var scanning = false
     private var connecting = false
@@ -87,7 +88,16 @@ final class EcuBleManager: NSObject, ObservableObject {
             centralManager.cancelPeripheralConnection(peripheral)
         }
         activePeripheral = nil
+        controlCharacteristic = nil
         connectionState = .idle
+    }
+
+    // Troll button -- writes cmdC4 to trigger the ESP32's bomb-countdown beep
+    // sequence. Unrelated to any real ECU data, just a joke.
+    func triggerC4Mode() {
+        guard let peripheral = activePeripheral, let characteristic = controlCharacteristic else { return }
+        let payload = Data([BleUuids.cmdC4])
+        peripheral.writeValue(payload, for: characteristic, type: .withResponse)
     }
 
     private func stopScanQuietly() {
@@ -213,6 +223,7 @@ extension EcuBleManager: CBCentralManagerDelegate {
         connecting = false
         connectTimeoutWork?.cancel()
         discoverTimeoutWork?.cancel()
+        controlCharacteristic = nil
         connectionState = .disconnected
         scheduleReconnect()
     }
@@ -242,6 +253,7 @@ extension EcuBleManager: CBPeripheralDelegate {
             guard let characteristic = characteristics.first(where: { $0.uuid == uuid }) else { continue }
             peripheral.setNotifyValue(true, for: characteristic)
         }
+        controlCharacteristic = characteristics.first(where: { $0.uuid == BleUuids.charControl })
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {

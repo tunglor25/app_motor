@@ -17,6 +17,7 @@ struct SettingsScreen: View {
     let onSetWakeLock: (Bool) -> Void
     let onSetFullscreen: (Bool) -> Void
     let onSetDemoMode: (Bool) -> Void
+    let onTriggerC4Mode: () -> Void
     let onSetAutoHideMusic: (Bool) -> Void
     let onDisconnect: () -> Void
     let onReconnect: () -> Void
@@ -56,6 +57,7 @@ struct SettingsScreen: View {
                         onSetWakeLock: onSetWakeLock,
                         onSetFullscreen: onSetFullscreen,
                         onSetDemoMode: onSetDemoMode,
+                        onTriggerC4Mode: onTriggerC4Mode,
                         onDisconnect: onDisconnect,
                         onReconnect: onReconnect,
                         onNavigateDiagnostics: onNavigateDiagnostics
@@ -150,6 +152,7 @@ private struct GeneralTab: View {
     let onSetWakeLock: (Bool) -> Void
     let onSetFullscreen: (Bool) -> Void
     let onSetDemoMode: (Bool) -> Void
+    let onTriggerC4Mode: () -> Void
     let onDisconnect: () -> Void
     let onReconnect: () -> Void
     let onNavigateDiagnostics: () -> Void
@@ -226,6 +229,10 @@ private struct GeneralTab: View {
                 NavRow(emoji: "\u{1F527}", color: .dashRed, label: "ECU Diagnostics", desc: "Xem IAT / c\u{1EA3}m bi\u{1EBF}n oxy", onClick: onNavigateDiagnostics)
                 DashDivider()
                 ToggleRow(emoji: "\u{1F3AE}", color: .dashAmber, label: "Demo mode", desc: "D\u{1EEF} li\u{1EC7}u gi\u{1EA3} l\u{1EAD}p, kh\u{00F4}ng c\u{1EA7}n ESP32", checked: settings.demoMode, onCheckedChange: onSetDemoMode)
+                if connectionState == .connected {
+                    DashDivider()
+                    NavRow(emoji: "\u{1F4A3}", color: .dashRed, label: "Ch\u{1EBF} \u{0111}\u{1ED9} C4", desc: "\u{0110}\u{1EEB}ng b\u{1EA5}m. Nghi\u{00EA}m t\u{00FA}c \u{0111}\u{1EA5}y.", onClick: onTriggerC4Mode)
+                }
             }
 
             SectionTitle("M\u{00C0}N H\u{00CC}NH")

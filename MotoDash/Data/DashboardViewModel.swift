@@ -141,6 +141,8 @@ final class DashboardViewModel: ObservableObject {
     }
 
     func disconnectBle() { bleManager.disconnect() }
+
+    func triggerC4Mode() { bleManager.triggerC4Mode() }
     func reconnectBle() { connect() }
 
     func setTheme(_ theme: String) { settingsRepository.setTheme(theme) }

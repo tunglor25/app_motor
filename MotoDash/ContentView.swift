@@ -68,6 +68,7 @@ struct ContentView: View {
                 onSetWakeLock: viewModel.setWakeLock,
                 onSetFullscreen: viewModel.setFullscreen,
                 onSetDemoMode: viewModel.setDemoMode,
+                onTriggerC4Mode: viewModel.triggerC4Mode,
                 onSetAutoHideMusic: viewModel.setAutoHideMusic,
                 onDisconnect: viewModel.disconnectBle,
                 onReconnect: startConnectFlow,
