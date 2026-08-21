@@ -24,7 +24,10 @@ jobs:
         run: xcodebuild -project MotoDash.xcodeproj -resolvePackageDependencies
 
       - name: Build iOS App (Unsigned)
+        id: build
+        continue-on-error: true
         run: |
+          set -o pipefail
           xcodebuild -project MotoDash.xcodeproj \
             -scheme MotoDash \
             -configuration Release \
@@ -34,7 +37,31 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             SYMROOT=$(pwd)/build \
-            build
+            build 2>&1 | tee xcodebuild.log
+
+      - name: Publish build log
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/logpub
+          grep -nE "error:" xcodebuild.log > /tmp/logpub/errors.txt || echo "no 'error:' lines found" > /tmp/logpub/errors.txt
+          tail -n 400 xcodebuild.log > /tmp/logpub/tail.txt
+          cd /tmp
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" logrepo
+          cd logrepo
+          git checkout ci-logs 2>/dev/null || git checkout --orphan ci-logs
+          git rm -rf . >/dev/null 2>&1 || true
+          cp /tmp/logpub/errors.txt .
+          cp /tmp/logpub/tail.txt .
+          echo "run_id=${{ github.run_id }}  commit=${{ github.sha }}" > info.txt
+          git add -A
+          git -c user.email="ci-bot@local" -c user.name="CI Bot" commit -m "log for run ${{ github.run_id }}" || true
+          git push origin ci-logs --force
+
+      - name: Fail job if build failed
+        if: steps.build.outcome == 'failure'
+        run: exit 1
 
       - name: Package into Unsigned IPA
         run: |
