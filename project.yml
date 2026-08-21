@@ -38,9 +38,13 @@ targets:
         NSBluetoothPeripheralUsageDescription: "MotoDash cần Bluetooth để kết nối với bộ đọc ECU trên xe."
         NSLocationWhenInUseUsageDescription: "MotoDash cần vị trí để ghi lại hành trình và tốc độ giới hạn."
         NSLocationAlwaysAndWhenInUseUsageDescription: "MotoDash cần vị trí để ghi lại hành trình khi chạy nền."
+        NSAppleMusicUsageDescription: "MotoDash cần quyền truy cập thư viện nhạc để hiển thị bài hát đang phát từ ứng dụng Nhạc."
         UIBackgroundModes:
           - bluetooth-central
           - location
+        UIAppFonts:
+          - orbitron_regular.ttf
+          - share_tech_mono_regular.ttf
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: vn.ab.dashnative
