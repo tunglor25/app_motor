@@ -79,7 +79,12 @@ struct ContentView: View {
                 onBack: goBack
             )
         case .diagnostics:
-            DiagnosticsScreen(reading: viewModel.state.reading, unitTemp: viewModel.state.settings.unitTemp, onBack: goBack)
+            DiagnosticsScreen(
+                reading: viewModel.state.reading,
+                unitTemp: viewModel.state.settings.unitTemp,
+                onBack: goBack,
+                onClearDtc: viewModel.clearDtc
+            )
         case .tripHistory:
             TripHistoryScreen(
                 tripRepository: viewModel.tripRepository,

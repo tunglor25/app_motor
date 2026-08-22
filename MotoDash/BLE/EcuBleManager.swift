@@ -94,9 +94,15 @@ final class EcuBleManager: NSObject, ObservableObject {
 
     // Troll button -- writes cmdC4 to trigger the ESP32's bomb-countdown beep
     // sequence. Unrelated to any real ECU data, just a joke.
-    func triggerC4Mode() {
+    func triggerC4Mode() { writeControlCommand(BleUuids.cmdC4) }
+
+    /// Clears the real MIL/trouble codes on the ECU via Mode 04 -- a genuine
+    /// diagnostic command, not a joke, use after the bike has been repaired.
+    func clearDtc() { writeControlCommand(BleUuids.cmdClearDtc) }
+
+    private func writeControlCommand(_ cmd: UInt8) {
         guard let peripheral = activePeripheral, let characteristic = controlCharacteristic else { return }
-        let payload = Data([BleUuids.cmdC4])
+        let payload = Data([cmd])
         peripheral.writeValue(payload, for: characteristic, type: .withResponse)
     }
 

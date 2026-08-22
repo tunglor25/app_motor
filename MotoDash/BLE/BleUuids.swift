@@ -18,4 +18,6 @@ enum BleUuids {
 
     /// 'C' -- troll command sent from the app, unrelated to any real ECU data.
     static let cmdC4: UInt8 = 0x43
+    /// 'D' -- clears real ECU trouble codes via Mode 04.
+    static let cmdClearDtc: UInt8 = 0x44
 }

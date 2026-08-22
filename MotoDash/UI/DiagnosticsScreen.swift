@@ -8,6 +8,7 @@ struct DiagnosticsScreen: View {
     let reading: EcuReading
     var unitTemp: String = "c"
     let onBack: () -> Void
+    var onClearDtc: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -28,7 +29,7 @@ struct DiagnosticsScreen: View {
                     label: "\u{0110}I\u{1EC6}N \u{00C1}P C\u{1EA2}M BI\u{1EBF}N OXY (O2)",
                     value: reading.o2Voltage.map { String(format: "%.2fV", $0) } ?? "--"
                 )
-                DtcCard(dtcCodes: reading.dtcCodes)
+                DtcCard(dtcCodes: reading.dtcCodes, onClearDtc: onClearDtc)
             }
             .padding(.top, 20)
 
@@ -41,33 +42,55 @@ struct DiagnosticsScreen: View {
 
 // Ma loi DTC that tu Mode 03, dang chuan OBD-II (P0135, P0115...) -- khong
 // phai ma nhap nhay den kieu Honda doi cu. Rong = khong co loi (xanh); co
-// ma = liet ke tung ma (do).
+// ma = liet ke tung ma (do) + nut xoa (Mode 04, cham 2 lan de xac nhan tranh
+// xoa nham).
 private struct DtcCard: View {
     let dtcCodes: [String]
+    let onClearDtc: () -> Void
+    @State private var confirmClear = false
 
     var body: some View {
         let hasDtc = !dtcCodes.isEmpty
-        HStack {
-            ZStack {
-                Circle().fill((hasDtc ? Color.dashRed : Color.dashGreen).opacity(0.1))
-                Image(systemName: hasDtc ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
-                    .foregroundColor(hasDtc ? .dashRed : .dashGreen)
-            }
-            .frame(width: 48, height: 48)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                ZStack {
+                    Circle().fill((hasDtc ? Color.dashRed : Color.dashGreen).opacity(0.1))
+                    Image(systemName: hasDtc ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                        .foregroundColor(hasDtc ? .dashRed : .dashGreen)
+                }
+                .frame(width: 48, height: 48)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("M\u{00C3} L\u{1ED6}I (DTC)")
-                    .foregroundColor(.dashTextSecondary)
-                    .font(DashFont.shareTechMono(11))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("M\u{00C3} L\u{1ED6}I (DTC)")
+                        .foregroundColor(.dashTextSecondary)
+                        .font(DashFont.shareTechMono(11))
+                        .tracking(1)
+                    Text(hasDtc ? dtcCodes.joined(separator: ", ") : "Kh\u{00F4}ng c\u{00F3} m\u{00E3} l\u{1ED7}i")
+                        .foregroundColor(hasDtc ? .dashRed : .dashGreen)
+                        .font(DashFont.shareTechMono(hasDtc ? 20 : 18))
+                        .fontWeight(.bold)
+                }
+                .padding(.leading, 14)
+
+                Spacer()
+            }
+
+            if hasDtc {
+                Text(confirmClear ? "CH\u{1EA0}M L\u{1EA6}N N\u{1EEE}A \u{0110}\u{1EC2} X\u{00C1}C NH\u{1EAD}N X\u{00D3}A" : "X\u{00D3}A M\u{00C3} L\u{1ED6}I (Mode 04)")
+                    .foregroundColor(confirmClear ? .dashRed : .dashTextSecondary)
+                    .font(DashFont.shareTechMono(12))
                     .tracking(1)
-                Text(hasDtc ? dtcCodes.joined(separator: ", ") : "Kh\u{00F4}ng c\u{00F3} m\u{00E3} l\u{1ED7}i")
-                    .foregroundColor(hasDtc ? .dashRed : .dashGreen)
-                    .font(DashFont.shareTechMono(hasDtc ? 20 : 18))
                     .fontWeight(.bold)
+                    .padding(.top, 14)
+                    .onTapGesture {
+                        if confirmClear {
+                            onClearDtc()
+                            confirmClear = false
+                        } else {
+                            confirmClear = true
+                        }
+                    }
             }
-            .padding(.leading, 14)
-
-            Spacer()
         }
         .padding(18)
         .background(Color.dashCardBackground)
