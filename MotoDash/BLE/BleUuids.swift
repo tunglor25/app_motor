@@ -20,4 +20,6 @@ enum BleUuids {
     static let cmdC4: UInt8 = 0x43
     /// 'D' -- clears real ECU trouble codes via Mode 04.
     static let cmdClearDtc: UInt8 = 0x44
+    /// 'S' -- cai dat bat/tat am thanh coi & loa ESP32.
+    static let cmdSetSound: UInt8 = 0x53
 }

@@ -16,6 +16,12 @@ private enum Keys {
     static let autoHideMusic = "auto_hide_music"
     static let demoMode = "demo_mode"
     static let brandLogo = "brand_logo"
+    static let soundBootMusic = "sound_boot_music"
+    static let soundConnection = "sound_connection"
+    static let soundShiftWarn = "sound_shift_warn"
+    static let soundSpeedWarn = "sound_speed_warn"
+    static let soundEctWarn = "sound_ect_warn"
+    static let soundIgnitionWarn = "sound_ignition_warn"
 }
 
 /// UserDefaults-backed settings store -- the iOS equivalent of the Kotlin
@@ -46,7 +52,13 @@ final class SettingsRepository: ObservableObject {
             lightMode: defaults.bool(forKey: Keys.lightMode),
             autoHideMusic: defaults.object(forKey: Keys.autoHideMusic) != nil ? defaults.bool(forKey: Keys.autoHideMusic) : true,
             demoMode: defaults.bool(forKey: Keys.demoMode),
-            brandLogo: defaults.string(forKey: Keys.brandLogo) ?? "bmw"
+            brandLogo: defaults.string(forKey: Keys.brandLogo) ?? "bmw",
+            soundBootMusic: defaults.object(forKey: Keys.soundBootMusic) != nil ? defaults.bool(forKey: Keys.soundBootMusic) : true,
+            soundConnection: defaults.object(forKey: Keys.soundConnection) != nil ? defaults.bool(forKey: Keys.soundConnection) : true,
+            soundShiftWarn: defaults.object(forKey: Keys.soundShiftWarn) != nil ? defaults.bool(forKey: Keys.soundShiftWarn) : true,
+            soundSpeedWarn: defaults.object(forKey: Keys.soundSpeedWarn) != nil ? defaults.bool(forKey: Keys.soundSpeedWarn) : true,
+            soundEctWarn: defaults.object(forKey: Keys.soundEctWarn) != nil ? defaults.bool(forKey: Keys.soundEctWarn) : true,
+            soundIgnitionWarn: defaults.object(forKey: Keys.soundIgnitionWarn) != nil ? defaults.bool(forKey: Keys.soundIgnitionWarn) : true
         )
     }
 
@@ -63,6 +75,12 @@ final class SettingsRepository: ObservableObject {
     func setAutoHideMusic(_ value: Bool) { update(Keys.autoHideMusic, value) }
     func setDemoMode(_ value: Bool) { update(Keys.demoMode, value) }
     func setBrandLogo(_ value: String) { update(Keys.brandLogo, value) }
+    func setSoundBootMusic(_ value: Bool) { update(Keys.soundBootMusic, value) }
+    func setSoundConnection(_ value: Bool) { update(Keys.soundConnection, value) }
+    func setSoundShiftWarn(_ value: Bool) { update(Keys.soundShiftWarn, value) }
+    func setSoundSpeedWarn(_ value: Bool) { update(Keys.soundSpeedWarn, value) }
+    func setSoundEctWarn(_ value: Bool) { update(Keys.soundEctWarn, value) }
+    func setSoundIgnitionWarn(_ value: Bool) { update(Keys.soundIgnitionWarn, value) }
 
     private func update(_ key: String, _ value: Any) {
         defaults.set(value, forKey: key)

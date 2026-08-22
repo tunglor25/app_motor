@@ -100,6 +100,13 @@ final class EcuBleManager: NSObject, ObservableObject {
     /// diagnostic command, not a joke, use after the bike has been repaired.
     func clearDtc() { writeControlCommand(BleUuids.cmdClearDtc) }
 
+    /// Dong bo cau hinh bat/tat am thanh coi & loa xuong ESP32 qua lenh cmdSetSound ('S')
+    func syncSoundSettings(settings: AppSettings) {
+        guard let peripheral = activePeripheral, let characteristic = controlCharacteristic else { return }
+        let payload = Data([BleUuids.cmdSetSound, settings.soundBitmask])
+        peripheral.writeValue(payload, for: characteristic, type: .withResponse)
+    }
+
     private func writeControlCommand(_ cmd: UInt8) {
         guard let peripheral = activePeripheral, let characteristic = controlCharacteristic else { return }
         let payload = Data([cmd])

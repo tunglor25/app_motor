@@ -19,10 +19,17 @@ struct SettingsScreen: View {
     let onSetDemoMode: (Bool) -> Void
     let onTriggerC4Mode: () -> Void
     let onSetAutoHideMusic: (Bool) -> Void
+    var onSetSoundBootMusic: (Bool) -> Void = { _ in }
+    var onSetSoundConnection: (Bool) -> Void = { _ in }
+    var onSetSoundShiftWarn: (Bool) -> Void = { _ in }
+    var onSetSoundSpeedWarn: (Bool) -> Void = { _ in }
+    var onSetSoundEctWarn: (Bool) -> Void = { _ in }
+    var onSetSoundIgnitionWarn: (Bool) -> Void = { _ in }
     let onDisconnect: () -> Void
     let onReconnect: () -> Void
     let onNavigateTripHistory: () -> Void
     let onNavigateDiagnostics: () -> Void
+    var onNavigateDrag: () -> Void = {}
     let onClearAllTrips: () -> Void
     let onOpenNotificationAccessSettings: () -> Void
     let onBack: () -> Void
@@ -60,9 +67,20 @@ struct SettingsScreen: View {
                         onTriggerC4Mode: onTriggerC4Mode,
                         onDisconnect: onDisconnect,
                         onReconnect: onReconnect,
-                        onNavigateDiagnostics: onNavigateDiagnostics
+                        onNavigateDiagnostics: onNavigateDiagnostics,
+                        onNavigateDrag: onNavigateDrag
                     )
                 case 1:
+                    SoundTab(
+                        settings: settings,
+                        onSetSoundBootMusic: onSetSoundBootMusic,
+                        onSetSoundConnection: onSetSoundConnection,
+                        onSetSoundShiftWarn: onSetSoundShiftWarn,
+                        onSetSoundSpeedWarn: onSetSoundSpeedWarn,
+                        onSetSoundEctWarn: onSetSoundEctWarn,
+                        onSetSoundIgnitionWarn: onSetSoundIgnitionWarn
+                    )
+                case 2:
                     TripTab(
                         confirmClear: confirmClear,
                         onNavigateTripHistory: onNavigateTripHistory,
@@ -101,7 +119,7 @@ private struct TabRow: View {
     let selected: Int
     let onSelect: (Int) -> Void
 
-    private let labels = ["CHUNG", "H\u{00C0}NH TR\u{00CC}NH", "NH\u{1EA0}C"]
+    private let labels = ["CHUNG", "\u{00C2}M THANH", "H\u{00C0}NH TR\u{00CC}NH", "NH\u{1EA0}C"]
 
     var body: some View {
         HStack(spacing: 8) {
@@ -156,6 +174,7 @@ private struct GeneralTab: View {
     let onDisconnect: () -> Void
     let onReconnect: () -> Void
     let onNavigateDiagnostics: () -> Void
+    var onNavigateDrag: () -> Void = {}
 
     private var statusInfo: (String, Color, String) {
         switch connectionState {
@@ -228,6 +247,8 @@ private struct GeneralTab: View {
             GroupCard {
                 NavRow(emoji: "\u{1F527}", color: .dashRed, label: "ECU Diagnostics", desc: "Xem IAT / c\u{1EA3}m bi\u{1EBF}n oxy", onClick: onNavigateDiagnostics)
                 DashDivider()
+                NavRow(emoji: "\u{1F3C1}", color: .dashCyan, label: "\u{0110}o gia t\u{1ED1}c (Drag)", desc: "B\u{1EA5}m gi\u{1EDD} 0-40, 0-60 km/h, 100m", onClick: onNavigateDrag)
+                DashDivider()
                 ToggleRow(emoji: "\u{1F3AE}", color: .dashAmber, label: "Demo mode", desc: "D\u{1EEF} li\u{1EC7}u gi\u{1EA3} l\u{1EAD}p, kh\u{00F4}ng c\u{1EA7}n ESP32", checked: settings.demoMode, onCheckedChange: onSetDemoMode)
                 if connectionState == .connected {
                     DashDivider()
@@ -240,6 +261,77 @@ private struct GeneralTab: View {
                 ToggleRow(emoji: "\u{1F506}", color: .dashCyan, label: "Gi\u{1EEF} s\u{00E1}ng m\u{00E0}n h\u{00EC}nh", desc: nil, checked: settings.wakeLock, onCheckedChange: onSetWakeLock)
                 DashDivider()
                 ToggleRow(emoji: "\u{26F6}", color: .dashCyan, label: "To\u{00E0}n m\u{00E0}n h\u{00EC}nh", desc: nil, checked: settings.fullscreen, onCheckedChange: onSetFullscreen)
+            }
+        }
+    }
+}
+
+private struct SoundTab: View {
+    let settings: AppSettings
+    let onSetSoundBootMusic: (Bool) -> Void
+    let onSetSoundConnection: (Bool) -> Void
+    let onSetSoundShiftWarn: (Bool) -> Void
+    let onSetSoundSpeedWarn: (Bool) -> Void
+    let onSetSoundEctWarn: (Bool) -> Void
+    let onSetSoundIgnitionWarn: (Bool) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            SectionTitle("\u{00C2}M THANH C\u{00D2}I & LOA ESP32")
+            GroupCard {
+                ToggleRow(
+                    emoji: "\u{1F3B5}",
+                    color: .dashCyan,
+                    label: "Nh\u{1EA1}c ch\u{00E0}o m\u{1EDF} m\u{00E1}y (Boot Music)",
+                    desc: "Ph\u{00E1}t b\u{00E0}i nh\u{1EA1}c WAV khi b\u{1EAD}t kh\u{00F3}a xe sau 6s",
+                    checked: settings.soundBootMusic,
+                    onCheckedChange: onSetSoundBootMusic
+                )
+                DashDivider()
+                ToggleRow(
+                    emoji: "\u{1F4F1}",
+                    color: .dashGreen,
+                    label: "\u{00C2}m b\u{00E1}o k\u{1EBF}t n\u{1ED1}i Bluetooth",
+                    desc: "Ti\u{1EBF}ng b\u{00ED}p ch\u{00E0}o khi \u{0111}i\u{1EC7}n tho\u{1EA1}i k\u{1EBF}t n\u{1ED1}i / ng\u{1EAF}t k\u{1EBF}t n\u{1ED1}i",
+                    checked: settings.soundConnection,
+                    onCheckedChange: onSetSoundConnection
+                )
+                DashDivider()
+                ToggleRow(
+                    emoji: "\u{1F3CE}\u{FE0F}",
+                    color: .dashAmber,
+                    label: "C\u{00F2}i / Loa b\u{00E1}o Shift-light",
+                    desc: "B\u{00ED}p c\u{1EA3}nh b\u{00E1}o khi tua m\u{00E1}y \u{2265} 11.000 RPM",
+                    checked: settings.soundShiftWarn,
+                    onCheckedChange: onSetSoundShiftWarn
+                )
+                DashDivider()
+                ToggleRow(
+                    emoji: "\u{26A1}",
+                    color: .dashRed,
+                    label: "C\u{00F2}i / Loa b\u{00E1}o qu\u{00E1} t\u{1ED1}c \u{0111}\u{1ED9}",
+                    desc: "B\u{00ED}p c\u{1EA3}nh b\u{00E1}o khi t\u{1ED1}c \u{0111}\u{1ED9} xe \u{2265} 80 km/h",
+                    checked: settings.soundSpeedWarn,
+                    onCheckedChange: onSetSoundSpeedWarn
+                )
+                DashDivider()
+                ToggleRow(
+                    emoji: "\u{1F321}\u{FE0F}",
+                    color: .dashRed,
+                    label: "C\u{00F2}i / Loa b\u{00E1}o qu\u{00E1} nhi\u{1EC7}t n\u{01B0}\u{1EDB}c m\u{00E1}t",
+                    desc: "B\u{00ED}p c\u{1EA3}nh b\u{00E1}o khi nhi\u{1EC7}t \u{0111}\u{1ED9} n\u{01B0}\u{1EDB}c \u{2265} 105\u{00B0}C",
+                    checked: settings.soundEctWarn,
+                    onCheckedChange: onSetSoundEctWarn
+                )
+                DashDivider()
+                ToggleRow(
+                    emoji: "\u{1F511}",
+                    color: .dashAmber,
+                    label: "C\u{1EA3}nh b\u{00E1}o qu\u{00EAn t\u{1EAF}t kh\u{00F3}a \u{0111}i\u{1EC7}n",
+                    desc: "H\u{00FA} c\u{00F2}i & loa sau 3 ph\u{00FA}t xe d\u{1EEB}ng ch\u{1ED1}ng c\u{1EA1}n b\u{00EC}nh",
+                    checked: settings.soundIgnitionWarn,
+                    onCheckedChange: onSetSoundIgnitionWarn
+                )
             }
         }
     }

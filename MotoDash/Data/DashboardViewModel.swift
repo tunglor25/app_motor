@@ -14,6 +14,8 @@ final class DashboardViewModel: ObservableObject {
     let bleManager = EcuBleManager()
     let tripRepository = TripRepository()
     let settingsRepository = SettingsRepository()
+    let dragRepository = DragRepository()
+    let dragRecorder: DragRecorder
 
     private let tripOdometer = TripOdometer()
     private let gpsTripRecorder: GpsTripRecorder
@@ -27,9 +29,20 @@ final class DashboardViewModel: ObservableObject {
 
     init() {
         gpsTripRecorder = GpsTripRecorder(tripRepository: tripRepository)
+        dragRecorder = DragRecorder(repository: dragRepository)
+        dragRecorder.onFinished = { [dragRepository] run in
+            Task { await dragRepository.save(run) }
+        }
+        Task { [dragRecorder] in await dragRecorder.loadBest() }
 
         bleManager.$connectionState
-            .sink { [weak self] _ in self?.refreshConnectionAndReading() }
+            .sink { [weak self] connState in
+                guard let self else { return }
+                self.refreshConnectionAndReading()
+                if case .connected = connState, !self.state.settings.demoMode {
+                    self.bleManager.syncSoundSettings(settings: self.state.settings)
+                }
+            }
             .store(in: &cancellables)
         bleManager.$ecuReading
             .sink { [weak self] _ in self?.refreshConnectionAndReading() }
@@ -43,6 +56,9 @@ final class DashboardViewModel: ObservableObject {
                 guard let self else { return }
                 self.state.settings = settings
                 self.refreshConnectionAndReading()
+                if case .connected = self.bleManager.connectionState, !settings.demoMode {
+                    self.bleManager.syncSoundSettings(settings: settings)
+                }
                 // Only track real GPS speed-limit lookups when the user has opted in
                 // and we're not in demo mode, matching the Kotlin source's gate.
                 if settings.speedWarnEnabled, !settings.demoMode {
@@ -79,6 +95,7 @@ final class DashboardViewModel: ObservableObject {
             state.tripKm = tripOdometer.onSpeedSample(speed)
         }
         gpsTripRecorder.addEcuSample(speed: effectiveReading.speed, rpm: effectiveReading.rpm, ect: effectiveReading.ect)
+        dragRecorder.onReading(effectiveReading)
     }
 
     func connect() {
@@ -158,6 +175,12 @@ final class DashboardViewModel: ObservableObject {
     func setFullscreen(_ enabled: Bool) { settingsRepository.setFullscreen(enabled) }
     func setDemoMode(_ enabled: Bool) { settingsRepository.setDemoMode(enabled) }
     func setAutoHideMusic(_ enabled: Bool) { settingsRepository.setAutoHideMusic(enabled) }
+    func setSoundBootMusic(_ enabled: Bool) { settingsRepository.setSoundBootMusic(enabled) }
+    func setSoundConnection(_ enabled: Bool) { settingsRepository.setSoundConnection(enabled) }
+    func setSoundShiftWarn(_ enabled: Bool) { settingsRepository.setSoundShiftWarn(enabled) }
+    func setSoundSpeedWarn(_ enabled: Bool) { settingsRepository.setSoundSpeedWarn(enabled) }
+    func setSoundEctWarn(_ enabled: Bool) { settingsRepository.setSoundEctWarn(enabled) }
+    func setSoundIgnitionWarn(_ enabled: Bool) { settingsRepository.setSoundIgnitionWarn(enabled) }
 
     func clearAllTrips() {
         Task { @MainActor in await tripRepository.clearAllTrips() }

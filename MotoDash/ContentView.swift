@@ -70,10 +70,17 @@ struct ContentView: View {
                 onSetDemoMode: viewModel.setDemoMode,
                 onTriggerC4Mode: viewModel.triggerC4Mode,
                 onSetAutoHideMusic: viewModel.setAutoHideMusic,
+                onSetSoundBootMusic: viewModel.setSoundBootMusic,
+                onSetSoundConnection: viewModel.setSoundConnection,
+                onSetSoundShiftWarn: viewModel.setSoundShiftWarn,
+                onSetSoundSpeedWarn: viewModel.setSoundSpeedWarn,
+                onSetSoundEctWarn: viewModel.setSoundEctWarn,
+                onSetSoundIgnitionWarn: viewModel.setSoundIgnitionWarn,
                 onDisconnect: viewModel.disconnectBle,
                 onReconnect: startConnectFlow,
                 onNavigateTripHistory: { path.append(.tripHistory) },
                 onNavigateDiagnostics: { path.append(.diagnostics) },
+                onNavigateDrag: { path.append(.drag) },
                 onClearAllTrips: viewModel.clearAllTrips,
                 onOpenNotificationAccessSettings: requestMusicAuthorization,
                 onBack: goBack
@@ -85,6 +92,8 @@ struct ContentView: View {
                 onBack: goBack,
                 onClearDtc: viewModel.clearDtc
             )
+        case .drag:
+            DragScreen(recorder: viewModel.dragRecorder, onBack: goBack)
         case .tripHistory:
             TripHistoryScreen(
                 tripRepository: viewModel.tripRepository,

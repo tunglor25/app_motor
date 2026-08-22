@@ -4,6 +4,7 @@ import Foundation
 enum Route: Hashable {
     case settings
     case diagnostics
+    case drag
     case tripHistory
     case tripResult(String)
 }
