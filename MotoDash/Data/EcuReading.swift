@@ -11,4 +11,9 @@ struct EcuReading: Equatable {
     var battery: Float?
     var iat: Int?
     var o2Voltage: Float?
+    /// true only once the ESP32 has actually completed a K-Line handshake with
+    /// the ECU (distinct from "BLE connected" -- BLE can be connected while the
+    /// bike's ignition is off or the handshake hasn't finished yet).
+    var ecuConnected: Bool = false
+    var dtcCodes: [String] = []
 }

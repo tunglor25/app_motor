@@ -1,9 +1,9 @@
 import Foundation
 import SwiftUI
 
-// The web app's diagnostics.html originally also showed MAP/injector-pulse/DTC
-// cards, all fake and already removed. IAT + O2 are the only real extra fields
-// the firmware provides beyond what the dashboard shows.
+// The web app's diagnostics.html originally also showed MAP/injector-pulse
+// cards, both fake and already removed. IAT + O2 + DTC are the real extra
+// fields the firmware provides beyond what the dashboard shows.
 struct DiagnosticsScreen: View {
     let reading: EcuReading
     var unitTemp: String = "c"
@@ -28,6 +28,7 @@ struct DiagnosticsScreen: View {
                     label: "\u{0110}I\u{1EC6}N \u{00C1}P C\u{1EA2}M BI\u{1EBF}N OXY (O2)",
                     value: reading.o2Voltage.map { String(format: "%.2fV", $0) } ?? "--"
                 )
+                DtcCard(dtcCodes: reading.dtcCodes)
             }
             .padding(.top, 20)
 
@@ -35,6 +36,44 @@ struct DiagnosticsScreen: View {
         }
         .padding(16)
         .dashboardBackground()
+    }
+}
+
+// Ma loi DTC that tu Mode 03, dang chuan OBD-II (P0135, P0115...) -- khong
+// phai ma nhap nhay den kieu Honda doi cu. Rong = khong co loi (xanh); co
+// ma = liet ke tung ma (do).
+private struct DtcCard: View {
+    let dtcCodes: [String]
+
+    var body: some View {
+        let hasDtc = !dtcCodes.isEmpty
+        HStack {
+            ZStack {
+                Circle().fill((hasDtc ? Color.dashRed : Color.dashGreen).opacity(0.1))
+                Image(systemName: hasDtc ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                    .foregroundColor(hasDtc ? .dashRed : .dashGreen)
+            }
+            .frame(width: 48, height: 48)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("M\u{00C3} L\u{1ED6}I (DTC)")
+                    .foregroundColor(.dashTextSecondary)
+                    .font(DashFont.shareTechMono(11))
+                    .tracking(1)
+                Text(hasDtc ? dtcCodes.joined(separator: ", ") : "Kh\u{00F4}ng c\u{00F3} m\u{00E3} l\u{1ED7}i")
+                    .foregroundColor(hasDtc ? .dashRed : .dashGreen)
+                    .font(DashFont.shareTechMono(hasDtc ? 20 : 18))
+                    .fontWeight(.bold)
+            }
+            .padding(.leading, 14)
+
+            Spacer()
+        }
+        .padding(18)
+        .background(Color.dashCardBackground)
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(hasDtc ? Color.dashRed.opacity(0.4) : Color.dashCardBorder, lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .padding(.vertical, 6)
     }
 }
 

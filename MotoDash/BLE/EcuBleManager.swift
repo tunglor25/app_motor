@@ -146,36 +146,48 @@ final class EcuBleManager: NSObject, ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + retryDelay, execute: work)
     }
 
-    // Byte layout mirrors the Kotlin source's handleCharacteristicUpdate() exactly.
     private func handleCharacteristicUpdate(_ uuid: CBUUID, _ data: Data) {
-        let bytes = [UInt8](data)
-        var reading = ecuReading
         switch uuid {
-        case BleUuids.charRPM:
-            if bytes.count >= 2 {
-                reading.rpm = (Int(bytes[1]) << 8) | Int(bytes[0])
-            }
-        case BleUuids.charSpeed:
-            if !bytes.isEmpty { reading.speed = Int(bytes[0]) }
-        case BleUuids.charECT:
-            if !bytes.isEmpty { reading.ect = Int(Int8(bitPattern: bytes[0])) }
-        case BleUuids.charTPS:
-            if !bytes.isEmpty { reading.tps = Int(bytes[0]) }
-        case BleUuids.charBattery:
-            if let value = Self.parseFloat(data) { reading.battery = value }
-        case BleUuids.charIAT:
-            if !bytes.isEmpty { reading.iat = Int(Int8(bitPattern: bytes[0])) }
-        case BleUuids.charO2:
-            if let value = Self.parseFloat(data) { reading.o2Voltage = value }
+        case BleUuids.charTelemetry:
+            parseTelemetryPacket(data)
+        case BleUuids.charDTC:
+            parseDtcPacket(data)
         default:
             break
         }
+    }
+
+    /// 12-byte packed telemetry: [RPM_H,RPM_L,Speed,ECT,TPS,Volt_H,Volt_L,IAT,
+    /// O2_H,O2_L,StatusFlags,CRC]. Volt/O2 are integers scaled by 100 (e.g.
+    /// 1245 = 12.45V). Mirrors sendTelemetryPacket() in the firmware .ino --
+    /// keep both in sync if this format ever changes.
+    private func parseTelemetryPacket(_ data: Data) {
+        let bytes = [UInt8](data)
+        guard bytes.count >= 12 else { return }
+        var crc: UInt8 = 0
+        for i in 0..<11 { crc ^= bytes[i] }
+        guard crc == bytes[11] else { return } // corrupted/noisy packet, discard
+
+        var reading = ecuReading
+        reading.rpm = (Int(bytes[0]) << 8) | Int(bytes[1])
+        reading.speed = Int(bytes[2])
+        reading.ect = Int(Int8(bitPattern: bytes[3]))
+        reading.tps = Int(bytes[4])
+        let voltScaled = (Int(bytes[5]) << 8) | Int(bytes[6])
+        reading.battery = Float(voltScaled) / 100.0
+        reading.iat = Int(Int8(bitPattern: bytes[7]))
+        let o2Scaled = (Int(bytes[8]) << 8) | Int(bytes[9])
+        reading.o2Voltage = Float(o2Scaled) / 100.0
+        reading.ecuConnected = (bytes[10] & 0x01) != 0
         ecuReading = reading
     }
 
-    private static func parseFloat(_ data: Data) -> Float? {
-        guard let string = String(data: data, encoding: .utf8) else { return nil }
-        return Float(string.trimmingCharacters(in: .whitespacesAndNewlines))
+    /// Comma-separated DTC codes (e.g. "P0135,P0115"), empty string = no codes.
+    private func parseDtcPacket(_ data: Data) {
+        let text = (String(data: data, encoding: .utf8) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        var reading = ecuReading
+        reading.dtcCodes = text.isEmpty ? [] : text.split(separator: ",").map(String.init)
+        ecuReading = reading
     }
 }
 
