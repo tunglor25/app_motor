@@ -327,7 +327,7 @@ private struct SoundTab: View {
                 ToggleRow(
                     emoji: "\u{1F511}",
                     color: .dashAmber,
-                    label: "C\u{1EA3}nh b\u{00E1}o qu\u{00EAn t\u{1EAF}t kh\u{00F3}a \u{0111}i\u{1EC7}n",
+                    label: "C\u{1EA3}nh b\u{00E1}o qu\u{00EA}n t\u{1EAF}t kh\u{00F3}a \u{0111}i\u{1EC7}n",
                     desc: "H\u{00FA} c\u{00F2}i & loa sau 3 ph\u{00FA}t xe d\u{1EEB}ng ch\u{1ED1}ng c\u{1EA1}n b\u{00EC}nh",
                     checked: settings.soundIgnitionWarn,
                     onCheckedChange: onSetSoundIgnitionWarn
