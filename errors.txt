@@ -1,22 +1,22 @@
-157:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:457:10: warning: main actor-isolated instance method 'centralManager(_:didFailToConnect:error:)' cannot be used to satisfy nonisolated requirement from protocol 'CBCentralManagerDelegate'; this is an error in the Swift 6 language mode
-158:    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-160:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:457:10: note: add 'nonisolated' to 'centralManager(_:didFailToConnect:error:)' to make this instance method not isolated to the actor
-161:    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-164:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:466:10: warning: main actor-isolated instance method 'centralManager(_:didDisconnectPeripheral:error:)' cannot be used to satisfy nonisolated requirement from protocol 'CBCentralManagerDelegate'; this is an error in the Swift 6 language mode
-165:    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-167:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:466:10: note: add 'nonisolated' to 'centralManager(_:didDisconnectPeripheral:error:)' to make this instance method not isolated to the actor
-168:    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-172:    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-175:    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-182:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:500:10: warning: main actor-isolated instance method 'peripheral(_:didDiscoverCharacteristicsFor:error:)' cannot be used to satisfy nonisolated requirement from protocol 'CBPeripheralDelegate'; this is an error in the Swift 6 language mode
-183:    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
-185:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:500:10: note: add 'nonisolated' to 'peripheral(_:didDiscoverCharacteristicsFor:error:)' to make this instance method not isolated to the actor
-186:    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
-189:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:514:10: warning: main actor-isolated instance method 'peripheral(_:didUpdateValueFor:error:)' cannot be used to satisfy nonisolated requirement from protocol 'CBPeripheralDelegate'; this is an error in the Swift 6 language mode
-190:    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-192:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:514:10: note: add 'nonisolated' to 'peripheral(_:didUpdateValueFor:error:)' to make this instance method not isolated to the actor
-193:    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-196:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:519:10: warning: main actor-isolated instance method 'peripheral(_:didWriteValueFor:error:)' cannot be used to satisfy nonisolated requirement from protocol 'CBPeripheralDelegate'; this is an error in the Swift 6 language mode
-197:    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-199:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:519:10: note: add 'nonisolated' to 'peripheral(_:didWriteValueFor:error:)' to make this instance method not isolated to the actor
-200:    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+192:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:457:10: warning: main actor-isolated instance method 'centralManager(_:didFailToConnect:error:)' cannot be used to satisfy nonisolated requirement from protocol 'CBCentralManagerDelegate'; this is an error in the Swift 6 language mode
+193:    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+195:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:457:10: note: add 'nonisolated' to 'centralManager(_:didFailToConnect:error:)' to make this instance method not isolated to the actor
+196:    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+199:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:466:10: warning: main actor-isolated instance method 'centralManager(_:didDisconnectPeripheral:error:)' cannot be used to satisfy nonisolated requirement from protocol 'CBCentralManagerDelegate'; this is an error in the Swift 6 language mode
+200:    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+202:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:466:10: note: add 'nonisolated' to 'centralManager(_:didDisconnectPeripheral:error:)' to make this instance method not isolated to the actor
+203:    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+207:    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+210:    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+217:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:500:10: warning: main actor-isolated instance method 'peripheral(_:didDiscoverCharacteristicsFor:error:)' cannot be used to satisfy nonisolated requirement from protocol 'CBPeripheralDelegate'; this is an error in the Swift 6 language mode
+218:    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+220:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:500:10: note: add 'nonisolated' to 'peripheral(_:didDiscoverCharacteristicsFor:error:)' to make this instance method not isolated to the actor
+221:    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+224:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:514:10: warning: main actor-isolated instance method 'peripheral(_:didUpdateValueFor:error:)' cannot be used to satisfy nonisolated requirement from protocol 'CBPeripheralDelegate'; this is an error in the Swift 6 language mode
+225:    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+227:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:514:10: note: add 'nonisolated' to 'peripheral(_:didUpdateValueFor:error:)' to make this instance method not isolated to the actor
+228:    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+231:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:519:10: warning: main actor-isolated instance method 'peripheral(_:didWriteValueFor:error:)' cannot be used to satisfy nonisolated requirement from protocol 'CBPeripheralDelegate'; this is an error in the Swift 6 language mode
+232:    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+234:/Users/runner/work/app_motor/app_motor/MotoDash/BLE/EcuBleManager.swift:519:10: note: add 'nonisolated' to 'peripheral(_:didWriteValueFor:error:)' to make this instance method not isolated to the actor
+235:    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
