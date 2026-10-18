@@ -406,7 +406,7 @@ private struct SoundTab: View {
                         badge: "#6 ANIME",
                         title: "Okaerinasai (Chào Chủ Nhân)",
                         subtitle: "Giọng nữ Anime 24kHz Siêu Nét + 2 tiếng Bíp còi HXD chào",
-                        selected: selectedBootTrack == 0,
+                        selected: settings.soundBootMusic && selectedBootTrack == 0,
                         accent: .dashCyan,
                         onClick: { onSelectBootTrack(0, "#6 Okaerinasai") }
                     )
@@ -414,7 +414,7 @@ private struct SoundTab: View {
                         badge: "#7 MECHA",
                         title: "Gundam Cockpit System Online",
                         subtitle: "Âm hiệu buồng lái chiến đấu 24kHz + Còi HXD quét hệ thống",
-                        selected: selectedBootTrack == 1,
+                        selected: settings.soundBootMusic && selectedBootTrack == 1,
                         accent: .dashGreen,
                         onClick: { onSelectBootTrack(1, "#7 Gundam") }
                     )
@@ -422,9 +422,17 @@ private struct SoundTab: View {
                         badge: "#12 STREAMER",
                         title: "Độ Mixi Chào Anh Em Nhé!",
                         subtitle: "Giọng Độ Mixi chuẩn 16kHz + Nhạc hiệu vui nhộn",
-                        selected: selectedBootTrack == 2,
+                        selected: settings.soundBootMusic && selectedBootTrack == 2,
                         accent: .dashAmber,
                         onClick: { onSelectBootTrack(2, "#12 Độ Mixi") }
+                    )
+                    SoundTrackCard(
+                        badge: "🔇 TẮT NHẠC",
+                        title: "Tắt Hẳn Nhạc Khởi Động Xe (Im Lặng)",
+                        subtitle: "Không phát nhạc & không kêu còi chào khi bật khóa điện",
+                        selected: !settings.soundBootMusic || selectedBootTrack == 255,
+                        accent: .dashRed,
+                        onClick: { onSelectBootTrack(255, "🔇 Tắt nhạc khởi động") }
                     )
                 }
                 .padding(12)
@@ -437,7 +445,7 @@ private struct SoundTab: View {
                         badge: "#9 TIẾNG VIỆT",
                         title: "Chủ nhân ơi! Quên tắt chìa khóa xe kìa!",
                         subtitle: "Giọng nữ Tiếng Việt 24kHz + Còi HXD bíp nháy khẩn cấp",
-                        selected: selectedWarnTrack == 3,
+                        selected: settings.soundIgnitionWarn && selectedWarnTrack == 3,
                         accent: .dashRed,
                         onClick: { onSelectWarnTrack(3, "#9 Cảnh báo Tiếng Việt") }
                     )
@@ -445,9 +453,17 @@ private struct SoundTab: View {
                         badge: "#11 TIẾNG NHẬT",
                         title: "Keikoku! Kī o wasurete imasu yo!",
                         subtitle: "Giọng Anime Nhật 24kHz cảnh báo quên chìa khóa + Còi HXD",
-                        selected: selectedWarnTrack == 4,
+                        selected: settings.soundIgnitionWarn && selectedWarnTrack == 4,
                         accent: .dashAmber,
                         onClick: { onSelectWarnTrack(4, "#11 Cảnh báo Tiếng Nhật") }
+                    )
+                    SoundTrackCard(
+                        badge: "🔇 TẮT NHẮC",
+                        title: "Tắt Hẳn Cảnh Báo Quên Tắt Khóa (Im Lặng)",
+                        subtitle: "Không phát giọng nhắc & không hú còi HXD khi dừng xe",
+                        selected: !settings.soundIgnitionWarn || selectedWarnTrack == 255,
+                        accent: .dashRed,
+                        onClick: { onSelectWarnTrack(255, "🔇 Tắt cảnh báo quên khóa") }
                     )
                 }
                 .padding(12)
@@ -472,12 +488,58 @@ private struct SoundTab: View {
                             onSetSpeakerVolume(3, "50% Nhỏ")
                         }
                     }
+                    VolumeChip(label: "🔇 0% TẮT HẲN LOA (IM LẶNG)", selected: selectedVolIdx == 4) {
+                        onSetSpeakerVolume(4, "0% Tắt hẳn loa")
+                    }
                 }
                 .padding(12)
             }
 
             SectionTitle("CÔNG TẮC BẬT / TẮT TỪNG LOẠI ÂM BÁO")
             GroupCard {
+                HStack(spacing: 8) {
+                    Button(action: {
+                        onSetSoundBootMusic(false)
+                        onSetSoundConnection(false)
+                        onSetSoundShiftWarn(false)
+                        onSetSoundSpeedWarn(false)
+                        onSetSoundEctWarn(false)
+                        onSetSoundIgnitionWarn(false)
+                    }) {
+                        Text("🔇 TẮT HẾT TẤT CẢ")
+                            .foregroundColor(.dashRed)
+                            .font(DashFont.shareTechMono(12))
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(Color.dashRed.opacity(0.14))
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dashRed, lineWidth: 1))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: {
+                        onSetSoundBootMusic(true)
+                        onSetSoundConnection(true)
+                        onSetSoundShiftWarn(true)
+                        onSetSoundSpeedWarn(true)
+                        onSetSoundEctWarn(true)
+                        onSetSoundIgnitionWarn(true)
+                    }) {
+                        Text("🔊 BẬT LẠI TẤT CẢ")
+                            .foregroundColor(.dashGreen)
+                            .font(DashFont.shareTechMono(12))
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(Color.dashGreen.opacity(0.14))
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dashGreen, lineWidth: 1))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(12)
+                DashDivider()
                 ToggleRow(emoji: "🎵", color: .dashCyan, label: "Nhạc chào mở máy (Boot Music)", desc: "Phát bài nhạc đã chọn (#6 / #7 / #12) khi bật khóa xe sau 6s", checked: settings.soundBootMusic, onCheckedChange: onSetSoundBootMusic)
                 DashDivider()
                 ToggleRow(emoji: "📱", color: .dashGreen, label: "Âm báo kết nối Bluetooth", desc: "Tiếng bíp còi HXD khi điện thoại kết nối / ngắt kết nối", checked: settings.soundConnection, onCheckedChange: onSetSoundConnection)

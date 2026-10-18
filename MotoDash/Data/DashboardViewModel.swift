@@ -165,11 +165,13 @@ final class DashboardViewModel: ObservableObject {
 
     func selectBootTrack(trackId: Int, label: String) {
         settingsRepository.setBootTrackId(trackId)
+        settingsRepository.setSoundBootMusic(trackId != 255)
         bleManager.selectBootTrack(trackId: trackId, label: label)
     }
 
     func selectWarnTrack(trackId: Int, label: String) {
         settingsRepository.setWarnTrackId(trackId)
+        settingsRepository.setSoundIgnitionWarn(trackId != 255)
         bleManager.selectWarnTrack(trackId: trackId, label: label)
     }
 
