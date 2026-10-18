@@ -50,7 +50,7 @@ final class SettingsRepository: ObservableObject {
             lightMode: defaults.bool(forKey: Keys.lightMode),
             autoHideMusic: defaults.object(forKey: Keys.autoHideMusic) != nil ? defaults.bool(forKey: Keys.autoHideMusic) : true,
             demoMode: defaults.bool(forKey: Keys.demoMode),
-            brandLogo: defaults.string(forKey: Keys.brandLogo) ?? "bmw",
+            brandLogo: defaults.string(forKey: Keys.brandLogo) ?? "honda",
             soundBootMusic: defaults.object(forKey: Keys.soundBootMusic) != nil ? defaults.bool(forKey: Keys.soundBootMusic) : true,
             soundConnection: defaults.object(forKey: Keys.soundConnection) != nil ? defaults.bool(forKey: Keys.soundConnection) : true,
             soundShiftWarn: defaults.object(forKey: Keys.soundShiftWarn) != nil ? defaults.bool(forKey: Keys.soundShiftWarn) : true,

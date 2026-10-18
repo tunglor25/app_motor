@@ -56,6 +56,7 @@ struct ContentView: View {
                 notificationAccessGranted: notificationAccessGranted,
                 uploadState: viewModel.uploadState,
                 onSetTheme: viewModel.setTheme,
+                onSetBrandLogo: viewModel.setBrandLogo,
                 onSetUnitSpeed: viewModel.setUnitSpeed,
                 onSetUnitTemp: viewModel.setUnitTemp,
                 onSetSpeedWarnEnabled: viewModel.setSpeedWarnEnabled,

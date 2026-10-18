@@ -15,7 +15,12 @@ struct DashboardScreen: View {
     var body: some View {
         ZStack {
             VStack(spacing: 2) {
-                TopBar(lapText: state.lapText, tripKm: state.tripKm, onGearClick: onGearClick)
+                TopBar(
+                    lapText: state.lapText,
+                    tripKm: state.tripKm,
+                    brandLogo: state.settings.brandLogo,
+                    onGearClick: onGearClick
+                )
                 TachometerGauge(rpm: state.reading.rpm)
                     .padding(.horizontal, 12)
                 ConnectionStatusRow(connectionState: state.connectionState, onConnectClick: onConnectClick)

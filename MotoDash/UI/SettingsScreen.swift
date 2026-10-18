@@ -7,6 +7,7 @@ struct SettingsScreen: View {
     let notificationAccessGranted: Bool
     var uploadState: AudioUploadState = .idle
     let onSetTheme: (String) -> Void
+    var onSetBrandLogo: (String) -> Void = { _ in }
     let onSetUnitSpeed: (String) -> Void
     let onSetUnitTemp: (String) -> Void
     let onSetSpeedWarnEnabled: (Bool) -> Void
@@ -61,6 +62,7 @@ struct SettingsScreen: View {
                         settings: settings,
                         connectionState: connectionState,
                         onSetTheme: onSetTheme,
+                        onSetBrandLogo: onSetBrandLogo,
                         onSetUnitSpeed: onSetUnitSpeed,
                         onSetUnitTemp: onSetUnitTemp,
                         onSetSpeedWarnEnabled: onSetSpeedWarnEnabled,
@@ -184,6 +186,7 @@ private struct GeneralTab: View {
     let settings: AppSettings
     let connectionState: BleConnectionState
     let onSetTheme: (String) -> Void
+    var onSetBrandLogo: (String) -> Void = { _ in }
     let onSetUnitSpeed: (String) -> Void
     let onSetUnitTemp: (String) -> Void
     let onSetSpeedWarnEnabled: (Bool) -> Void
@@ -229,6 +232,23 @@ private struct GeneralTab: View {
                         ThemeChip(label: "DAILY", value: "daily", current: settings.theme, onSelect: onSetTheme)
                         ThemeChip(label: "CLASSIC", value: "classic", current: settings.theme, onSelect: onSetTheme)
                         ThemeChip(label: "NITRO", value: "crazy", current: settings.theme, onSelect: onSetTheme)
+                    }
+                }
+                .padding(12)
+            }
+
+            SectionTitle("HÃNG XE (LOGO ĐỒNG HỒ)")
+            GroupCard {
+                VStack(spacing: 8) {
+                    HStack(spacing: 8) {
+                        ThemeChip(label: "HONDA", value: "honda", current: settings.brandLogo, onSelect: onSetBrandLogo)
+                        ThemeChip(label: "BMW", value: "bmw", current: settings.brandLogo, onSelect: onSetBrandLogo)
+                        ThemeChip(label: "YAMAHA", value: "yamaha", current: settings.brandLogo, onSelect: onSetBrandLogo)
+                    }
+                    HStack(spacing: 8) {
+                        ThemeChip(label: "DUCATI", value: "ducati", current: settings.brandLogo, onSelect: onSetBrandLogo)
+                        ThemeChip(label: "KAWASAKI", value: "kawasaki", current: settings.brandLogo, onSelect: onSetBrandLogo)
+                        ThemeChip(label: "REDBULL", value: "redbull", current: settings.brandLogo, onSelect: onSetBrandLogo)
                     }
                 }
                 .padding(12)

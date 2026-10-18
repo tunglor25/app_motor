@@ -4,10 +4,17 @@ import SwiftUI
 struct TopBar: View {
     let lapText: String
     let tripKm: Double
+    var brandLogo: String = "honda"
     let onGearClick: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
+            Image("logo_\(brandLogo)")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 26)
+                .padding(.trailing, 4)
+
             HStack(spacing: 14) {
                 InfoLine(label: "LAP", value: lapText)
                 InfoLine(label: "TRIP", value: String(format: "%.1f km", tripKm))
