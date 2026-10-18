@@ -1,7 +1,5 @@
 import Foundation
 
-// Key names match the Kotlin source's data/SettingsRepository.kt (in turn
-// www/settings.html's localStorage keys) 1:1 for easy cross-reference.
 private enum Keys {
     static let theme = "theme"
     static let unitSpeed = "unit_speed"
@@ -22,11 +20,11 @@ private enum Keys {
     static let soundSpeedWarn = "sound_speed_warn"
     static let soundEctWarn = "sound_ect_warn"
     static let soundIgnitionWarn = "sound_ignition_warn"
+    static let bootTrackId = "boot_track_id"
+    static let warnTrackId = "warn_track_id"
+    static let speakerVolIdx = "speaker_vol_idx"
 }
 
-/// UserDefaults-backed settings store -- the iOS equivalent of the Kotlin
-/// source's DataStore-backed SettingsRepository.kt. UserDefaults writes are
-/// synchronous, so unlike the Kotlin suspend functions, these setters are plain.
 @MainActor
 final class SettingsRepository: ObservableObject {
     private let defaults: UserDefaults
@@ -58,7 +56,10 @@ final class SettingsRepository: ObservableObject {
             soundShiftWarn: defaults.object(forKey: Keys.soundShiftWarn) != nil ? defaults.bool(forKey: Keys.soundShiftWarn) : true,
             soundSpeedWarn: defaults.object(forKey: Keys.soundSpeedWarn) != nil ? defaults.bool(forKey: Keys.soundSpeedWarn) : true,
             soundEctWarn: defaults.object(forKey: Keys.soundEctWarn) != nil ? defaults.bool(forKey: Keys.soundEctWarn) : true,
-            soundIgnitionWarn: defaults.object(forKey: Keys.soundIgnitionWarn) != nil ? defaults.bool(forKey: Keys.soundIgnitionWarn) : true
+            soundIgnitionWarn: defaults.object(forKey: Keys.soundIgnitionWarn) != nil ? defaults.bool(forKey: Keys.soundIgnitionWarn) : true,
+            bootTrackId: defaults.object(forKey: Keys.bootTrackId) != nil ? defaults.integer(forKey: Keys.bootTrackId) : 0,
+            warnTrackId: defaults.object(forKey: Keys.warnTrackId) != nil ? defaults.integer(forKey: Keys.warnTrackId) : 3,
+            speakerVolIdx: defaults.object(forKey: Keys.speakerVolIdx) != nil ? defaults.integer(forKey: Keys.speakerVolIdx) : 0
         )
     }
 
@@ -81,6 +82,9 @@ final class SettingsRepository: ObservableObject {
     func setSoundSpeedWarn(_ value: Bool) { update(Keys.soundSpeedWarn, value) }
     func setSoundEctWarn(_ value: Bool) { update(Keys.soundEctWarn, value) }
     func setSoundIgnitionWarn(_ value: Bool) { update(Keys.soundIgnitionWarn, value) }
+    func setBootTrackId(_ value: Int) { update(Keys.bootTrackId, value) }
+    func setWarnTrackId(_ value: Int) { update(Keys.warnTrackId, value) }
+    func setSpeakerVolIdx(_ value: Int) { update(Keys.speakerVolIdx, value) }
 
     private func update(_ key: String, _ value: Any) {
         defaults.set(value, forKey: key)

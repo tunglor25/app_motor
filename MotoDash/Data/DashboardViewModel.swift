@@ -1,15 +1,12 @@
 import Combine
 import Foundation
 
-/// Ties together BLE, settings, mock/demo data, GPS trip recording, and speed
-/// limit tracking into a single published DashboardUiState. Functionally mirrors
-/// the Kotlin source's data/DashboardViewModel.kt, but instead of chaining
-/// several StateFlow combine() operators, each source is subscribed individually
-/// and folds its update into `state` directly -- simpler in Swift/Combine and
-/// avoids deeply nested CombineLatest generic chains.
 @MainActor
 final class DashboardViewModel: ObservableObject {
     @Published private(set) var state = DashboardUiState()
+    @Published private(set) var uploadState: AudioUploadState = .idle
+    @Published private(set) var logs: [AppLogEntry] = []
+    @Published private(set) var logRawPackets: Bool = false
 
     let bleManager = EcuBleManager()
     let tripRepository = TripRepository()
@@ -47,6 +44,12 @@ final class DashboardViewModel: ObservableObject {
         bleManager.$ecuReading
             .sink { [weak self] _ in self?.refreshConnectionAndReading() }
             .store(in: &cancellables)
+        bleManager.$logs
+            .sink { [weak self] value in self?.logs = value }
+            .store(in: &cancellables)
+        bleManager.$logRawPackets
+            .sink { [weak self] value in self?.logRawPackets = value }
+            .store(in: &cancellables)
         mockEcuEngine.$reading
             .sink { [weak self] _ in self?.refreshConnectionAndReading() }
             .store(in: &cancellables)
@@ -59,8 +62,6 @@ final class DashboardViewModel: ObservableObject {
                 if case .connected = self.bleManager.connectionState, !settings.demoMode {
                     self.bleManager.syncSoundSettings(settings: settings)
                 }
-                // Only track real GPS speed-limit lookups when the user has opted in
-                // and we're not in demo mode, matching the Kotlin source's gate.
                 if settings.speedWarnEnabled, !settings.demoMode {
                     self.speedLimitTracker.start()
                 } else {
@@ -127,7 +128,6 @@ final class DashboardViewModel: ObservableObject {
         state.lapText = Self.formatLap(elapsedMs)
     }
 
-    /// SET long-press: clears lap timer + ECU-speed trip odometer, with a brief flash.
     func resetAll() {
         lapTimer?.invalidate()
         lapTimer = nil
@@ -158,11 +158,57 @@ final class DashboardViewModel: ObservableObject {
     }
 
     func disconnectBle() { bleManager.disconnect() }
-
     func triggerC4Mode() { bleManager.triggerC4Mode() }
-
     func clearDtc() { bleManager.clearDtc() }
     func reconnectBle() { connect() }
+
+    func clearLogs() { bleManager.clearLogs() }
+    func setLogRawPackets(_ enabled: Bool) { bleManager.setLogRawPackets(enabled) }
+
+    func selectBootTrack(trackId: Int, label: String) {
+        settingsRepository.setBootTrackId(trackId)
+        bleManager.selectBootTrack(trackId: trackId, label: label)
+    }
+
+    func selectWarnTrack(trackId: Int, label: String) {
+        settingsRepository.setWarnTrackId(trackId)
+        bleManager.selectWarnTrack(trackId: trackId, label: label)
+    }
+
+    func setSpeakerVolume(volIdx: Int, label: String) {
+        settingsRepository.setSpeakerVolIdx(volIdx)
+        bleManager.setSpeakerVolume(volIdx: volIdx, label: label)
+    }
+
+    func useDefaultBootMusic() {
+        bleManager.useDefaultBootMusic()
+        uploadState = .idle
+    }
+
+    func uploadBootMusicFromUrl(_ url: URL) {
+        Task { @MainActor in
+            uploadState = .uploading(0)
+            let accessed = url.startAccessingSecurityScopedResource()
+            defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+            guard let rawBytes = try? Data(contentsOf: url) else {
+                uploadState = .error("Không đọc được file")
+                return
+            }
+            if rawBytes.count > 400_000 {
+                uploadState = .error("File quá lớn (tối đa ~12 giây)")
+                return
+            }
+            let result = await bleManager.uploadBootMusic(data: rawBytes) { [weak self] pct in
+                Task { @MainActor in self?.uploadState = .uploading(pct) }
+            }
+            switch result {
+            case .success:
+                uploadState = .done
+            case .failure(let err):
+                uploadState = .error(err.localizedDescription)
+            }
+        }
+    }
 
     func setTheme(_ theme: String) { settingsRepository.setTheme(theme) }
     func setUnitSpeed(_ value: String) { settingsRepository.setUnitSpeed(value) }
@@ -200,4 +246,11 @@ final class DashboardViewModel: ObservableObject {
         gpsTripRecorder.cancel()
         speedLimitTracker.stop()
     }
+}
+
+enum AudioUploadState: Equatable {
+    case idle
+    case uploading(Float)
+    case done
+    case error(String)
 }

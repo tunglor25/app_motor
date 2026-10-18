@@ -56,7 +56,7 @@ jobs:
           git rm -rf . >/dev/null 2>&1 || true
           cp /tmp/logpub/errors.txt .
           cp /tmp/logpub/tail.txt .
-          echo "run_id=${{ github.run_id }}  commit=${{ github.sha }}" > info.txt
+          echo "run_id=${{ github.run_id }}  commit=${{ github.sha }}  outcome=${{ steps.build.outcome }}" > info.txt
           git add -A
           git -c user.email="ci-bot@local" -c user.name="CI Bot" commit -m "log for run ${{ github.run_id }}" || true
           git push origin ci-logs --force
@@ -84,3 +84,13 @@ jobs:
         with:
           name: motodash-ios-unsigned
           path: motodash-ios-unsigned.ipa
+
+      - name: Publish IPA to GitHub Release (latest-ipa)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create latest-ipa motodash-ios-unsigned.ipa \
+            --title "MotoDash iOS Unsigned IPA (Latest)" \
+            --notes "File IPA cho iOS (cài qua TrollStore / Sideloadly / AltStore). Build tự động từ nhánh ios-native." \
+            --latest || \
+          gh release upload latest-ipa motodash-ios-unsigned.ipa --clobber

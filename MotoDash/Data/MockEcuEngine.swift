@@ -1,13 +1,5 @@
 import Foundation
 
-/// Synthetic ECU data for demo mode so the whole UI can be previewed with no
-/// ESP32 nearby. Exact port of the Kotlin source's data/MockEcuEngine.kt: RPM
-/// oscillates around a slowly drifting baseline with the occasional rev, speed
-/// follows RPM, ECT climbs toward ~90 and holds, TPS tracks RPM changes,
-/// battery/O2 jitter within realistic ranges. Every ~112 ticks (~45s at
-/// TICK_MS=400ms) it also simulates a full stop followed by a hard launch
-/// (0 -> ~90km/h over ~8s) so the Drag Timer feature can be exercised in demo
-/// mode with no real bike.
 @MainActor
 final class MockEcuEngine: ObservableObject {
     @Published private(set) var reading = EcuReading()
@@ -16,7 +8,7 @@ final class MockEcuEngine: ObservableObject {
     private var phase: Double = 0
     private var ect = 28
     private var tickCount = 0
-    private var launchTick = -1 // -1 = not currently in a launch cycle
+    private var launchTick = -1
 
     init() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { [weak self] _ in
@@ -34,16 +26,26 @@ final class MockEcuEngine: ObservableObject {
         let t = launchTick >= 0 ? tickCount - launchTick : -1
 
         if (0...3).contains(t) {
-            // Stopped (~1.6s) -- long enough for the Drag screen to arm to "staged".
-            reading = EcuReading(rpm: 1300, speed: 0, ect: ect, tps: 5, battery: 13.4, iat: 24, o2Voltage: 0.2)
+            reading = EcuReading(
+                rpm: 1300, speed: 0, ect: ect, tps: 5, battery: 13.4, iat: 24, o2Voltage: 0.2,
+                ecuConnected: true, ignitionTiming: 12, injectorTi: 2150, switches: 0,
+                runTimeSec: tickCount / 2, engineLoad: 14,
+                rawHex: "05 14 00 1C 05 05 3C 18 00 14 01 3B 0C 08 66 00 00 78 0E 4A",
+                packetCount: Int64(tickCount), packetHz: 2.5
+            )
         } else if (4...23).contains(t) {
-            // Wide-open throttle: quadratic acceleration (slow start, ramps up like a real bike).
             let launchT = Double(t - 4) / 19.0
             let rpm = min(max(Int(1300 + launchT * 9500), 1300), 12800)
             let speed = min(max(Int(launchT * launchT * 92), 0), 95)
-            reading = EcuReading(rpm: rpm, speed: speed, ect: ect, tps: 96, battery: 14.1, iat: 24, o2Voltage: 0.6)
+            reading = EcuReading(
+                rpm: rpm, speed: speed, ect: ect, tps: 96, battery: 14.1, iat: 24, o2Voltage: 0.6,
+                ecuConnected: true, ignitionTiming: 28, injectorTi: 6850, switches: 0,
+                runTimeSec: tickCount / 2, engineLoad: 94,
+                rawHex: "2A 30 58 5A 60 05 82 18 00 3C 01 7E 1C 1A C2 00 00 90 5E 12",
+                packetCount: Int64(tickCount), packetHz: 2.5
+            )
         } else {
-            if t >= 24 { launchTick = -1 } // launch cycle done, back to normal cruising
+            if t >= 24 { launchTick = -1 }
             phase += 0.15
             let rpmBase = 2500 + Int(sin(phase * 0.3) * 2000)
             let rev = Double.random(in: 0..<1) < 0.05 ? Int.random(in: 1500...4000) : 0
@@ -54,7 +56,17 @@ final class MockEcuEngine: ObservableObject {
             let battery: Float = 13.4 + (rpm > 2000 ? 0.4 : 0) + Float.random(in: 0..<1) * 0.2
             let o2 = Float(0.1 + (sin(phase * 1.7) * 0.35 + 0.35))
             let iat = 24 + Int(sin(phase * 0.05) * 4)
-            reading = EcuReading(rpm: rpm, speed: speed, ect: ect, tps: tps, battery: battery, iat: iat, o2Voltage: o2)
+            let ign = 10 + (rpm * 22 / 10000)
+            let ti = 1800 + (tps * 45) + (rpm / 5)
+            let load = min(max((tps * 65 + (rpm * 100 / 10000) * 35) / 100, 8), 100)
+            reading = EcuReading(
+                rpm: rpm, speed: speed, ect: ect, tps: tps, battery: battery, iat: iat, o2Voltage: o2,
+                ecuConnected: true, ignitionTiming: ign, injectorTi: ti, switches: 0,
+                runTimeSec: tickCount / 2, engineLoad: load,
+                rawHex: String(format: "%02X %02X %02X %02X %02X 05 64 %02X 00 28 01 AA %02X %02X %02X 00 00 %02X %02X 55",
+                               (rpm >> 8) & 0xFF, rpm & 0xFF, speed, ect, tps, iat, ign, (ti >> 8) & 0xFF, ti & 0xFF, (tickCount / 2) & 0xFF, load),
+                packetCount: Int64(tickCount), packetHz: 2.5
+            )
         }
     }
 }

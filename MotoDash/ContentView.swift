@@ -1,9 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// Root navigation host -- mirrors the Kotlin source's MainActivity.kt NavHost
-/// wiring (screen graph, autoConnect/wakeLock/fullscreen side effects, and the
-/// theme switch that picks which dashboard screen renders).
 struct ContentView: View {
     @ObservedObject var viewModel: DashboardViewModel
     @ObservedObject var mediaSessionReader: MediaSessionReader
@@ -58,6 +55,7 @@ struct ContentView: View {
                 settings: viewModel.state.settings,
                 connectionState: viewModel.state.connectionState,
                 notificationAccessGranted: notificationAccessGranted,
+                uploadState: viewModel.uploadState,
                 onSetTheme: viewModel.setTheme,
                 onSetUnitSpeed: viewModel.setUnitSpeed,
                 onSetUnitTemp: viewModel.setUnitTemp,
@@ -76,10 +74,16 @@ struct ContentView: View {
                 onSetSoundSpeedWarn: viewModel.setSoundSpeedWarn,
                 onSetSoundEctWarn: viewModel.setSoundEctWarn,
                 onSetSoundIgnitionWarn: viewModel.setSoundIgnitionWarn,
+                onSelectBootTrack: viewModel.selectBootTrack,
+                onSelectWarnTrack: viewModel.selectWarnTrack,
+                onSetSpeakerVolume: viewModel.setSpeakerVolume,
+                onUploadBootMusic: viewModel.uploadBootMusicFromUrl,
+                onUseDefaultBootMusic: viewModel.useDefaultBootMusic,
                 onDisconnect: viewModel.disconnectBle,
                 onReconnect: startConnectFlow,
                 onNavigateTripHistory: { path.append(.tripHistory) },
                 onNavigateDiagnostics: { path.append(.diagnostics) },
+                onNavigateLogs: { path.append(.logs) },
                 onNavigateDrag: { path.append(.drag) },
                 onClearAllTrips: viewModel.clearAllTrips,
                 onOpenNotificationAccessSettings: requestMusicAuthorization,
@@ -90,7 +94,18 @@ struct ContentView: View {
                 reading: viewModel.state.reading,
                 unitTemp: viewModel.state.settings.unitTemp,
                 onBack: goBack,
-                onClearDtc: viewModel.clearDtc
+                onClearDtc: viewModel.clearDtc,
+                onNavigateLogs: { path.append(.logs) }
+            )
+        case .logs:
+            LogViewerScreen(
+                logs: viewModel.logs,
+                reading: viewModel.state.reading,
+                connectionState: viewModel.state.connectionState,
+                logRawPackets: viewModel.logRawPackets,
+                onSetLogRawPackets: viewModel.setLogRawPackets,
+                onClearLogs: viewModel.clearLogs,
+                onBack: goBack
             )
         case .drag:
             DragScreen(recorder: viewModel.dragRecorder, onBack: goBack)
@@ -121,7 +136,6 @@ struct ContentView: View {
     }
 }
 
-/// Picks which dashboard theme renders, mirroring MainActivity.kt's `when (state.settings.theme)`.
 private struct DashboardContainerView: View {
     let state: DashboardUiState
     @ObservedObject var mediaSessionReader: MediaSessionReader
@@ -136,6 +150,36 @@ private struct DashboardContainerView: View {
 
     var body: some View {
         switch state.settings.theme {
+        case "cyber":
+            CyberDashboardScreen(
+                state: state,
+                mediaSessionReader: mediaSessionReader,
+                onConnectClick: onConnectClick,
+                onGearClick: onGearClick,
+                onTripShortClick: onTripShortClick,
+                onTripLongPress: onTripLongPress,
+                onTripSaved: onTripSaved
+            )
+        case "airblade":
+            AirBladeDashboardScreen(
+                state: state,
+                mediaSessionReader: mediaSessionReader,
+                onConnectClick: onConnectClick,
+                onGearClick: onGearClick,
+                onTripShortClick: onTripShortClick,
+                onTripLongPress: onTripLongPress,
+                onTripSaved: onTripSaved
+            )
+        case "superbike":
+            SuperbikeDashboardScreen(
+                state: state,
+                mediaSessionReader: mediaSessionReader,
+                onConnectClick: onConnectClick,
+                onGearClick: onGearClick,
+                onTripShortClick: onTripShortClick,
+                onTripLongPress: onTripLongPress,
+                onTripSaved: onTripSaved
+            )
         case "daily":
             DailyDashboardScreen(
                 state: state,
@@ -148,6 +192,16 @@ private struct DashboardContainerView: View {
             )
         case "classic":
             ClassicDashboardScreen(
+                state: state,
+                mediaSessionReader: mediaSessionReader,
+                onConnectClick: onConnectClick,
+                onGearClick: onGearClick,
+                onTripShortClick: onTripShortClick,
+                onTripLongPress: onTripLongPress,
+                onTripSaved: onTripSaved
+            )
+        case "crazy":
+            CrazyDashboardScreen(
                 state: state,
                 mediaSessionReader: mediaSessionReader,
                 onConnectClick: onConnectClick,
