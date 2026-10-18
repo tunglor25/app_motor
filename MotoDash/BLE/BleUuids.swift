@@ -3,7 +3,7 @@ import CoreBluetooth
 /// Ground truth mirrored from the ESP32-S3 firmware and the Kotlin source's
 /// ble/BleUuids.kt. Do not change without updating the firmware.
 enum BleUuids {
-    static let deviceName = "Honda_AB2025_Dash"
+    static let deviceName = "HONDA AB125 Lor"
 
     static let service = CBUUID(string: "4fafc201-1fb5-459e-8fcc-c5c9c331914b")
 
@@ -34,4 +34,6 @@ enum BleUuids {
     static let cmdPlayTrack: UInt8 = 0x50
     /// 'V' -- doi am luong loa MAX98357A (VolIdx 0..3).
     static let cmdSetVolume: UInt8 = 0x56
+    /// 'N' -- doi ten Bluetooth cua mach ESP32-S3 (luu NVS).
+    static let cmdSetBleName: UInt8 = 0x4E
 }

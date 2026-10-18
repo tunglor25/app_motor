@@ -57,6 +57,7 @@ struct ContentView: View {
                 uploadState: viewModel.uploadState,
                 onSetTheme: viewModel.setTheme,
                 onSetBrandLogo: viewModel.setBrandLogo,
+                onSetBleDeviceName: viewModel.setBleDeviceName,
                 onSetUnitSpeed: viewModel.setUnitSpeed,
                 onSetUnitTemp: viewModel.setUnitTemp,
                 onSetSpeedWarnEnabled: viewModel.setSpeedWarnEnabled,

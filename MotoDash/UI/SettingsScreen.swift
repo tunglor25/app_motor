@@ -8,6 +8,7 @@ struct SettingsScreen: View {
     var uploadState: AudioUploadState = .idle
     let onSetTheme: (String) -> Void
     var onSetBrandLogo: (String) -> Void = { _ in }
+    var onSetBleDeviceName: (String) -> Void = { _ in }
     let onSetUnitSpeed: (String) -> Void
     let onSetUnitTemp: (String) -> Void
     let onSetSpeedWarnEnabled: (Bool) -> Void
@@ -63,6 +64,7 @@ struct SettingsScreen: View {
                         connectionState: connectionState,
                         onSetTheme: onSetTheme,
                         onSetBrandLogo: onSetBrandLogo,
+                        onSetBleDeviceName: onSetBleDeviceName,
                         onSetUnitSpeed: onSetUnitSpeed,
                         onSetUnitTemp: onSetUnitTemp,
                         onSetSpeedWarnEnabled: onSetSpeedWarnEnabled,
@@ -187,6 +189,7 @@ private struct GeneralTab: View {
     let connectionState: BleConnectionState
     let onSetTheme: (String) -> Void
     var onSetBrandLogo: (String) -> Void = { _ in }
+    var onSetBleDeviceName: (String) -> Void = { _ in }
     let onSetUnitSpeed: (String) -> Void
     let onSetUnitTemp: (String) -> Void
     let onSetSpeedWarnEnabled: (Bool) -> Void
@@ -203,6 +206,8 @@ private struct GeneralTab: View {
     var onNavigateLogs: () -> Void = {}
     var onNavigateDrag: () -> Void = {}
 
+    @State private var bleNameDraft: String = ""
+
     private var statusInfo: (String, Color, String) {
         switch connectionState {
         case .connected: return ("Đã kết nối", .dashGreen, "wifi")
@@ -214,9 +219,56 @@ private struct GeneralTab: View {
     var body: some View {
         VStack(alignment: .leading) {
             SectionTitle("BLUETOOTH")
-            BluetoothHero(statusText: statusInfo.0, statusColor: statusInfo.1, systemImage: statusInfo.2, onReconnect: onReconnect, onDisconnect: onDisconnect)
+            BluetoothHero(
+                bleName: settings.bleDeviceName,
+                statusText: statusInfo.0,
+                statusColor: statusInfo.1,
+                systemImage: statusInfo.2,
+                onReconnect: onReconnect,
+                onDisconnect: onDisconnect
+            )
             GroupCard {
-                ToggleRow(emoji: "🔄", color: .dashCyan, label: "Tự động kết nối", desc: "Kết nối lại khi mở app", checked: settings.autoConnect, onCheckedChange: onSetAutoConnect)
+                ToggleRow(emoji: "🔄", color: .dashCyan, label: "Tự động kết nối", desc: "Tự quét và kết nối \(settings.bleDeviceName) khi mở app", checked: settings.autoConnect, onCheckedChange: onSetAutoConnect)
+                DashDivider()
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("ĐỔI TÊN BLUETOOTH CỦA MẠCH ESP32-S3 (LƯU VÀO CHIP)")
+                        .foregroundColor(.dashTextSecondary)
+                        .font(DashFont.shareTechMono(11))
+                        .tracking(1)
+                    HStack(spacing: 8) {
+                        TextField("Nhập tên Bluetooth mới...", text: $bleNameDraft)
+                            .foregroundColor(.white)
+                            .font(DashFont.shareTechMono(13))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .background(Color.black.opacity(0.4))
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dashCyan.opacity(0.4), lineWidth: 1))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        Button(action: {
+                            let target = bleNameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                            if !target.isEmpty {
+                                onSetBleDeviceName(target)
+                            }
+                        }) {
+                            Text("LƯU TÊN")
+                                .foregroundColor(.black)
+                                .font(DashFont.shareTechMono(12))
+                                .fontWeight(.bold)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 9)
+                                .background(Color.dashCyan)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .onAppear {
+                    if bleNameDraft.isEmpty {
+                        bleNameDraft = settings.bleDeviceName
+                    }
+                }
             }
 
             SectionTitle("GIAO DIỆN ĐỒNG HỒ (7 THEMES)")
@@ -597,6 +649,7 @@ private struct MusicTab: View {
 }
 
 private struct BluetoothHero: View {
+    var bleName: String = "HONDA AB125 Lor"
     let statusText: String
     let statusColor: Color
     let systemImage: String
@@ -613,7 +666,7 @@ private struct BluetoothHero: View {
                 .frame(width: 46, height: 46)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Honda_AB2025_Dash")
+                    Text("\(bleName) (ESP32-S3)")
                         .foregroundColor(.dashTextSecondary)
                         .font(DashFont.shareTechMono(11))
                     Text(statusText)

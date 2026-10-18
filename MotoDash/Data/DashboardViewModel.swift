@@ -210,6 +210,12 @@ final class DashboardViewModel: ObservableObject {
 
     func setTheme(_ theme: String) { settingsRepository.setTheme(theme) }
     func setBrandLogo(_ value: String) { settingsRepository.setBrandLogo(value) }
+    func setBleDeviceName(_ value: String) {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        settingsRepository.setBleDeviceName(trimmed)
+        bleManager.setBleDeviceName(trimmed)
+    }
     func setUnitSpeed(_ value: String) { settingsRepository.setUnitSpeed(value) }
     func setUnitTemp(_ value: String) { settingsRepository.setUnitTemp(value) }
     func setSpeedWarnEnabled(_ enabled: Bool) { settingsRepository.setSpeedWarnEnabled(enabled) }

@@ -190,6 +190,16 @@ final class EcuBleManager: NSObject, ObservableObject {
         writeControlPayload(Data([BleUuids.cmdSetVolume, UInt8(volIdx & 0xFF)]))
     }
 
+    func setBleDeviceName(_ newName: String) {
+        let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let nameBytes = Array(trimmed.utf8.prefix(24))
+        var payload = Data([BleUuids.cmdSetBleName])
+        payload.append(contentsOf: nameBytes)
+        addLog(.ble, "Đổi tên Bluetooth của mạch: \(trimmed)", "CMD 0x4E ('N') · Đã lưu vào Flash NVS ESP32")
+        writeControlPayload(payload)
+    }
+
     func uploadBootMusic(data: Data, onProgress: @escaping (Float) -> Void) async -> Result<Void, Error> {
         guard let peripheral = activePeripheral else {
             return .failure(NSError(domain: "BLE", code: 1, userInfo: [NSLocalizedDescriptionKey: "Chưa kết nối BLE"]))
@@ -459,14 +469,16 @@ extension EcuBleManager: CBCentralManagerDelegate {
         let advName = (advertisementData[CBAdvertisementDataLocalNameKey] as? String) ?? peripheral.name ?? ""
         let advServices = (advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID]) ?? []
         let overflowServices = (advertisementData[CBAdvertisementDataOverflowServiceUUIDsKey] as? [CBUUID]) ?? []
-        let isMatch = advName.localizedCaseInsensitiveContains("Honda_AB2025")
+        let isMatch = advName.localizedCaseInsensitiveContains("AB125")
+            || advName.localizedCaseInsensitiveContains("HONDA AB")
+            || advName.localizedCaseInsensitiveContains("Honda_AB2025")
             || advName.localizedCaseInsensitiveContains("AB2025_Dash")
             || advServices.contains(BleUuids.service)
             || overflowServices.contains(BleUuids.service)
         guard isMatch else { return }
 
         stopScanQuietly()
-        let name = advName.isEmpty ? (peripheral.name ?? "Honda_AB2025_Dash") : advName
+        let name = advName.isEmpty ? (peripheral.name ?? BleUuids.deviceName) : advName
         addLog(.ble, "Tìm thấy thiết bị: \(name)", "RSSI: \(RSSI) dBm")
         connectToDevice(peripheral)
     }

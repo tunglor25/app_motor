@@ -15,6 +15,7 @@ struct AppSettings: Equatable {
     var autoHideMusic: Bool = true
     var demoMode: Bool = false
     var brandLogo: String = "honda"
+    var bleDeviceName: String = "HONDA AB125 Lor"
 
     // Cai dat am thanh coi & loa ESP32 (dong bo qua BLE)
     var soundBootMusic: Bool = true

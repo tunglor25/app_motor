@@ -23,6 +23,7 @@ private enum Keys {
     static let bootTrackId = "boot_track_id"
     static let warnTrackId = "warn_track_id"
     static let speakerVolIdx = "speaker_vol_idx"
+    static let bleDeviceName = "ble_device_name"
 }
 
 @MainActor
@@ -37,7 +38,9 @@ final class SettingsRepository: ObservableObject {
     }
 
     private static func load(from defaults: UserDefaults) -> AppSettings {
-        AppSettings(
+        let rawBleName = defaults.string(forKey: Keys.bleDeviceName) ?? "HONDA AB125 Lor"
+        let bleName = (rawBleName.isEmpty || rawBleName == "Honda_AB2025_Dash") ? "HONDA AB125 Lor" : rawBleName
+        return AppSettings(
             theme: defaults.string(forKey: Keys.theme) ?? "sport",
             unitSpeed: defaults.string(forKey: Keys.unitSpeed) ?? "kmh",
             unitTemp: defaults.string(forKey: Keys.unitTemp) ?? "c",
@@ -51,6 +54,7 @@ final class SettingsRepository: ObservableObject {
             autoHideMusic: defaults.object(forKey: Keys.autoHideMusic) != nil ? defaults.bool(forKey: Keys.autoHideMusic) : true,
             demoMode: defaults.bool(forKey: Keys.demoMode),
             brandLogo: defaults.string(forKey: Keys.brandLogo) ?? "honda",
+            bleDeviceName: bleName,
             soundBootMusic: defaults.object(forKey: Keys.soundBootMusic) != nil ? defaults.bool(forKey: Keys.soundBootMusic) : true,
             soundConnection: defaults.object(forKey: Keys.soundConnection) != nil ? defaults.bool(forKey: Keys.soundConnection) : true,
             soundShiftWarn: defaults.object(forKey: Keys.soundShiftWarn) != nil ? defaults.bool(forKey: Keys.soundShiftWarn) : true,
@@ -76,6 +80,7 @@ final class SettingsRepository: ObservableObject {
     func setAutoHideMusic(_ value: Bool) { update(Keys.autoHideMusic, value) }
     func setDemoMode(_ value: Bool) { update(Keys.demoMode, value) }
     func setBrandLogo(_ value: String) { update(Keys.brandLogo, value) }
+    func setBleDeviceName(_ value: String) { update(Keys.bleDeviceName, value) }
     func setSoundBootMusic(_ value: Bool) { update(Keys.soundBootMusic, value) }
     func setSoundConnection(_ value: Bool) { update(Keys.soundConnection, value) }
     func setSoundShiftWarn(_ value: Bool) { update(Keys.soundShiftWarn, value) }
