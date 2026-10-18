@@ -241,14 +241,14 @@ private struct GeneralTab: View {
             GroupCard {
                 VStack(spacing: 8) {
                     HStack(spacing: 8) {
-                        ThemeChip(label: "HONDA", value: "honda", current: settings.brandLogo, onSelect: onSetBrandLogo)
-                        ThemeChip(label: "BMW", value: "bmw", current: settings.brandLogo, onSelect: onSetBrandLogo)
-                        ThemeChip(label: "YAMAHA", value: "yamaha", current: settings.brandLogo, onSelect: onSetBrandLogo)
+                        BrandChip(label: "HONDA", value: "honda", current: settings.brandLogo, onSelect: onSetBrandLogo)
+                        BrandChip(label: "BMW", value: "bmw", current: settings.brandLogo, onSelect: onSetBrandLogo)
+                        BrandChip(label: "YAMAHA", value: "yamaha", current: settings.brandLogo, onSelect: onSetBrandLogo)
                     }
                     HStack(spacing: 8) {
-                        ThemeChip(label: "DUCATI", value: "ducati", current: settings.brandLogo, onSelect: onSetBrandLogo)
-                        ThemeChip(label: "KAWASAKI", value: "kawasaki", current: settings.brandLogo, onSelect: onSetBrandLogo)
-                        ThemeChip(label: "REDBULL", value: "redbull", current: settings.brandLogo, onSelect: onSetBrandLogo)
+                        BrandChip(label: "DUCATI", value: "ducati", current: settings.brandLogo, onSelect: onSetBrandLogo)
+                        BrandChip(label: "KAWASAKI", value: "kawasaki", current: settings.brandLogo, onSelect: onSetBrandLogo)
+                        BrandChip(label: "REDBULL", value: "redbull", current: settings.brandLogo, onSelect: onSetBrandLogo)
                     }
                 }
                 .padding(12)
@@ -798,6 +798,41 @@ private struct ThemeChip: View {
     }
 }
 
+private struct BrandChip: View {
+    let label: String
+    let value: String
+    let current: String
+    let onSelect: (String) -> Void
+
+    private var selected: Bool { current.lowercased() == value.lowercased() }
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image("logo_\(value)")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 18)
+            Text(label)
+                .foregroundColor(selected ? .dashCyan : .dashTextSecondary)
+                .font(DashFont.shareTechMono(11))
+                .tracking(1)
+                .fontWeight(selected ? .bold : .regular)
+                .modifier(ConditionalTabGlow(active: selected))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 6)
+        .background(selected ? Color.dashCyan.opacity(0.14) : Color.white.opacity(0.03))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(selected ? Color.dashCyan.opacity(0.7) : Color.dashCardBorder, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .contentShape(Rectangle())
+        .onTapGesture { onSelect(value) }
+    }
+}
+
 private struct StepperButton: View {
     let text: String
     let onClick: () -> Void
@@ -812,3 +847,4 @@ private struct StepperButton: View {
         .onTapGesture(perform: onClick)
     }
 }
+

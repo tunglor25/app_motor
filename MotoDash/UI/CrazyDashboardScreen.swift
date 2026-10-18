@@ -19,6 +19,10 @@ struct CrazyDashboardScreen: View {
         ZStack {
             VStack(spacing: 6) {
                 HStack {
+                    Image("logo_\(state.settings.brandLogo)")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 22)
                     Text("🔥 NITRO OVERDRIVE // STAGE 3")
                         .foregroundColor(nitroOrange)
                         .font(DashFont.shareTechMono(12))

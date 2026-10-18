@@ -20,6 +20,10 @@ struct CyberDashboardScreen: View {
         ZStack {
             VStack(spacing: 6) {
                 HStack {
+                    Image("logo_\(state.settings.brandLogo)")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 22)
                     Text("CYBER // AB-2077")
                         .foregroundColor(cyberYellow)
                         .font(DashFont.shareTechMono(13))

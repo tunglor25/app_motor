@@ -50,10 +50,16 @@ struct SuperbikeDashboardScreen: View {
 
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("TRACK TELEMETRY")
-                            .foregroundColor(ducatiRed)
-                            .font(DashFont.shareTechMono(10))
-                            .fontWeight(.bold)
+                        HStack(spacing: 6) {
+                            Image("logo_\(state.settings.brandLogo)")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 18)
+                            Text("TELEMETRY")
+                                .foregroundColor(ducatiRed)
+                                .font(DashFont.shareTechMono(10))
+                                .fontWeight(.bold)
+                        }
                         SbRow(label: "RPM", value: "\(rpm)")
                         SbRow(label: "LAP", value: state.lapText)
                         SbRow(label: "TRIP", value: String(format: "%.1f km", state.tripKm))

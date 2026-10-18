@@ -21,6 +21,10 @@ struct AirBladeDashboardScreen: View {
             VStack(spacing: 6) {
                 HStack {
                     HStack(spacing: 6) {
+                        Image("logo_\(state.settings.brandLogo)")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 22)
                         Rectangle().fill(hondaRed).frame(width: 4, height: 16)
                         Text("HONDA AIRBLADE 125 · SMART ECU")
                             .foregroundColor(.white)

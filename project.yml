@@ -22,16 +22,22 @@ targets:
     deploymentTarget: "16.0"
     sources:
       - path: MotoDash
-        excludes:
-          - "Resources/**"
-    resources:
-      - path: MotoDash/Resources/Assets.xcassets
-      - path: MotoDash/Resources/Fonts
     info:
       path: MotoDash/Info.plist
       properties:
         CFBundleDisplayName: MotoDash
         CFBundleIconName: AppIcon
+        CFBundleIcons:
+          CFBundlePrimaryIcon:
+            CFBundleIconName: AppIcon
+            CFBundleIconFiles:
+              - AppIcon60x60
+        CFBundleIcons~ipad:
+          CFBundlePrimaryIcon:
+            CFBundleIconName: AppIcon
+            CFBundleIconFiles:
+              - AppIcon60x60
+              - AppIcon76x76
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationLandscapeLeft

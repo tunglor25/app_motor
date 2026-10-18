@@ -9,11 +9,19 @@ struct TopBar: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image("logo_\(brandLogo)")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 26)
-                .padding(.trailing, 4)
+            HStack(spacing: 6) {
+                Image("logo_\(brandLogo)")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 26)
+                Text(brandLogo.uppercased())
+                    .foregroundColor(.dashCyan)
+                    .font(DashFont.shareTechMono(12))
+                    .fontWeight(.bold)
+                    .tracking(1.5)
+                    .textGlow(.dashCyan, radius: 6)
+            }
+            .padding(.trailing, 4)
 
             HStack(spacing: 14) {
                 InfoLine(label: "LAP", value: lapText)

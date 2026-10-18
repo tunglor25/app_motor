@@ -20,6 +20,10 @@ struct DailyDashboardScreen: View {
         ZStack {
             VStack(spacing: 4) {
                 HStack {
+                    Image("logo_\(state.settings.brandLogo)")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 22)
                     Text("DAILY // COMMUTER")
                         .foregroundColor(.dashCyan)
                         .font(DashFont.shareTechMono(12))

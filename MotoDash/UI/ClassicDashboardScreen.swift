@@ -18,6 +18,10 @@ struct ClassicDashboardScreen: View {
         ZStack {
             VStack(spacing: 4) {
                 HStack {
+                    Image("logo_\(state.settings.brandLogo)")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 22)
                     Button(action: {
                         if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
                     }) {
