@@ -15,6 +15,7 @@ final class EcuBleManager: NSObject, ObservableObject {
 
     private var scanning = false
     private var connecting = false
+    private var pendingScanOnPowerOn = true
 
     private var scanTimeoutWork: DispatchWorkItem?
     private var connectTimeoutWork: DispatchWorkItem?
@@ -83,16 +84,30 @@ final class EcuBleManager: NSObject, ObservableObject {
     }
 
     func startScanAndConnect() {
+        retryWork?.cancel()
         guard !scanning, !connecting else { return }
         guard centralManager.state == .poweredOn else {
-            connectionState = .error("Bluetooth khong kha dung")
-            addLog(.ble, "Bluetooth đang tắt hoặc chưa cấp quyền", isError: true)
+            pendingScanOnPowerOn = true
+            connectionState = .scanning
+            addLog(.ble, "Đang khởi động Bluetooth iOS...", "Tự động quét ngay khi Bluetooth sẵn sàng")
             return
         }
+        pendingScanOnPowerOn = false
+
+        let alreadyConnected = centralManager.retrieveConnectedPeripherals(withServices: [BleUuids.service])
+        if let existing = alreadyConnected.first {
+            addLog(.ble, "Tìm thấy mạch đang kết nối sẵn: \(existing.name ?? BleUuids.deviceName)")
+            connectToDevice(existing)
+            return
+        }
+
         scanning = true
         connectionState = .scanning
-        addLog(.ble, "Đang quét tìm mạch ESP32-S3...", "Filter UUID: \(BleUuids.service.uuidString)")
-        centralManager.scanForPeripherals(withServices: [BleUuids.service], options: nil)
+        addLog(.ble, "Đang quét tìm mạch \(BleUuids.deviceName)...", "Quét đa kênh (Tên thiết bị + Service UUID)")
+        centralManager.scanForPeripherals(
+            withServices: nil,
+            options: [CBCentralManagerScanOptionAllowDuplicatesKey: false]
+        )
 
         scanTimeoutWork?.cancel()
         let work = DispatchWorkItem { [weak self] in
@@ -422,15 +437,36 @@ final class EcuBleManager: NSObject, ObservableObject {
 
 extension EcuBleManager: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        if central.state == .poweredOn, case .idle = connectionState {
+        switch central.state {
+        case .poweredOn:
             addLog(.ble, "Bluetooth iOS đã sẵn sàng (PoweredOn)")
+            if pendingScanOnPowerOn || (!scanning && !connecting && activePeripheral == nil) {
+                startScanAndConnect()
+            }
+        case .unauthorized:
+            connectionState = .error("Chua cap quyen Bluetooth trong Cai dat iOS")
+            addLog(.ble, "Chưa cấp quyền Bluetooth cho MotoDash", "Vào Cài đặt iOS -> MotoDash -> Bật Bluetooth", isError: true)
+        case .poweredOff:
+            connectionState = .error("Bluetooth dang tat")
+            addLog(.ble, "Bluetooth trên iPhone đang tắt", "Vui lòng bật Bluetooth để kết nối mạch", isError: true)
+        default:
+            break
         }
     }
 
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
         guard scanning else { return }
+        let advName = (advertisementData[CBAdvertisementDataLocalNameKey] as? String) ?? peripheral.name ?? ""
+        let advServices = (advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID]) ?? []
+        let overflowServices = (advertisementData[CBAdvertisementDataOverflowServiceUUIDsKey] as? [CBUUID]) ?? []
+        let isMatch = advName.localizedCaseInsensitiveContains("Honda_AB2025")
+            || advName.localizedCaseInsensitiveContains("AB2025_Dash")
+            || advServices.contains(BleUuids.service)
+            || overflowServices.contains(BleUuids.service)
+        guard isMatch else { return }
+
         stopScanQuietly()
-        let name = peripheral.name ?? "Honda_AB2025_Dash"
+        let name = advName.isEmpty ? (peripheral.name ?? "Honda_AB2025_Dash") : advName
         addLog(.ble, "Tìm thấy thiết bị: \(name)", "RSSI: \(RSSI) dBm")
         connectToDevice(peripheral)
     }

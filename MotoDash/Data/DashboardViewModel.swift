@@ -100,9 +100,7 @@ final class DashboardViewModel: ObservableObject {
     }
 
     func connect() {
-        if bleManager.isBluetoothEnabled() {
-            bleManager.startScanAndConnect()
-        }
+        bleManager.startScanAndConnect()
     }
 
     func toggleLapTimer() {
