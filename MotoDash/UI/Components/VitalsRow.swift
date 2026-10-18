@@ -1,8 +1,6 @@
 import Foundation
 import SwiftUI
 
-// Thresholds read directly from the Kotlin source's ui/components/VitalsRow.kt
-// (in turn race.html).
 private func ectColor(_ ect: Int?) -> Color {
     guard let ect else { return .dashDim }
     if ect >= 110 { return .dashRed }
@@ -24,8 +22,8 @@ struct VitalsRow: View {
     var unitTemp: String = "c"
 
     var body: some View {
-        VStack {
-            HStack {
+        VStack(spacing: 4) {
+            HStack(spacing: 8) {
                 VitalBox(label: "TPS", value: tps.map { "\($0)" } ?? "--", unit: "%", valueColor: .white)
                 VitalBox(label: "BATT", value: battery.map { String(format: "%.1f", $0) } ?? "--", unit: "V", valueColor: battColor(battery))
                 VitalBox(
@@ -36,7 +34,6 @@ struct VitalsRow: View {
                 )
             }
             EctFillBar(ect: ect)
-                .padding(.top, 6)
         }
     }
 }
@@ -52,23 +49,25 @@ private struct VitalBox: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        HStack {
             Text(label)
                 .foregroundColor(.dashDim)
-                .font(DashFont.shareTechMono(12))
-            HStack(alignment: .bottom, spacing: 2) {
+                .font(DashFont.shareTechMono(11))
+            Spacer()
+            HStack(alignment: .lastTextBaseline, spacing: 2) {
                 Text(value)
                     .foregroundColor(valueColor)
-                    .font(DashFont.shareTechMono(28))
+                    .font(DashFont.shareTechMono(22))
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
                 Text(unit)
                     .foregroundColor(.dashDim)
-                    .font(DashFont.shareTechMono(13))
-                    .padding(.bottom, 3)
+                    .font(DashFont.shareTechMono(11))
             }
         }
-        .padding(4)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity)
         .background(Color.white.opacity(0.03))
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .overlay(alignment: .leading) {

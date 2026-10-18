@@ -5,9 +5,6 @@ private let classicMaxSpeed: Double = 140
 private let classicMaxRpm: Double = 14000
 private let classicNeedleColor = Color(argb: 0xFFFF8A1E)
 
-// Vintage/brass palette (#c9b98c body / #0a0a0a bg) from the Kotlin source is
-// simplified to the shared dark palette here to avoid a second parallel theme
-// system -- needle color and twin-dial layout are kept faithful.
 struct ClassicDashboardScreen: View {
     let state: DashboardUiState
     @ObservedObject var mediaSessionReader: MediaSessionReader
@@ -19,33 +16,58 @@ struct ClassicDashboardScreen: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing: 0) {
+            VStack(spacing: 4) {
                 HStack {
-                    Text(state.isTripRecording ? "\u{25CF} REC" : "TRIP")
-                        .foregroundColor(state.isTripRecording ? Color(argb: 0xFFC23B2C) : .dashDim)
-                        .font(DashFont.shareTechMono(13))
-                        .onTapGesture {
-                            if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
-                        }
-                    Spacer()
-                    Button(action: onGearClick) {
-                        Text("\u{2699}").foregroundColor(.dashDim).font(.system(size: 18))
+                    Button(action: {
+                        if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
+                    }) {
+                        Text(state.isTripRecording ? "● REC TRIP" : "▶ TRIP")
+                            .foregroundColor(state.isTripRecording ? Color(argb: 0xFFC23B2C) : Color(argb: 0xFFC9B98C))
+                            .font(DashFont.shareTechMono(12))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.white.opacity(0.05))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    Button(action: onGearClick) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 13, weight: .bold))
+                            Text("CÀI ĐẶT")
+                                .font(DashFont.shareTechMono(12))
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(Color(argb: 0xFFC9B98C))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(Color.white.opacity(0.08))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(argb: 0xFFC9B98C).opacity(0.5), lineWidth: 1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
-                .padding(12)
+                .padding(.horizontal, 12)
+                .padding(.top, 4)
 
                 if state.isTripRecording {
                     TripRecordingBar(stats: state.liveTripStats)
                 }
 
-                HStack(spacing: 12) {
+                HStack(spacing: 16) {
                     AnalogNeedleDial(
                         ratio: Double(state.reading.speed ?? 0) / classicMaxSpeed,
                         valueText: UnitConversions.speedText(state.reading.speed, unitSpeed: state.settings.unitSpeed),
                         subText: UnitConversions.speedUnitLabel(state.settings.unitSpeed),
-                        label: "MOTO \u{00B7} CLASSIC",
+                        label: "MOTO · CLASSIC",
                         needleColor: classicNeedleColor
                     )
+                    .frame(maxHeight: 190)
+
                     AnalogNeedleDial(
                         ratio: Double(state.reading.rpm ?? 0) / classicMaxRpm,
                         valueText: String(format: "%.1f", Double(state.reading.rpm ?? 0) / 1000),
@@ -53,9 +75,10 @@ struct ClassicDashboardScreen: View {
                         label: "TACHOMETER",
                         needleColor: classicNeedleColor
                     )
+                    .frame(maxHeight: 190)
                 }
-                .padding(16)
-                .frame(maxHeight: .infinity)
+                .padding(.horizontal, 16)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 HStack {
                     Spacer()
@@ -70,27 +93,14 @@ struct ClassicDashboardScreen: View {
                     Spacer()
                 }
                 .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.bottom, 6)
             }
-
-            VStack {
-                Spacer()
-                HStack {
-                    MusicWidget(reader: mediaSessionReader)
-                    Spacer()
-                }
-            }
-            .padding(16)
-
-            VStack {
-                SpeedLimitBadge(speedLimitKmh: state.speedLimitKmh, currentSpeed: state.reading.speed, enabled: state.settings.speedWarnEnabled)
-                    .padding(.top, 8)
-                Spacer()
-            }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 8)
 
             ShiftFlashOverlay(rpm: state.reading.rpm, threshold: state.settings.shiftRpmThreshold)
         }
-        .background(Color(argb: 0xFF0A0A0A))
+        .background(Color(argb: 0xFF0A0A0A).ignoresSafeArea())
         .onChange(of: state.savedTripId) { newValue in
             if let id = newValue { onTripSaved(id) }
         }
@@ -102,9 +112,9 @@ private struct VitalText: View {
     let value: String
 
     var body: some View {
-        VStack {
-            Text(value).foregroundColor(Color(argb: 0xFFC9B98C)).font(DashFont.shareTechMono(16))
-            Text(label).foregroundColor(.dashDim).font(DashFont.shareTechMono(10))
+        VStack(spacing: 2) {
+            Text(value).foregroundColor(Color(argb: 0xFFC9B98C)).font(DashFont.shareTechMono(15))
+            Text(label).foregroundColor(.dashDim).font(DashFont.shareTechMono(9))
         }
     }
 }

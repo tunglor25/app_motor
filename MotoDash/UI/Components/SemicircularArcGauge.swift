@@ -5,12 +5,6 @@ private let startAngleDegrees: Double = 165
 private let sweepAngleDegrees: Double = 210
 private let trackColor = Color(argb: 0xFF20242C)
 
-/// Simplified native port of the Kotlin source's ui/components/SemicircularArcGauge.kt
-/// (daily.html's semicircular RPM arc, horseshoe open at the bottom, 210deg
-/// sweep). The web version bakes a fixed cyan->amber->red gradient along the
-/// whole track; here the lit portion is a single interpolated color instead of
-/// a true baked gradient -- a deliberate simplification, close enough visually
-/// for a secondary theme.
 struct SemicircularArcGauge: View {
     let ratio: Double
 
@@ -25,11 +19,14 @@ struct SemicircularArcGauge: View {
 
     var body: some View {
         GeometryReader { geo in
-            let strokeWidth = min(geo.size.width, geo.size.height) * 0.09
+            let d = min(geo.size.width, geo.size.height)
+            let strokeWidth = max(8, d * 0.09)
+            let radius = max(10, d / 2 - strokeWidth / 2)
+            let center = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2 + radius * 0.15)
             Path { path in
                 path.addArc(
-                    center: CGPoint(x: geo.size.width / 2, y: geo.size.height / 2),
-                    radius: min(geo.size.width, geo.size.height) / 2 - strokeWidth / 2,
+                    center: center,
+                    radius: radius,
                     startAngle: .degrees(startAngleDegrees),
                     endAngle: .degrees(startAngleDegrees + sweepAngleDegrees),
                     clockwise: false
@@ -39,8 +36,8 @@ struct SemicircularArcGauge: View {
 
             Path { path in
                 path.addArc(
-                    center: CGPoint(x: geo.size.width / 2, y: geo.size.height / 2),
-                    radius: min(geo.size.width, geo.size.height) / 2 - strokeWidth / 2,
+                    center: center,
+                    radius: radius,
                     startAngle: .degrees(startAngleDegrees),
                     endAngle: .degrees(startAngleDegrees + sweepAngleDegrees * clamped),
                     clockwise: false
@@ -48,7 +45,6 @@ struct SemicircularArcGauge: View {
             }
             .stroke(liveColor, style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round))
         }
-        .aspectRatio(1.4, contentMode: .fit)
     }
 
     private static func lerpColor(_ a: Color, _ b: Color, _ t: Double) -> Color {

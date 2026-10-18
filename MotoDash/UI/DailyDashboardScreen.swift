@@ -18,20 +18,39 @@ struct DailyDashboardScreen: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing: 0) {
+            VStack(spacing: 4) {
                 HStack {
+                    Text("DAILY // COMMUTER")
+                        .foregroundColor(.dashCyan)
+                        .font(DashFont.shareTechMono(12))
+                        .tracking(2)
                     Spacer()
                     TimelineView(.periodic(from: .now, by: 1)) { context in
                         Text(Self.clockString(from: context.date))
                             .foregroundColor(.white)
-                            .font(DashFont.shareTechMono(16))
+                            .font(DashFont.shareTechMono(15))
                     }
                     Button(action: onGearClick) {
-                        Text("\u{2699}").foregroundColor(.dashDim).font(.system(size: 18))
+                        HStack(spacing: 5) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 13, weight: .bold))
+                            Text("CÀI ĐẶT")
+                                .font(DashFont.shareTechMono(12))
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(.dashCyan)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(Color.dashCyan.opacity(0.14))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dashCyan.opacity(0.6), lineWidth: 1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .contentShape(Rectangle())
                     }
-                    .padding(.leading, 12)
+                    .buttonStyle(.plain)
+                    .padding(.leading, 8)
                 }
-                .padding(12)
+                .padding(.horizontal, 12)
+                .padding(.top, 4)
 
                 if state.isTripRecording {
                     TripRecordingBar(stats: state.liveTripStats)
@@ -39,24 +58,25 @@ struct DailyDashboardScreen: View {
 
                 ZStack {
                     SemicircularArcGauge(ratio: rpmRatio)
+                        .frame(maxWidth: 280, maxHeight: 170)
                     VStack(spacing: 2) {
                         Text(UnitConversions.speedText(state.reading.speed, unitSpeed: state.settings.unitSpeed))
                             .foregroundColor(.white)
-                            .font(DashFont.rajdhani(56, weight: .semibold))
+                            .font(DashFont.rajdhani(54, weight: .semibold))
+                            .minimumScaleFactor(0.6)
                         Text(UnitConversions.speedUnitLabel(state.settings.unitSpeed))
                             .foregroundColor(.dashDim)
                             .font(DashFont.shareTechMono(12))
                         Text("\(state.reading.rpm ?? 0) RPM")
-                            .foregroundColor(.dashDim)
+                            .foregroundColor(.dashCyan)
                             .font(DashFont.shareTechMono(12))
-                            .padding(.top, 4)
+                            .padding(.top, 2)
                     }
                 }
-                .padding(24)
-                .frame(maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 HStack(spacing: 8) {
-                    LcdCell(label: "TRIP", value: state.isTripRecording ? "\u{25CF} REC" : "\u{25B6}")
+                    LcdCell(label: "TRIP", value: state.isTripRecording ? "● REC" : "▶ BẮT ĐẦU")
                         .onTapGesture {
                             if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
                         }
@@ -67,33 +87,17 @@ struct DailyDashboardScreen: View {
                         value: state.reading.ect.map { UnitConversions.tempText($0, unitTemp: state.settings.unitTemp) + UnitConversions.tempUnitLabel(state.settings.unitTemp) } ?? "--"
                     )
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 6)
             }
-
-            VStack {
-                Spacer()
-                HStack {
-                    MusicWidget(reader: mediaSessionReader)
-                    Spacer()
-                }
-            }
-            .padding(16)
-
-            VStack {
-                HStack {
-                    Spacer()
-                    SpeedLimitBadge(speedLimitKmh: state.speedLimitKmh, currentSpeed: state.reading.speed, enabled: state.settings.speedWarnEnabled)
-                }
-                Spacer()
-            }
-            .padding(.top, 60)
-            .padding(.trailing, 16)
+            .padding(.vertical, 6)
+            .padding(.horizontal, 8)
 
             ShiftFlashOverlay(rpm: state.reading.rpm, threshold: state.settings.shiftRpmThreshold)
         }
         .background(
             RadialGradient(colors: [Color(argb: 0xFF061924), Color(argb: 0xFF02080D)], center: .center, startRadius: 0, endRadius: 500)
+                .ignoresSafeArea()
         )
         .onChange(of: state.savedTripId) { newValue in
             if let id = newValue { onTripSaved(id) }
@@ -112,14 +116,15 @@ private struct LcdCell: View {
     let value: String
 
     var body: some View {
-        VStack {
-            Text(value).foregroundColor(.white).font(DashFont.shareTechMono(14))
+        VStack(spacing: 2) {
+            Text(value).foregroundColor(.white).font(DashFont.shareTechMono(13))
             Text(label).foregroundColor(.dashDim).font(DashFont.shareTechMono(9))
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
         .padding(.horizontal, 6)
-        .background(Color.white.opacity(0.04))
+        .background(Color.white.opacity(0.05))
         .clipShape(RoundedRectangle(cornerRadius: 6))
+        .contentShape(Rectangle())
     }
 }

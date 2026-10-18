@@ -1,10 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// Custom 56-segment trapezoid tachometer, a faithful port of the Kotlin
-/// source's ui/components/TachometerGauge.kt (itself a port of race.html's
-/// hand-built SVG gauge) -- not a generic arc, the curved baseline and
-/// per-segment growing stroke width are the point of the design.
 struct TachometerGauge: View {
     let rpm: Int?
 
@@ -27,8 +23,8 @@ struct TachometerGauge: View {
             let litCount = bootDone ? realLitCount : Int(bootProgress.rounded())
             drawGauge(context: context, size: size, litCount: litCount)
         }
-        .aspectRatio(viewW / viewH, contentMode: .fit)
         .frame(maxWidth: .infinity)
+        .frame(height: 62)
         .task { await runBootAnimation() }
     }
 
@@ -38,8 +34,6 @@ struct TachometerGauge: View {
         return min(max(Int((ratio * Double(segments)).rounded()), 0), segments)
     }
 
-    // Boot sweep-in/hold/sweep-out, matching race.html's load animation, before
-    // settling into real RPM-driven rendering.
     private func runBootAnimation() async {
         let sweepInSteps = 30
         for i in 0...sweepInSteps {
@@ -56,8 +50,6 @@ struct TachometerGauge: View {
         bootDone = true
     }
 
-    // Curve baseline read directly from race.html's curveY(x): flat at 68 below
-    // x=90, flat at 28 above x=330, linear ramp between.
     private func curveY(_ x: CGFloat) -> CGFloat {
         if x <= 90 { return 68 }
         if x >= 330 { return 28 }
@@ -109,7 +101,7 @@ struct TachometerGauge: View {
             let y = curveY(x) - 12
             let labelColor: Color = stepValue >= 12 ? .dashRed : Color(argb: 0xFF888888)
             let text = Text("\(stepValue)")
-                .font(.system(size: 8 * scaleY))
+                .font(.system(size: max(9, 9 * scaleY)))
                 .foregroundColor(labelColor)
             context.draw(text, at: CGPoint(x: x * scaleX, y: y * scaleY), anchor: .center)
         }

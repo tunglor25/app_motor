@@ -5,16 +5,16 @@ struct SpeedReadout: View {
     var unitSpeed: String = "kmh"
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: 8) {
+        HStack(alignment: .lastTextBaseline, spacing: 6) {
             Text(UnitConversions.speedText(speed, unitSpeed: unitSpeed))
                 .foregroundColor(.white)
-                .font(DashFont.shareTechMono(96))
-                .textGlow(Color.white.opacity(0.5), radius: 30)
+                .font(DashFont.shareTechMono(72))
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
+                .textGlow(Color.white.opacity(0.5), radius: 20)
             Text(UnitConversions.speedUnitLabel(unitSpeed))
                 .foregroundColor(.dashDim)
-                .font(DashFont.shareTechMono(20))
-                .padding(.bottom, 16)
+                .font(DashFont.shareTechMono(18))
         }
-        .padding(.vertical, 8)
     }
 }

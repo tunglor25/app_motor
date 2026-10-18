@@ -17,8 +17,7 @@ struct SuperbikeDashboardScreen: View {
         let rpm = r.rpm ?? 0
         let rpmRatio = min(max(Double(rpm) / 12000.0, 0), 1)
         ZStack {
-            VStack(spacing: 8) {
-                // Top Shift-Light LED Strip
+            VStack(spacing: 6) {
                 HStack(spacing: 4) {
                     ForEach(0..<16, id: \.self) { i in
                         let active = Double(i) / 16.0 < rpmRatio
@@ -28,15 +27,28 @@ struct SuperbikeDashboardScreen: View {
                             .frame(height: 12)
                     }
                     Button(action: onGearClick) {
-                        Text("⚙").foregroundColor(.white).font(.system(size: 18))
+                        HStack(spacing: 5) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 13, weight: .bold))
+                            Text("CÀI ĐẶT")
+                                .font(DashFont.shareTechMono(12))
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(ducatiRed.opacity(0.25))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(ducatiRed, lineWidth: 1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                     .padding(.leading, 8)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
+                .padding(.horizontal, 12)
+                .padding(.top, 4)
 
-                HStack(spacing: 14) {
-                    // Left Track Telemetry Box
+                HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("TRACK TELEMETRY")
                             .foregroundColor(ducatiRed)
@@ -48,12 +60,11 @@ struct SuperbikeDashboardScreen: View {
                         SbRow(label: "LOAD", value: r.engineLoad.map { "\($0)%" } ?? "--")
                     }
                     .padding(10)
-                    .frame(width: 155)
+                    .frame(width: 150)
                     .background(Color.dashCardBackground)
                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.dashCardBorder, lineWidth: 1))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                    // Center CVT Ratio / Speed
                     VStack(spacing: 2) {
                         Text("CVT DRIVE")
                             .foregroundColor(trackAmber)
@@ -61,7 +72,9 @@ struct SuperbikeDashboardScreen: View {
                             .tracking(2)
                         Text(UnitConversions.speedText(r.speed, unitSpeed: state.settings.unitSpeed))
                             .foregroundColor(.white)
-                            .font(DashFont.rajdhani(94, weight: .bold))
+                            .font(DashFont.rajdhani(76, weight: .bold))
+                            .minimumScaleFactor(0.5)
+                            .lineLimit(1)
                             .textGlow(ducatiRed, radius: 14)
                         Text(UnitConversions.speedUnitLabel(state.settings.unitSpeed))
                             .foregroundColor(.dashTextSecondary)
@@ -69,7 +82,6 @@ struct SuperbikeDashboardScreen: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                    // Right Engine Vitals Box
                     VStack(alignment: .leading, spacing: 6) {
                         Text("ENGINE VITALS")
                             .foregroundColor(trackAmber)
@@ -81,19 +93,21 @@ struct SuperbikeDashboardScreen: View {
                         SbRow(label: "INJ", value: r.injectorTi.map { String(format: "%.1fms", Double($0) / 1000.0) } ?? "--")
                     }
                     .padding(10)
-                    .frame(width: 155)
+                    .frame(width: 150)
                     .background(Color.dashCardBackground)
                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.dashCardBorder, lineWidth: 1))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 12)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 6)
                 .frame(maxHeight: .infinity)
             }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 8)
 
             ShiftFlashOverlay(rpm: r.rpm, threshold: state.settings.shiftRpmThreshold)
         }
-        .background(Color(argb: 0xFF08080A))
+        .background(Color(argb: 0xFF08080A).ignoresSafeArea())
         .onChange(of: state.savedTripId) { newValue in
             if let id = newValue { onTripSaved(id) }
         }
@@ -108,7 +122,7 @@ private struct SbRow: View {
         HStack {
             Text(label).foregroundColor(.dashTextSecondary).font(DashFont.shareTechMono(11))
             Spacer()
-            Text(value).foregroundColor(.white).font(DashFont.shareTechMono(14)).fontWeight(.bold)
+            Text(value).foregroundColor(.white).font(DashFont.shareTechMono(13)).fontWeight(.bold)
         }
     }
 }

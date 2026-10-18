@@ -18,8 +18,7 @@ struct CyberDashboardScreen: View {
         let rpm = r.rpm ?? 0
         let ratio = min(max(Double(rpm) / 12000.0, 0), 1)
         ZStack {
-            VStack(spacing: 8) {
-                // Header
+            VStack(spacing: 6) {
                 HStack {
                     Text("CYBER // AB-2077")
                         .foregroundColor(cyberYellow)
@@ -27,54 +26,71 @@ struct CyberDashboardScreen: View {
                         .tracking(2)
                         .fontWeight(.bold)
                     Spacer()
-                    Text(r.ecuConnected ? "K-LINE LOCKED" : "SCANNING LINK")
-                        .foregroundColor(r.ecuConnected ? neonCyan : neonMagenta)
-                        .font(DashFont.shareTechMono(11))
-                        .onTapGesture(perform: onConnectClick)
-                    Button(action: onGearClick) {
-                        Text("⚙").foregroundColor(neonCyan).font(.system(size: 18))
+                    Button(action: onConnectClick) {
+                        Text(r.ecuConnected ? "K-LINE LOCKED" : "SCANNING LINK")
+                            .foregroundColor(r.ecuConnected ? neonCyan : neonMagenta)
+                            .font(DashFont.shareTechMono(11))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
                     }
-                    .padding(.leading, 10)
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
+                    .buttonStyle(.plain)
 
-                // Segmented Cyber RPM Bar
+                    Button(action: onGearClick) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 13, weight: .bold))
+                            Text("CÀI ĐẶT")
+                                .font(DashFont.shareTechMono(12))
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(neonCyan)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(neonCyan.opacity(0.14))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(neonCyan.opacity(0.6), lineWidth: 1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, 6)
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 4)
+
                 HStack(spacing: 3) {
                     ForEach(0..<30, id: \.self) { i in
                         let active = Double(i) / 30.0 < ratio
                         let segColor: Color = i >= 24 ? neonMagenta : (i >= 18 ? cyberYellow : neonCyan)
                         Rectangle()
                             .fill(active ? segColor : Color.white.opacity(0.08))
-                            .frame(height: 18)
+                            .frame(height: 14)
                     }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 12)
 
-                HStack(spacing: 16) {
-                    // Left telemetry column
-                    VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 6) {
                         CyberHudBox(label: "RPM", value: "\(rpm)", accent: neonCyan)
                         CyberHudBox(label: "TPS THROTTLE", value: r.tps.map { "\($0)%" } ?? "--", accent: cyberYellow)
                         CyberHudBox(label: "IGN TIMING", value: r.ignitionTiming.map { "\($0)°" } ?? "--", accent: neonMagenta)
                     }
-                    .frame(width: 140)
+                    .frame(width: 135)
 
-                    // Center giant speed readout
                     VStack(spacing: 0) {
                         Text(UnitConversions.speedText(r.speed, unitSpeed: state.settings.unitSpeed))
                             .foregroundColor(neonCyan)
-                            .font(DashFont.rajdhani(96, weight: .bold))
-                            .textGlow(neonCyan, radius: 16)
+                            .font(DashFont.rajdhani(76, weight: .bold))
+                            .minimumScaleFactor(0.5)
+                            .lineLimit(1)
+                            .textGlow(neonCyan, radius: 14)
                         Text(UnitConversions.speedUnitLabel(state.settings.unitSpeed) + " · NIGHT CITY")
                             .foregroundColor(neonMagenta)
-                            .font(DashFont.shareTechMono(13))
-                            .tracking(3)
+                            .font(DashFont.shareTechMono(12))
+                            .tracking(2)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                    // Right telemetry column
-                    VStack(alignment: .trailing, spacing: 8) {
+                    VStack(alignment: .trailing, spacing: 6) {
                         CyberHudBox(
                             label: "COOLANT ECT",
                             value: r.ect.map { UnitConversions.tempText($0, unitTemp: state.settings.unitTemp) + UnitConversions.tempUnitLabel(state.settings.unitTemp) } ?? "--",
@@ -83,34 +99,41 @@ struct CyberDashboardScreen: View {
                         CyberHudBox(label: "BATTERY", value: r.battery.map { String(format: "%.1fV", $0) } ?? "--", accent: cyberYellow)
                         CyberHudBox(label: "INJECTOR Ti", value: r.injectorTi.map { String(format: "%.1fms", Double($0) / 1000.0) } ?? "--", accent: neonCyan)
                     }
-                    .frame(width: 140)
+                    .frame(width: 135)
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 12)
                 .frame(maxHeight: .infinity)
 
                 HStack {
-                    Text(state.isTripRecording ? "● REC TRIP (\(String(format: "%.1f km", state.tripKm)))" : "▶ START TRIP (\(String(format: "%.1f km", state.tripKm)))")
-                        .foregroundColor(cyberYellow)
-                        .font(DashFont.shareTechMono(12))
-                        .onTapGesture {
-                            if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
-                        }
+                    Button(action: {
+                        if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
+                    }) {
+                        Text(state.isTripRecording ? "● REC TRIP (\(String(format: "%.1f km", state.tripKm)))" : "▶ START TRIP (\(String(format: "%.1f km", state.tripKm)))")
+                            .foregroundColor(cyberYellow)
+                            .font(DashFont.shareTechMono(11))
+                            .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+
                     Spacer()
                     if r.sideStandDown {
                         Text("⚠ SIDE STAND DOWN")
                             .foregroundColor(neonMagenta)
-                            .font(DashFont.shareTechMono(12))
+                            .font(DashFont.shareTechMono(11))
                             .fontWeight(.bold)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 10)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 4)
             }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 8)
 
             ShiftFlashOverlay(rpm: r.rpm, threshold: state.settings.shiftRpmThreshold)
         }
         .background(
             LinearGradient(colors: [Color(argb: 0xFF090014), Color(argb: 0xFF020008)], startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea()
         )
         .onChange(of: state.savedTripId) { newValue in
             if let id = newValue { onTripSaved(id) }
@@ -131,12 +154,12 @@ private struct CyberHudBox: View {
                 .tracking(1)
             Text(value)
                 .foregroundColor(.white)
-                .font(DashFont.shareTechMono(18))
+                .font(DashFont.shareTechMono(15))
                 .fontWeight(.bold)
-                .textGlow(accent, radius: 6)
+                .textGlow(accent, radius: 4)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(8)
+        .padding(6)
         .background(Color.white.opacity(0.03))
         .overlay(RoundedRectangle(cornerRadius: 6).stroke(accent.opacity(0.5), lineWidth: 1))
     }

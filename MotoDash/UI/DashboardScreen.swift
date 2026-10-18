@@ -14,25 +14,21 @@ struct DashboardScreen: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing: 0) {
+            VStack(spacing: 2) {
                 TopBar(lapText: state.lapText, tripKm: state.tripKm, onGearClick: onGearClick)
                 TachometerGauge(rpm: state.reading.rpm)
                     .padding(.horizontal, 12)
                 ConnectionStatusRow(connectionState: state.connectionState, onConnectClick: onConnectClick)
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 2)
                 if state.isTripRecording {
                     TripRecordingBar(stats: state.liveTripStats)
                 }
-                VStack {
-                    Spacer()
-                    SpeedReadout(speed: state.reading.speed, unitSpeed: state.settings.unitSpeed)
-                    Spacer()
-                }
-                .frame(maxHeight: .infinity)
-                .padding(.horizontal, 16)
-                VitalsRow(tps: state.reading.tps, battery: state.reading.battery, ect: state.reading.ect, unitTemp: state.settings.unitTemp)
+                Spacer(minLength: 0)
+                SpeedReadout(speed: state.reading.speed, unitSpeed: state.settings.unitSpeed)
                     .padding(.horizontal, 16)
+                Spacer(minLength: 0)
+                VitalsRow(tps: state.reading.tps, battery: state.reading.battery, ect: state.reading.ect, unitTemp: state.settings.unitTemp)
+                    .padding(.horizontal, 12)
                 ButtonRow(
                     lapRunning: state.lapRunning,
                     isTripRecording: state.isTripRecording,
@@ -40,33 +36,29 @@ struct DashboardScreen: View {
                     onTripShortClick: onTripShortClick,
                     onTripLongPress: onTripLongPress,
                     onSetShortClick: onSetShortClick,
-                    onSetLongPress: onSetLongPress
+                    onSetLongPress: onSetLongPress,
+                    onGearClick: onGearClick
                 )
             }
-
-            VStack {
-                Spacer()
-                HStack {
-                    MusicWidget(reader: mediaSessionReader)
-                    Spacer()
-                }
+            .padding(.top, 8)
+            .padding(.bottom, 10)
+            .padding(.horizontal, 10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay(alignment: .bottomLeading) {
+                MusicWidget(reader: mediaSessionReader)
+                    .padding(12)
             }
-            .padding(16)
-
-            VStack {
-                HStack {
-                    Spacer()
-                    SpeedLimitBadge(speedLimitKmh: state.speedLimitKmh, currentSpeed: state.reading.speed, enabled: state.settings.speedWarnEnabled)
-                }
-                Spacer()
+            .overlay(alignment: .topTrailing) {
+                SpeedLimitBadge(speedLimitKmh: state.speedLimitKmh, currentSpeed: state.reading.speed, enabled: state.settings.speedWarnEnabled)
+                    .padding(.top, 52)
+                    .padding(.trailing, 16)
+                    .allowsHitTesting(false)
             }
-            .padding(.top, 92)
-            .padding(.trailing, 16)
 
             ShiftFlashOverlay(rpm: state.reading.rpm, threshold: state.settings.shiftRpmThreshold)
 
             if state.resetFlash {
-                Color.white.opacity(0.5).ignoresSafeArea()
+                Color.white.opacity(0.5).ignoresSafeArea().allowsHitTesting(false)
             }
         }
         .dashboardBackground()
@@ -82,22 +74,28 @@ private struct ConnectionStatusRow: View {
 
     private var labelAndColor: (String, Color) {
         switch connectionState {
-        case .idle: return ("Cham de ket noi ECU", .dashDim)
-        case .scanning: return ("Dang tim ECU...", .dashAmber)
-        case .connecting: return ("Dang ket noi...", .dashAmber)
-        case .connected: return ("Da ket noi", .dashGreen)
-        case .disconnected: return ("Mat ket noi -- dang tu ket noi lai", .dashRed)
-        case .error(let message): return ("Loi: \(message)", .dashRed)
+        case .idle: return ("▶ Chạm để kết nối ECU", .dashCyan)
+        case .scanning: return ("Đang tìm ECU...", .dashAmber)
+        case .connecting: return ("Đang kết nối...", .dashAmber)
+        case .connected: return ("✓ Đã kết nối BLE", .dashGreen)
+        case .disconnected: return ("Mất kết nối -- đang tự kết nối lại", .dashRed)
+        case .error(let message): return ("Lỗi: \(message) (Chạm thử lại)", .dashRed)
         }
     }
 
     var body: some View {
         let (label, color) = labelAndColor
-        Text(label)
-            .foregroundColor(color)
-            .font(DashFont.shareTechMono(11))
-            .tracking(1)
-            .textGlow(color, radius: 8)
-            .onTapGesture(perform: onConnectClick)
+        Button(action: onConnectClick) {
+            Text(label)
+                .foregroundColor(color)
+                .font(DashFont.shareTechMono(11))
+                .tracking(1)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 3)
+                .background(color.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }

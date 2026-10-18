@@ -32,7 +32,6 @@ struct ContentView: View {
                     .toolbar(.hidden, for: .navigationBar)
             }
         }
-        .statusBar(hidden: viewModel.state.settings.fullscreen)
         .onAppear {
             notificationAccessGranted = mediaSessionReader.isAuthorized()
             if viewModel.state.settings.autoConnect {
@@ -149,80 +148,82 @@ private struct DashboardContainerView: View {
     let onTripSaved: (String) -> Void
 
     var body: some View {
-        switch state.settings.theme {
-        case "cyber":
-            CyberDashboardScreen(
-                state: state,
-                mediaSessionReader: mediaSessionReader,
-                onConnectClick: onConnectClick,
-                onGearClick: onGearClick,
-                onTripShortClick: onTripShortClick,
-                onTripLongPress: onTripLongPress,
-                onTripSaved: onTripSaved
-            )
-        case "airblade":
-            AirBladeDashboardScreen(
-                state: state,
-                mediaSessionReader: mediaSessionReader,
-                onConnectClick: onConnectClick,
-                onGearClick: onGearClick,
-                onTripShortClick: onTripShortClick,
-                onTripLongPress: onTripLongPress,
-                onTripSaved: onTripSaved
-            )
-        case "superbike":
-            SuperbikeDashboardScreen(
-                state: state,
-                mediaSessionReader: mediaSessionReader,
-                onConnectClick: onConnectClick,
-                onGearClick: onGearClick,
-                onTripShortClick: onTripShortClick,
-                onTripLongPress: onTripLongPress,
-                onTripSaved: onTripSaved
-            )
-        case "daily":
-            DailyDashboardScreen(
-                state: state,
-                mediaSessionReader: mediaSessionReader,
-                onConnectClick: onConnectClick,
-                onGearClick: onGearClick,
-                onTripShortClick: onTripShortClick,
-                onTripLongPress: onTripLongPress,
-                onTripSaved: onTripSaved
-            )
-        case "classic":
-            ClassicDashboardScreen(
-                state: state,
-                mediaSessionReader: mediaSessionReader,
-                onConnectClick: onConnectClick,
-                onGearClick: onGearClick,
-                onTripShortClick: onTripShortClick,
-                onTripLongPress: onTripLongPress,
-                onTripSaved: onTripSaved
-            )
-        case "crazy":
-            CrazyDashboardScreen(
-                state: state,
-                mediaSessionReader: mediaSessionReader,
-                onConnectClick: onConnectClick,
-                onGearClick: onGearClick,
-                onTripShortClick: onTripShortClick,
-                onTripLongPress: onTripLongPress,
-                onTripSaved: onTripSaved
-            )
-        default:
-            DashboardScreen(
-                state: state,
-                mediaSessionReader: mediaSessionReader,
-                onSelClick: onSelClick,
-                onConnectClick: onConnectClick,
-                onGearClick: onGearClick,
-                onTripShortClick: onTripShortClick,
-                onTripLongPress: onTripLongPress,
-                onSetShortClick: onSetShortClick,
-                onSetLongPress: onSetLongPress,
-                onTripSaved: onTripSaved
-            )
+        Group {
+            switch state.settings.theme {
+            case "cyber":
+                CyberDashboardScreen(
+                    state: state,
+                    mediaSessionReader: mediaSessionReader,
+                    onConnectClick: onConnectClick,
+                    onGearClick: onGearClick,
+                    onTripShortClick: onTripShortClick,
+                    onTripLongPress: onTripLongPress,
+                    onTripSaved: onTripSaved
+                )
+            case "airblade":
+                AirBladeDashboardScreen(
+                    state: state,
+                    mediaSessionReader: mediaSessionReader,
+                    onConnectClick: onConnectClick,
+                    onGearClick: onGearClick,
+                    onTripShortClick: onTripShortClick,
+                    onTripLongPress: onTripLongPress,
+                    onTripSaved: onTripSaved
+                )
+            case "superbike":
+                SuperbikeDashboardScreen(
+                    state: state,
+                    mediaSessionReader: mediaSessionReader,
+                    onConnectClick: onConnectClick,
+                    onGearClick: onGearClick,
+                    onTripShortClick: onTripShortClick,
+                    onTripLongPress: onTripLongPress,
+                    onTripSaved: onTripSaved
+                )
+            case "daily":
+                DailyDashboardScreen(
+                    state: state,
+                    mediaSessionReader: mediaSessionReader,
+                    onConnectClick: onConnectClick,
+                    onGearClick: onGearClick,
+                    onTripShortClick: onTripShortClick,
+                    onTripLongPress: onTripLongPress,
+                    onTripSaved: onTripSaved
+                )
+            case "classic":
+                ClassicDashboardScreen(
+                    state: state,
+                    mediaSessionReader: mediaSessionReader,
+                    onConnectClick: onConnectClick,
+                    onGearClick: onGearClick,
+                    onTripShortClick: onTripShortClick,
+                    onTripLongPress: onTripLongPress,
+                    onTripSaved: onTripSaved
+                )
+            case "crazy":
+                CrazyDashboardScreen(
+                    state: state,
+                    mediaSessionReader: mediaSessionReader,
+                    onConnectClick: onConnectClick,
+                    onGearClick: onGearClick,
+                    onTripShortClick: onTripShortClick,
+                    onTripLongPress: onTripLongPress,
+                    onTripSaved: onTripSaved
+                )
+            default:
+                DashboardScreen(
+                    state: state,
+                    mediaSessionReader: mediaSessionReader,
+                    onSelClick: onSelClick,
+                    onConnectClick: onConnectClick,
+                    onGearClick: onGearClick,
+                    onTripShortClick: onTripShortClick,
+                    onTripLongPress: onTripLongPress,
+                    onSetShortClick: onSetShortClick,
+                    onSetLongPress: onSetLongPress,
+                    onTripSaved: onTripSaved
+                )
+            }
         }
     }
 }

@@ -17,32 +17,48 @@ struct CrazyDashboardScreen: View {
         let rpm = r.rpm ?? 0
         let rpmRatio = min(max(Double(rpm) / 12000.0, 0), 1)
         ZStack {
-            VStack(spacing: 8) {
+            VStack(spacing: 6) {
                 HStack {
                     Text("🔥 NITRO OVERDRIVE // STAGE 3")
                         .foregroundColor(nitroOrange)
-                        .font(DashFont.shareTechMono(13))
+                        .font(DashFont.shareTechMono(12))
                         .fontWeight(.bold)
                         .tracking(2)
                     Spacer()
                     Button(action: onGearClick) {
-                        Text("⚙").foregroundColor(nitroLime).font(.system(size: 18))
+                        HStack(spacing: 5) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 13, weight: .bold))
+                            Text("CÀI ĐẶT")
+                                .font(DashFont.shareTechMono(12))
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(nitroLime)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(nitroLime.opacity(0.14))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(nitroLime.opacity(0.6), lineWidth: 1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
+                .padding(.horizontal, 12)
+                .padding(.top, 4)
 
                 HStack(spacing: 16) {
                     ZStack {
                         SemicircularArcGauge(ratio: rpmRatio)
+                            .frame(maxWidth: 260, maxHeight: 165)
                         VStack(spacing: 2) {
                             Text(UnitConversions.speedText(r.speed, unitSpeed: state.settings.unitSpeed))
                                 .foregroundColor(nitroLime)
-                                .font(DashFont.rajdhani(76, weight: .bold))
+                                .font(DashFont.rajdhani(64, weight: .bold))
+                                .minimumScaleFactor(0.5)
                                 .textGlow(nitroLime, radius: 14)
                             Text("\(rpm) RPM")
                                 .foregroundColor(nitroOrange)
-                                .font(DashFont.shareTechMono(15))
+                                .font(DashFont.shareTechMono(14))
                                 .fontWeight(.bold)
                         }
                     }
@@ -62,16 +78,19 @@ struct CrazyDashboardScreen: View {
                                 .font(DashFont.shareTechMono(12))
                         }
                     }
-                    .frame(width: 200)
+                    .frame(width: 190)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 12)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 6)
             }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 8)
 
             ShiftFlashOverlay(rpm: r.rpm, threshold: state.settings.shiftRpmThreshold)
         }
         .background(
             RadialGradient(colors: [Color(argb: 0xFF1F0800), Color(argb: 0xFF050200)], center: .center, startRadius: 0, endRadius: 500)
+                .ignoresSafeArea()
         )
         .onChange(of: state.savedTripId) { newValue in
             if let id = newValue { onTripSaved(id) }

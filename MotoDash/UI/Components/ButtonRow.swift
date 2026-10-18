@@ -1,8 +1,5 @@
 import SwiftUI
 
-// Matches race.html exactly: SEL and SET both short-click-toggle the lap timer;
-// TRIP short-click starts GPS recording, a 1.5s hold while recording stops+saves it;
-// SET's 1.2s hold resets the lap timer + trip odometer.
 struct ButtonRow: View {
     let lapRunning: Bool
     let isTripRecording: Bool
@@ -11,11 +8,12 @@ struct ButtonRow: View {
     let onTripLongPress: () -> Void
     let onSetShortClick: () -> Void
     let onSetLongPress: () -> Void
+    var onGearClick: (() -> Void)? = nil
 
     var body: some View {
-        HStack {
+        HStack(spacing: 10) {
             DashButton(
-                label: isTripRecording ? "\u{25CF} REC" : "TRIP",
+                label: isTripRecording ? "● REC" : "TRIP",
                 highlighted: isTripRecording,
                 highlightColor: .dashRed,
                 longPressSeconds: 1.5,
@@ -40,9 +38,33 @@ struct ButtonRow: View {
                 onShortClick: onSetShortClick,
                 onLongPress: onSetLongPress
             )
+            if let onGearClick {
+                Spacer()
+                Button(action: onGearClick) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 12, weight: .bold))
+                        Text("MENU")
+                            .font(DashFont.shareTechMono(12))
+                            .fontWeight(.bold)
+                            .tracking(1)
+                    }
+                    .foregroundColor(.dashCyan)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Color(argb: 0xFF111111))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.dashCyan.opacity(0.6), lineWidth: 1)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 12)
+        .padding(.vertical, 4)
     }
 }
 
@@ -50,8 +72,6 @@ private struct DashButton: View {
     let label: String
     let highlighted: Bool
     let highlightColor: Color
-    /// nil disables long-press handling entirely (matches the Kotlin source's SEL
-    /// button, which passes Long.MAX_VALUE as its threshold).
     let longPressSeconds: Double?
     let onShortClick: () -> Void
     let onLongPress: () -> Void
@@ -62,17 +82,18 @@ private struct DashButton: View {
     var body: some View {
         Text(label)
             .font(DashFont.shareTechMono(12))
-            .tracking(3)
+            .tracking(2)
             .foregroundColor(highlighted ? highlightColor : .white)
             .modifier(ConditionalGlow(active: highlighted, color: highlightColor))
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 8)
             .background(Color(argb: 0xFF111111))
             .overlay(
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: 6)
                     .stroke(highlighted ? highlightColor : Color(argb: 0xFF333333), lineWidth: 1)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { _ in
