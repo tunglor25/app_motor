@@ -271,16 +271,17 @@ private struct GeneralTab: View {
                 }
             }
 
-            SectionTitle("GIAO DIỆN ĐỒNG HỒ (7 THEMES)")
+            SectionTitle("GIAO DIỆN ĐỒNG HỒ (8 THEMES)")
             GroupCard {
                 VStack(spacing: 8) {
                     HStack(spacing: 8) {
+                        ThemeChip(label: "📱 STEALTH DỌC", value: "portrait", current: settings.theme, onSelect: onSetTheme)
                         ThemeChip(label: "RACE", value: "sport", current: settings.theme, onSelect: onSetTheme)
                         ThemeChip(label: "CYBER", value: "cyber", current: settings.theme, onSelect: onSetTheme)
                         ThemeChip(label: "AIRBLADE", value: "airblade", current: settings.theme, onSelect: onSetTheme)
-                        ThemeChip(label: "SUPERBIKE", value: "superbike", current: settings.theme, onSelect: onSetTheme)
                     }
                     HStack(spacing: 8) {
+                        ThemeChip(label: "SUPERBIKE", value: "superbike", current: settings.theme, onSelect: onSetTheme)
                         ThemeChip(label: "DAILY", value: "daily", current: settings.theme, onSelect: onSetTheme)
                         ThemeChip(label: "CLASSIC", value: "classic", current: settings.theme, onSelect: onSetTheme)
                         ThemeChip(label: "NITRO", value: "crazy", current: settings.theme, onSelect: onSetTheme)
@@ -438,7 +439,7 @@ private struct SoundTab: View {
                 .padding(12)
             }
 
-            SectionTitle("GIỌNG CẢNH BÁO QUÊN TẮT KHÓA (SAU 3 PHÚT)")
+            SectionTitle("GIỌNG CẢNH BÁO QUÊN TẮT KHÓA (CHỐNG BÁO NHẦM 5 LỚP)")
             GroupCard {
                 VStack(alignment: .leading, spacing: 8) {
                     SoundTrackCard(
@@ -458,6 +459,14 @@ private struct SoundTab: View {
                         onClick: { onSelectWarnTrack(4, "#11 Cảnh báo Tiếng Nhật") }
                     )
                     SoundTrackCard(
+                        badge: "🔔 LỊCH SỰ",
+                        title: "Chỉ Bíp Còi \"Tít-Tít\" (Như Khóa Smartkey Zin)",
+                        subtitle: "Chỉ kêu 2 tiếng bíp nhẹ 45ms như Smartkey Honda zin, tắt giọng nói loa",
+                        selected: settings.soundIgnitionWarn && selectedWarnTrack == 5,
+                        accent: .dashCyan,
+                        onClick: { onSelectWarnTrack(5, "🔔 Chỉ Bíp Còi Smartkey") }
+                    )
+                    SoundTrackCard(
                         badge: "🔇 TẮT NHẮC",
                         title: "Tắt Hẳn Cảnh Báo Quên Tắt Khóa (Im Lặng)",
                         subtitle: "Không phát giọng nhắc & không hú còi HXD khi dừng xe",
@@ -468,6 +477,9 @@ private struct SoundTab: View {
                 }
                 .padding(12)
             }
+
+            SectionTitle("🧪 BỘ GIẢ LẬP TRỰC TIẾP: 5 LỚP CHỐNG BÁO NHẦM QUÊN TẮT KHÓA")
+            SmartIgnitionSimulatorCardIOS(selectedWarnIdx: selectedWarnTrack, soundEnabled: settings.soundIgnitionWarn)
 
             SectionTitle("ÂM LƯỢNG LOA MAX98357A (ĐÃ LƯU BỘ NHỚ APP)")
             GroupCard {
@@ -959,6 +971,143 @@ private struct StepperButton: View {
         }
         .frame(width: 30, height: 30)
         .contentShape(Circle())
+        .onTapGesture(perform: onClick)
+    }
+}
+
+private struct SmartIgnitionSimulatorCardIOS: View {
+    let selectedWarnIdx: Int
+    let soundEnabled: Bool
+
+    @State private var simScenario: Int = 0
+    @State private var simEct: Int = 88
+    @State private var simTps: Int = 0
+    @State private var simBatt: String = "12.60V"
+    @State private var simBle: String = "ĐÃ KẾT NỐI"
+    @State private var statusTitle: String = "SẴN SÀNG GIẢ LẬP 5 LỚP BẢO VỆ TRÊN MẠCH ESP32-S3"
+    @State private var statusDetail: String = "Chọn 1 trong 4 kịch bản thực tế bên dưới để xem mạch xử lý chống báo nhầm trực tiếp:"
+    @State private var statusColor: Color = .dashCyan
+
+    var body: some View {
+        GroupCard {
+            VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(statusTitle)
+                        .foregroundColor(statusColor)
+                        .font(DashFont.shareTechMono(13))
+                        .fontWeight(.bold)
+                    Text(statusDetail)
+                        .foregroundColor(.white)
+                        .font(DashFont.shareTechMono(11))
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(statusColor.opacity(0.14))
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(statusColor, lineWidth: 1))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                HStack(spacing: 6) {
+                    SimBadgeIOS(label: "ECT (0x05)", value: "\(simEct)°C", accent: simEct >= 55 ? .dashGreen : .dashCyan)
+                    SimBadgeIOS(label: "TPS (0x11)", value: "\(simTps)%", accent: simTps >= 3 ? .dashGreen : .dashTextSecondary)
+                    SimBadgeIOS(label: "BATT (0x42)", value: simBatt, accent: .dashAmber)
+                    SimBadgeIOS(label: "BLE APP", value: simBle, accent: simBle.hasPrefix("MẤT") ? .dashRed : .dashCyan)
+                }
+
+                HStack(spacing: 8) {
+                    SimButtonIOS(title: "🚦 1. Đèn Đỏ Idling Stop", subtitle: "Máy nóng 88°C -> Khóa 5p", active: simScenario == 1, color: .dashGreen) {
+                        simScenario = 1
+                        simEct = 88
+                        simTps = 0
+                        simBatt = "12.55V"
+                        simBle = "KHÔNG CẦN APP"
+                        statusColor = .dashGreen
+                        statusTitle = "🚦 ĐÈN ĐỎ IDLING STOP: IM LẶNG TUYỆT ĐỐI (KHÓA 5 PHÚT)"
+                        statusDetail = "K-Line phát hiện xe vừa chạy nóng máy (ECT = 88°C ≥ 55°C) rồi về RPM = 0. Mạch tự động tăng ngưỡng chờ lên 5 PHÚT — đứng đèn đỏ lâu cỡ nào cũng KHÔNG BAO GIỜ KÊU!"
+                    }
+                    SimButtonIOS(title: "🛒 2. Ngồi Đợi Mua Đồ", subtitle: "Bóp phanh 0x42 -> Reset 0s", active: simScenario == 2, color: .dashCyan) {
+                        simScenario = 2
+                        simEct = 62
+                        simTps = 0
+                        simBatt = "12.32V (Δ0.28V)"
+                        simBle = "KHÔNG MỞ APP"
+                        statusColor = .dashGreen
+                        statusTitle = "✅ ĐÃ BÓP PHANH (PID 0x42 SỤT ÁP 0.28V) -> RESET VỀ 0 GIÂY!"
+                        statusDetail = "Chỉ cần bóp nhẹ phanh hoặc bật xi-nhan, ECU báo điện áp PID 0x42 lệch ≥ 0.08V -> Mạch biết có người trên xe và RESET bộ đếm về 0s!"
+                    }
+                }
+
+                HStack(spacing: 8) {
+                    SimButtonIOS(title: "🚶 3. Bỏ Đi Quên Khóa", subtitle: "Mất BLE >45s -> Báo động!", active: simScenario == 3, color: .dashRed) {
+                        simScenario = 3
+                        simEct = 46
+                        simTps = 0
+                        simBatt = "12.58V (Đứng im)"
+                        simBle = "MẤT KẾT NỐI (>45s)"
+                        if !soundEnabled || selectedWarnIdx == 255 {
+                            statusColor = .dashTextSecondary
+                            statusTitle = "🔇 ĐANG TẮT CẢNH BÁO QUÊN KHÓA (IM LẶNG)"
+                            statusDetail = "Đã hết giờ nhưng bạn đang chọn Tắt cảnh báo nên loa & còi giữ im lặng."
+                        } else if selectedWarnIdx == 5 {
+                            statusColor = .dashCyan
+                            statusTitle = "🔔 PHÁT CẢNH BÁO LỊCH SỰ: CÒI 'TÍT - TÍT' NHƯ SMARTKEY ZIN!"
+                            statusDetail = "Kêu đúng 2 tiếng 'Tít-Tít' (45ms) lịch sự như khóa Smartkey Honda zin, KHÔNG phát giọng nói ra loa."
+                        } else {
+                            statusColor = .dashRed
+                            let voiceName = selectedWarnIdx == 4 ? "Bản #11 Tiếng Nhật" : "Bản #9 Tiếng Việt"
+                            statusTitle = "🚨 BÁO ĐỘNG QUÊN TẮT KHÓA (\(voiceName) + CÒI HXD x3)!"
+                            statusDetail = "Trước đó 10s đã kêu 1 tiếng 'Tít' nhỏ 28ms dò hỏi. Sau đó phát '\(voiceName)' nhắc tối đa 2 lần rồi tự ngắt bảo vệ bình."
+                        }
+                    }
+                    SimButtonIOS(title: "🤏 4. Nhích Nhẹ Tay Ga", subtitle: "TPS 18% -> Tắt loa & Snooze", active: simScenario == 4, color: .dashAmber) {
+                        simScenario = 4
+                        simTps = 18
+                        statusColor = .dashGreen
+                        statusTitle = "🤫 ĐÃ NHÍCH NHẸ TAY GA (TPS 0x11 = 18%) -> CÂM LOA & SNOOZE NGAY!"
+                        statusDetail = "Dù loa đang kêu hay sắp kêu, chỉ cần vặn nhẹ tay ga (TPS tăng ≥ 3%), mạch lập tức NGẮT I2S DMA CÂM LOA TỨC THÌ và khóa mõm (Snooze)!"
+                    }
+                }
+            }
+            .padding(12)
+        }
+    }
+}
+
+private struct SimBadgeIOS: View {
+    let label: String
+    let value: String
+    let accent: Color
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(label).foregroundColor(.dashTextSecondary).font(DashFont.shareTechMono(9))
+            Text(value).foregroundColor(accent).font(DashFont.shareTechMono(11)).fontWeight(.bold)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
+        .background(Color.white.opacity(0.04))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dashCardBorder, lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct SimButtonIOS: View {
+    let title: String
+    let subtitle: String
+    let active: Bool
+    let color: Color
+    let onClick: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).foregroundColor(active ? color : .white).font(DashFont.shareTechMono(11)).fontWeight(.bold)
+            Text(subtitle).foregroundColor(.dashTextSecondary).font(DashFont.shareTechMono(10))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(active ? color.opacity(0.18) : Color.white.opacity(0.04))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(active ? color : Color.dashCardBorder, lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .contentShape(Rectangle())
         .onTapGesture(perform: onClick)
     }
 }

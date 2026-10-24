@@ -17,6 +17,9 @@ struct ContentView: View {
                 onSelClick: viewModel.toggleLapTimer,
                 onConnectClick: startConnectFlow,
                 onGearClick: { path.append(.settings) },
+                onLogsClick: { path.append(.logs) },
+                onDiagnosticsClick: { path.append(.diagnostics) },
+                onSetDemoMode: viewModel.setDemoMode,
                 onTripShortClick: viewModel.startTripRecording,
                 onTripLongPress: viewModel.stopTripRecordingAndSave,
                 onSetShortClick: viewModel.toggleLapTimer,
@@ -143,6 +146,9 @@ private struct DashboardContainerView: View {
     let onSelClick: () -> Void
     let onConnectClick: () -> Void
     let onGearClick: () -> Void
+    var onLogsClick: () -> Void = {}
+    var onDiagnosticsClick: () -> Void = {}
+    var onSetDemoMode: (Bool) -> Void = { _ in }
     let onTripShortClick: () -> Void
     let onTripLongPress: () -> Void
     let onSetShortClick: () -> Void
@@ -152,6 +158,16 @@ private struct DashboardContainerView: View {
     var body: some View {
         Group {
             switch state.settings.theme {
+            case "portrait":
+                StealthPortraitDashboardScreen(
+                    state: state,
+                    onConnectClick: onConnectClick,
+                    onGearClick: onGearClick,
+                    onLogsClick: onLogsClick,
+                    onDiagnosticsClick: onDiagnosticsClick,
+                    onSetDemoMode: onSetDemoMode,
+                    onTripSaved: onTripSaved
+                )
             case "cyber":
                 CyberDashboardScreen(
                     state: state,

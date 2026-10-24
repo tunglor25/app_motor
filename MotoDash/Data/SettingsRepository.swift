@@ -41,7 +41,7 @@ final class SettingsRepository: ObservableObject {
         let rawBleName = defaults.string(forKey: Keys.bleDeviceName) ?? "HONDA AB125 Lor"
         let bleName = (rawBleName.isEmpty || rawBleName == "Honda_AB2025_Dash") ? "HONDA AB125 Lor" : rawBleName
         return AppSettings(
-            theme: defaults.string(forKey: Keys.theme) ?? "sport",
+            theme: defaults.string(forKey: Keys.theme) ?? "portrait",
             unitSpeed: defaults.string(forKey: Keys.unitSpeed) ?? "kmh",
             unitTemp: defaults.string(forKey: Keys.unitTemp) ?? "c",
             speedWarnEnabled: defaults.bool(forKey: Keys.speedWarnEnabled),

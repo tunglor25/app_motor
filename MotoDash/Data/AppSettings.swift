@@ -2,7 +2,7 @@ import Foundation
 
 /// Mirrors the exact keys/defaults read by the Kotlin source's data/AppSettings.kt
 struct AppSettings: Equatable {
-    var theme: String = "sport" // sport|cyber|airblade|superbike|daily|classic|crazy
+    var theme: String = "portrait" // portrait|sport|cyber|airblade|superbike|daily|classic|crazy
     var unitSpeed: String = "kmh" // kmh|mph
     var unitTemp: String = "c" // c|f
     var speedWarnEnabled: Bool = false
