@@ -20,7 +20,12 @@ struct ContentView: View {
                 onLogsClick: { path.append(.logs) },
                 onDiagnosticsClick: { path.append(.diagnostics) },
                 onTripHistoryClick: { path.append(.tripHistory) },
+                onDragClick: { path.append(.drag) },
                 onSetDemoMode: viewModel.setDemoMode,
+                onClearDtc: viewModel.clearDtc,
+                onTriggerC4: viewModel.triggerC4Mode,
+                onSetUnitSpeed: viewModel.setUnitSpeed,
+                onSetUnitTemp: viewModel.setUnitTemp,
                 onTripShortClick: viewModel.startTripRecording,
                 onTripLongPress: viewModel.stopTripRecordingAndSave,
                 onSetShortClick: viewModel.toggleLapTimer,
@@ -150,7 +155,12 @@ private struct DashboardContainerView: View {
     var onLogsClick: () -> Void = {}
     var onDiagnosticsClick: () -> Void = {}
     var onTripHistoryClick: () -> Void = {}
+    var onDragClick: () -> Void = {}
     var onSetDemoMode: (Bool) -> Void = { _ in }
+    var onClearDtc: () -> Void = {}
+    var onTriggerC4: () -> Void = {}
+    var onSetUnitSpeed: (String) -> Void = { _ in }
+    var onSetUnitTemp: (String) -> Void = { _ in }
     let onTripShortClick: () -> Void
     let onTripLongPress: () -> Void
     let onSetShortClick: () -> Void
@@ -160,17 +170,23 @@ private struct DashboardContainerView: View {
     var body: some View {
         Group {
             switch state.settings.theme {
-            case "portrait":
+            case "portrait", "landscape":
                 StealthPortraitDashboardScreen(
                     state: state,
+                    initialMode: state.settings.theme == "landscape" ? "landscape" : "portrait",
                     onConnectClick: onConnectClick,
                     onGearClick: onGearClick,
                     onLogsClick: onLogsClick,
                     onDiagnosticsClick: onDiagnosticsClick,
                     onTripHistoryClick: onTripHistoryClick,
+                    onDragClick: onDragClick,
                     onTripShortClick: onTripShortClick,
                     onTripLongPress: onTripLongPress,
                     onSetDemoMode: onSetDemoMode,
+                    onClearDtc: onClearDtc,
+                    onTriggerC4: onTriggerC4,
+                    onSetUnitSpeed: onSetUnitSpeed,
+                    onSetUnitTemp: onSetUnitTemp,
                     onTripSaved: onTripSaved
                 )
             case "cyber":

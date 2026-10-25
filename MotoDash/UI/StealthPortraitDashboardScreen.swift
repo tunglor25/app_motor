@@ -3,31 +3,43 @@ import WebKit
 
 struct StealthPortraitDashboardScreen: View {
     let state: DashboardUiState
+    var initialMode: String = "portrait"
     let onConnectClick: () -> Void
     let onGearClick: () -> Void
     var onLogsClick: () -> Void = {}
     var onDiagnosticsClick: () -> Void = {}
     var onTripHistoryClick: () -> Void = {}
+    var onDragClick: () -> Void = {}
     var onTripShortClick: () -> Void = {}
     var onTripLongPress: () -> Void = {}
     var onSetDemoMode: (Bool) -> Void = { _ in }
+    var onClearDtc: () -> Void = {}
+    var onTriggerC4: () -> Void = {}
+    var onSetUnitSpeed: (String) -> Void = { _ in }
+    var onSetUnitTemp: (String) -> Void = { _ in }
     let onTripSaved: (String) -> Void
 
     var body: some View {
         ZStack {
-            Color(red: 2.0 / 255.0, green: 3.0 / 255.0, blue: 6.0 / 255.0)
+            Color(red: 7.0 / 255.0, green: 8.0 / 255.0, blue: 11.0 / 255.0)
                 .ignoresSafeArea()
 
             StealthPortraitWebView(
                 state: state,
+                initialMode: initialMode,
                 onConnectClick: onConnectClick,
                 onGearClick: onGearClick,
                 onLogsClick: onLogsClick,
                 onDiagnosticsClick: onDiagnosticsClick,
                 onTripHistoryClick: onTripHistoryClick,
+                onDragClick: onDragClick,
                 onTripShortClick: onTripShortClick,
                 onTripLongPress: onTripLongPress,
-                onSetDemoMode: onSetDemoMode
+                onSetDemoMode: onSetDemoMode,
+                onClearDtc: onClearDtc,
+                onTriggerC4: onTriggerC4,
+                onSetUnitSpeed: onSetUnitSpeed,
+                onSetUnitTemp: onSetUnitTemp
             )
             .ignoresSafeArea()
 
@@ -43,14 +55,20 @@ struct StealthPortraitDashboardScreen: View {
 
 private struct StealthPortraitWebView: UIViewRepresentable {
     let state: DashboardUiState
+    let initialMode: String
     let onConnectClick: () -> Void
     let onGearClick: () -> Void
     let onLogsClick: () -> Void
     let onDiagnosticsClick: () -> Void
     let onTripHistoryClick: () -> Void
+    let onDragClick: () -> Void
     let onTripShortClick: () -> Void
     let onTripLongPress: () -> Void
     let onSetDemoMode: (Bool) -> Void
+    let onClearDtc: () -> Void
+    let onTriggerC4: () -> Void
+    let onSetUnitSpeed: (String) -> Void
+    let onSetUnitTemp: (String) -> Void
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -78,11 +96,29 @@ private struct StealthPortraitWebView: UIViewRepresentable {
           openTripHistory: function() {
             window.webkit.messageHandlers.iosDash.postMessage({ action: 'openTripHistory' });
           },
+          openDrag: function() {
+            window.webkit.messageHandlers.iosDash.postMessage({ action: 'openDrag' });
+          },
           toggleTrip: function() {
             window.webkit.messageHandlers.iosDash.postMessage({ action: 'toggleTrip' });
           },
           setDemoMode: function(enabled) {
             window.webkit.messageHandlers.iosDash.postMessage({ action: 'setDemoMode', value: Boolean(enabled) });
+          },
+          clearDtc: function() {
+            window.webkit.messageHandlers.iosDash.postMessage({ action: 'clearDtc' });
+          },
+          triggerC4: function() {
+            window.webkit.messageHandlers.iosDash.postMessage({ action: 'triggerC4' });
+          },
+          setUnitSpeed: function(unit) {
+            window.webkit.messageHandlers.iosDash.postMessage({ action: 'setUnitSpeed', value: String(unit) });
+          },
+          setUnitTemp: function(unit) {
+            window.webkit.messageHandlers.iosDash.postMessage({ action: 'setUnitTemp', value: String(unit) });
+          },
+          setOrientationMode: function(mode) {
+            window.webkit.messageHandlers.iosDash.postMessage({ action: 'setOrientationMode', value: String(mode) });
           }
         };
         """
@@ -92,36 +128,47 @@ private struct StealthPortraitWebView: UIViewRepresentable {
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
-        webView.backgroundColor = UIColor(red: 2.0 / 255.0, green: 3.0 / 255.0, blue: 6.0 / 255.0, alpha: 1.0)
+        webView.backgroundColor = UIColor(red: 7.0 / 255.0, green: 8.0 / 255.0, blue: 11.0 / 255.0, alpha: 1.0)
         webView.scrollView.backgroundColor = webView.backgroundColor
         webView.scrollView.bounces = false
         webView.scrollView.showsVerticalScrollIndicator = false
         webView.scrollView.showsHorizontalScrollIndicator = false
         webView.navigationDelegate = context.coordinator
 
-        if let htmlUrl = Bundle.main.url(forResource: "portrait", withExtension: "html") {
+        let resName = (initialMode == "landscape") ? "landscape" : "portrait"
+        if let htmlUrl = Bundle.main.url(forResource: resName, withExtension: "html") {
             webView.loadFileURL(htmlUrl, allowingReadAccessTo: htmlUrl.deletingLastPathComponent())
+        } else if let fallbackUrl = Bundle.main.url(forResource: "portrait", withExtension: "html") {
+            webView.loadFileURL(fallbackUrl, allowingReadAccessTo: fallbackUrl.deletingLastPathComponent())
         }
 
         return webView
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
+        let modeChanged = (context.coordinator.lastOrientMode != initialMode)
         context.coordinator.parent = self
         guard context.coordinator.pageLoaded else { return }
+        if modeChanged {
+            context.coordinator.lastOrientMode = initialMode
+            webView.evaluateJavaScript("window.setOrientPreference && window.setOrientPreference('\(initialMode)');", completionHandler: nil)
+        }
         context.coordinator.pushTelemetry(to: webView, state: state)
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         var parent: StealthPortraitWebView
         var pageLoaded = false
+        var lastOrientMode = ""
 
         init(parent: StealthPortraitWebView) {
             self.parent = parent
+            self.lastOrientMode = parent.initialMode
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             pageLoaded = true
+            webView.evaluateJavaScript("window.setOrientPreference && window.setOrientPreference('\(parent.initialMode)');", completionHandler: nil)
             pushTelemetry(to: webView, state: parent.state)
         }
 
@@ -140,6 +187,8 @@ private struct StealthPortraitWebView: UIViewRepresentable {
                     self.parent.onDiagnosticsClick()
                 case "openTripHistory":
                     self.parent.onTripHistoryClick()
+                case "openDrag":
+                    self.parent.onDragClick()
                 case "toggleTrip":
                     if self.parent.state.isTripRecording {
                         self.parent.onTripLongPress()
@@ -149,6 +198,18 @@ private struct StealthPortraitWebView: UIViewRepresentable {
                 case "setDemoMode":
                     if let val = dict["value"] as? Bool {
                         self.parent.onSetDemoMode(val)
+                    }
+                case "clearDtc":
+                    self.parent.onClearDtc()
+                case "triggerC4":
+                    self.parent.onTriggerC4()
+                case "setUnitSpeed":
+                    if let val = dict["value"] as? String {
+                        self.parent.onSetUnitSpeed(val)
+                    }
+                case "setUnitTemp":
+                    if let val = dict["value"] as? String {
+                        self.parent.onSetUnitTemp(val)
                     }
                 default:
                     break

@@ -1,0 +1,2996 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#07080b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<title>AIR BLADE 125 // 2025 SPECIAL ECU DASHBOARD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,500;0,600;0,700;0,800;1,700&family=Orbitron:ital,wght@0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Rajdhani:ital,wght@0,600;0,700;1,700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-deep: #07080b;
+    --bg-panel: #0e1016;
+    --bg-card: linear-gradient(145deg, rgba(24, 27, 35, 0.96) 0%, rgba(12, 14, 19, 0.99) 100%);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-highlight: rgba(255, 255, 255, 0.14);
+    --red-primary: #e6192e;
+    --red-bright: #ff253a;
+    --red-glow: rgba(255, 37, 58, 0.6);
+    --green-bright: #22c55e;
+    --amber-warn: #f59e0b;
+    --text-white: #f8fafc;
+    --text-silver: #94a3b8;
+    --text-muted: #64748b;
+    --m-cyan: #00b4d8;
+    --m-blue: #1d4ed8;
+    --m-red: #e6192e;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-deep);
+    color: var(--text-white);
+    font-family: 'Be Vietnam Pro', 'Rajdhani', sans-serif;
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ================= ROOT DASHBOARD SHELL ================= */
+  #app-shell {
+    position: relative;
+    width: 100vw;
+    height: 100dvh;
+    background:
+      radial-gradient(circle at 50% 25%, rgba(230, 25, 46, 0.09) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 0%, #151821 0%, #090b0f 65%, #050608 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+
+  /* Shift-Light Flash Overlay when RPM exceeds threshold */
+  #shiftFlashOverlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 90;
+    background: radial-gradient(circle, transparent 40%, rgba(255, 20, 40, 0.45) 100%);
+    border: 3px solid rgba(255, 37, 58, 0.85);
+    opacity: 0;
+    transition: opacity 0.08s ease;
+  }
+  #shiftFlashOverlay.flashing {
+    animation: shiftBlink 0.16s infinite alternate;
+  }
+  @keyframes shiftBlink {
+    0% { opacity: 0.1; }
+    100% { opacity: 0.9; }
+  }
+
+  /* ================= 1. TOP HEADER BAR ================= */
+  .top-header {
+    position: relative;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: max(env(safe-area-inset-top, 6px), 6px) 14px 8px;
+    flex-shrink: 0;
+  }
+
+  .header-deco-line {
+    position: absolute;
+    bottom: 0;
+    left: 10px;
+    right: 10px;
+    height: 6px;
+    pointer-events: none;
+  }
+
+  .brand-block {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+  }
+
+  .brand-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(16px, 4.4vw, 21px);
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: 1.5px;
+    color: #ffffff;
+    line-height: 1.02;
+    text-shadow: 0 2px 12px rgba(255, 255, 255, 0.18);
+  }
+
+  .brand-sub {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 1px;
+  }
+
+  .brand-125 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(12px, 3.3vw, 15px);
+    font-weight: 900;
+    font-style: italic;
+    color: var(--red-bright);
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 10px rgba(230, 25, 46, 0.55);
+  }
+
+  .brand-special {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(10px, 2.5vw, 11.5px);
+    font-weight: 700;
+    color: var(--text-silver);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ECU Connected Status Capsule */
+  .ecu-status-box {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(14, 18, 25, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 7px;
+    padding: 4px 9px;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 3px 10px rgba(0, 0, 0, 0.6);
+    transition: transform 0.15s ease;
+  }
+  .ecu-status-box:active {
+    transform: scale(0.96);
+  }
+
+  .ecu-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green-bright);
+    box-shadow: 0 0 8px var(--green-bright);
+    flex-shrink: 0;
+    animation: ecuPulse 2s infinite ease-in-out;
+  }
+  @keyframes ecuPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.88); }
+  }
+
+  .ecu-text-col {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.12;
+  }
+
+  .ecu-status-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--green-bright);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+
+  .ecu-status-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    color: var(--text-silver);
+    letter-spacing: 0.4px;
+  }
+
+  /* Honda Wing Emblem (Tap to cycle Portrait/Landscape) */
+  .honda-wing-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 30px;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .honda-wing-box:active {
+    transform: scale(0.9);
+  }
+  .honda-wing-box svg {
+    width: 34px;
+    height: 26px;
+  }
+
+  /* ================= 2. MAIN COCKPIT STAGE (TAB 1: TỔNG QUAN) ================= */
+  .cockpit-main {
+    position: relative;
+    z-index: 10;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2px 12px 6px;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* -------- GAUGE CLUSTER SECTION -------- */
+  .gauge-cluster-area {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Side Vertical Bars (Left: TPS Ga / Right: ECT Nhiệt độ) */
+  .side-bar-gauge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 32px;
+    height: clamp(155px, 22vh, 190px);
+    padding: 6px 4px;
+    background: linear-gradient(180deg, rgba(20, 24, 33, 0.92) 0%, rgba(9, 11, 16, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 10px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.85), 0 4px 12px rgba(0, 0, 0, 0.55);
+    position: relative;
+  }
+
+  .side-bar-lbl {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9.5px;
+    font-weight: 800;
+    font-style: italic;
+    color: var(--text-white);
+    letter-spacing: -0.3px;
+  }
+  .side-bar-lbl.red {
+    color: var(--red-bright);
+    text-shadow: 0 0 6px var(--red-glow);
+  }
+
+  .side-bar-track {
+    position: relative;
+    width: 7px;
+    flex: 1;
+    margin: 4px 0;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .side-bar-fill-tps {
+    width: 100%;
+    height: 72%;
+    background: linear-gradient(180deg, var(--red-bright) 0%, #ffffff 35%, #cbd5e1 100%);
+    border-radius: 3px;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+    transition: height 0.12s ease;
+  }
+
+  .side-bar-fill-temp {
+    width: 100%;
+    height: 62%;
+    background: linear-gradient(180deg, var(--red-bright) 0%, #f8fafc 35%, #cbd5e1 78%, var(--red-bright) 100%);
+    border-radius: 3px;
+    transition: height 0.3s ease;
+  }
+
+  .side-mid-icon {
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    transform: translate(-50%, -50%);
+    width: 18px;
+    height: 18px;
+    background: #0b0e14;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    color: #f8fafc;
+  }
+  .side-mid-icon svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  /* -------- CENTER CIRCULAR TACHOMETER DIAL -------- */
+  .dial-center-wrap {
+    position: relative;
+    width: clamp(210px, 58vw, 258px);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 6px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+
+  #tachSvg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.9));
+  }
+
+  /* Hide Landscape bottom cluster plate when in Portrait mode */
+  #dialBottomClusterPlate {
+    display: none;
+  }
+
+  /* High-speed rumble animation on dial */
+  @keyframes dialRumbleLight {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-0.6px, 0.5px); }
+    50% { transform: translate(0.6px, -0.5px); }
+    75% { transform: translate(-0.5px, -0.5px); }
+  }
+  @keyframes dialRumbleHeavy {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    20% { transform: translate(-1.3px, 1px) rotate(-0.28deg); }
+    40% { transform: translate(1.3px, -1.1px) rotate(0.28deg); }
+    60% { transform: translate(-1.1px, -0.8px) rotate(-0.2deg); }
+    80% { transform: translate(1.1px, 0.9px) rotate(0.2deg); }
+  }
+  .rumble-light { animation: dialRumbleLight 0.12s infinite; }
+  .rumble-heavy { animation: dialRumbleHeavy 0.08s infinite; }
+
+  /* -------- PORTRAIT SPEED POD (Overlapping bottom of dial) -------- */
+  .portrait-speed-wings {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: -42px;
+    margin-bottom: 2px;
+    z-index: 15;
+    flex-shrink: 0;
+  }
+
+  .portrait-speed-pod {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 32px 5px;
+    background: linear-gradient(180deg, rgba(19, 22, 30, 0.98) 0%, rgba(8, 10, 14, 1) 100%);
+    clip-path: polygon(15% 0%, 85% 0%, 100% 72%, 88% 100%, 12% 100%, 0% 72%);
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.95);
+    min-width: 198px;
+    cursor: pointer;
+    touch-action: none;
+  }
+
+  .portrait-speed-wings::before,
+  .portrait-speed-wings::after {
+    content: '';
+    position: absolute;
+    bottom: 20px;
+    width: 58px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--red-bright));
+    box-shadow: 0 0 8px var(--red-bright);
+    pointer-events: none;
+  }
+  .portrait-speed-wings::before {
+    left: calc(50% - 148px);
+    transform: skewY(18deg);
+  }
+  .portrait-speed-wings::after {
+    right: calc(50% - 148px);
+    background: linear-gradient(270deg, transparent, var(--red-bright));
+    transform: skewY(-18deg);
+  }
+
+  .speed-digits {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(36px, 9.8vw, 45px);
+    font-weight: 900;
+    font-style: italic;
+    line-height: 0.92;
+    color: #ffffff;
+    letter-spacing: -1px;
+    text-shadow: 0 2px 16px rgba(255, 255, 255, 0.25);
+  }
+
+  .speed-unit {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    font-style: italic;
+    color: #e2e8f0;
+    margin-top: 2px;
+    letter-spacing: 1px;
+  }
+
+  .sport-mode-lbl {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    font-weight: 900;
+    font-style: italic;
+    color: var(--red-bright);
+    letter-spacing: 2px;
+    margin-top: 3px;
+    text-shadow: 0 0 10px var(--red-glow);
+    cursor: pointer;
+  }
+
+  /* ///M Badge */
+  .m-badge-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    margin-top: 2px;
+    padding: 1px 6px;
+  }
+  .m-stripe {
+    width: 4.5px;
+    height: 9px;
+    transform: skewX(-22deg);
+  }
+  .m-stripe.c1 { background: var(--m-cyan); }
+  .m-stripe.c2 { background: var(--m-blue); }
+  .m-stripe.c3 { background: var(--m-red); }
+  .m-letter {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10.5px;
+    font-weight: 900;
+    font-style: italic;
+    color: #ffffff;
+    margin-left: 3px;
+    letter-spacing: 0.5px;
+  }
+
+  /* -------- LANDSCAPE SPECIFIC ELEMENTS (Hidden in Portrait) -------- */
+  .landscape-speed-col,
+  .landscape-trip-left,
+  .landscape-odo-center {
+    display: none;
+  }
+
+  /* ================= 3. TELEMETRY SENSOR CARDS ================= */
+  .telemetry-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    justify-content: center;
+    min-height: 0;
+  }
+
+  /* 2x3 Grid for ECT, IAT, TPS, MAP, O2, BAT */
+  .sensor-grid-6 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .sensor-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-top-color: var(--border-highlight);
+    border-radius: 10px;
+    padding: 7px 11px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sensor-icon-wrap {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #cbd5e1;
+  }
+  .sensor-icon-wrap.red-icon {
+    color: var(--red-bright);
+    background: rgba(230, 25, 46, 0.12);
+    border-color: rgba(230, 25, 46, 0.28);
+  }
+  .sensor-icon-wrap svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .sensor-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sensor-lbl {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-silver);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+
+  .sensor-val-row {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    margin-top: 1px;
+  }
+
+  .sensor-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(17px, 4.5vw, 21px);
+    font-weight: 800;
+    font-style: italic;
+    color: #ffffff;
+    line-height: 1.05;
+  }
+
+  .sensor-unit {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #cbd5e1;
+  }
+
+  /* Bottom 3-Card Row (RPM, LOAD, IGN) */
+  .sensor-grid-bottom {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr 0.9fr;
+    gap: 6px;
+  }
+
+  .sensor-card.compact {
+    padding: 6px 9px;
+    gap: 7px;
+  }
+  .sensor-card.compact .sensor-icon-wrap {
+    width: 26px;
+    height: 26px;
+  }
+  .sensor-card.compact .sensor-val {
+    font-size: clamp(14px, 3.8vw, 17px);
+  }
+  .sensor-sub-tiny {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    color: var(--text-muted);
+    line-height: 1;
+    margin-top: 1px;
+  }
+  .ign-inline-badge {
+    display: none;
+  }
+
+  /* ================= 4. BOTTOM NAVIGATION BAR ================= */
+  .bottom-nav-bar {
+    position: relative;
+    z-index: 35;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: linear-gradient(180deg, rgba(16, 19, 26, 0.96) 0%, rgba(7, 8, 12, 1) 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    padding: 5px 8px max(env(safe-area-inset-bottom, 5px), 5px);
+    flex-shrink: 0;
+  }
+
+  .nav-tab-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 3px 0;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.15s ease;
+  }
+  .nav-tab-item:active {
+    transform: scale(0.93);
+  }
+  .nav-tab-item svg {
+    width: 19px;
+    height: 19px;
+    stroke: currentColor;
+    fill: none;
+    transition: filter 0.2s ease;
+  }
+  .nav-tab-lbl {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+  }
+
+  .nav-tab-item.active {
+    color: var(--red-bright);
+  }
+  .nav-tab-item.active svg {
+    filter: drop-shadow(0 0 8px var(--red-glow));
+  }
+  .nav-tab-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    width: 42px;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--red-bright);
+    box-shadow: 0 0 12px var(--red-bright);
+  }
+
+  /* ================= 5. SPA TAB PANELS (Thông số / Chẩn đoán / Cài đặt) ================= */
+  .spa-tab-panel {
+    position: absolute;
+    inset: 48px 0 48px 0;
+    z-index: 25;
+    background: radial-gradient(ellipse at 50% 0%, #151822 0%, #080a0e 85%);
+    padding: 12px 14px 18px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .spa-tab-panel.active {
+    display: flex;
+    animation: panelFadeIn 0.2s ease;
+  }
+  @keyframes panelFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    flex-shrink: 0;
+  }
+  .panel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    font-style: italic;
+    color: var(--red-bright);
+    letter-spacing: 1.2px;
+  }
+  .panel-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--green-bright);
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    padding: 2px 8px;
+    border-radius: 5px;
+  }
+
+  .sim-control-card {
+    background: rgba(20, 23, 31, 0.95);
+    border: 1px solid rgba(230, 25, 46, 0.35);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .sim-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #e2e8f0;
+  }
+  .sim-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 7px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #22c55e 0%, #f59e0b 55%, #ef4444 100%);
+    outline: none;
+  }
+  .sim-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid var(--red-bright);
+    box-shadow: 0 0 10px var(--red-bright);
+    cursor: pointer;
+  }
+  .sim-btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    flex: 1;
+    min-width: 90px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+  }
+  .action-btn:active {
+    transform: scale(0.96);
+  }
+  .action-btn.red {
+    background: linear-gradient(180deg, var(--red-bright) 0%, #b91c1c 100%);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 12px rgba(230, 25, 46, 0.4);
+  }
+  .action-btn.active {
+    background: rgba(34, 197, 94, 0.18);
+    border-color: var(--green-bright);
+    color: var(--green-bright);
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 8px;
+  }
+  .detail-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 9px;
+    padding: 8px 10px;
+  }
+  .detail-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-silver);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .detail-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    font-style: italic;
+    color: #ffffff;
+    margin-top: 3px;
+  }
+
+  .settings-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 10px;
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-name {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+  .setting-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+  .seg-group {
+    display: flex;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 7px;
+    overflow: hidden;
+  }
+  .seg-btn {
+    padding: 5px 10px;
+    background: transparent;
+    border: none;
+    color: var(--text-silver);
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 10.5px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .seg-btn.active {
+    background: var(--red-primary);
+    color: #ffffff;
+  }
+
+  .kline-terminal {
+    background: #040507;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10.5px;
+    color: #22c55e;
+    height: 110px;
+    overflow-y: auto;
+    line-height: 1.45;
+  }
+
+  /* =====================================================================
+     LANDSCAPE LAYOUT (MÀN NGANG - ZERO CLIPPING, FITS ALL PHONE HEIGHTS!)
+     ===================================================================== */
+  body.is-landscape .top-header {
+    padding: 4px 16px 6px;
+  }
+
+  body.is-landscape .cockpit-main {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 2px 16px 4px;
+    min-height: 0;
+  }
+
+  /* Left + Center Area in Landscape */
+  body.is-landscape .gauge-cluster-area {
+    flex: 1.25;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    padding: 0 2px;
+    min-height: 0;
+  }
+
+  /* Hide right H/C vertical bar in Landscape */
+  body.is-landscape #tempSideBar {
+    display: none;
+  }
+
+  /* Left column in Landscape: Vertical Bar + TRIP A below it */
+  body.is-landscape .left-fuel-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    height: 100%;
+    padding: 4px 0 2px;
+  }
+
+  body.is-landscape #tpsSideBar {
+    height: clamp(120px, 44vh, 165px);
+    width: 32px;
+    margin-left: 2px;
+  }
+
+  body.is-landscape .landscape-trip-left {
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
+    padding-left: 2px;
+  }
+
+  .trip-odo-lbl {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-silver);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+  .trip-odo-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(14px, 2.3vw, 18px);
+    font-weight: 800;
+    font-style: italic;
+    color: #ffffff;
+    line-height: 1.15;
+  }
+  .trip-odo-val small {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11.5px;
+    font-style: normal;
+    color: var(--text-silver);
+    margin-left: 3px;
+  }
+
+  /* Center Dial in Landscape */
+  body.is-landscape .dial-center-wrap {
+    width: clamp(180px, 64vh, 255px);
+    margin: 0 auto;
+  }
+
+  /* Show bottom TPS bar & ///M plate inside the dial in Landscape */
+  body.is-landscape #dialBottomClusterPlate {
+    display: block;
+  }
+
+  /* Hide Portrait overlapping speed pod in Landscape */
+  body.is-landscape .portrait-speed-wings {
+    display: none;
+  }
+
+  /* Show Landscape Speed + SPORT + ODO Column to the right of the Dial */
+  body.is-landscape .landscape-speed-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 105px;
+    height: 100%;
+    position: relative;
+    padding-right: 2px;
+  }
+
+  body.is-landscape .landscape-speed-readout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: auto;
+    margin-bottom: auto;
+    cursor: pointer;
+  }
+
+  body.is-landscape .landscape-speed-readout .speed-digits {
+    font-size: clamp(38px, 5.8vw, 50px);
+  }
+
+  body.is-landscape .landscape-sport-box {
+    margin-top: 5px;
+    padding: 2px 12px;
+    border-top: 1.5px solid rgba(230, 25, 46, 0.55);
+    border-bottom: 1.5px solid rgba(230, 25, 46, 0.55);
+    background: linear-gradient(90deg, transparent, rgba(230, 25, 46, 0.15), transparent);
+  }
+  body.is-landscape .landscape-sport-box .sport-mode-lbl {
+    margin-top: 0;
+    font-size: 10.5px;
+  }
+
+  body.is-landscape .landscape-odo-center {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: 100%;
+    margin-top: auto;
+    padding-bottom: 2px;
+  }
+
+  /* Right Telemetry Stack in Landscape (Compact so all 6 rows + 2 bottom cards NEVER clip!) */
+  body.is-landscape .telemetry-section {
+    flex: 0 0 clamp(235px, 34vw, 305px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 4px;
+    height: 100%;
+    min-height: 0;
+  }
+
+  body.is-landscape .sensor-grid-6 {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(6, 1fr);
+    gap: 3px;
+    background: rgba(12, 15, 21, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 9px;
+    padding: 4px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  body.is-landscape .sensor-grid-6 .sensor-card {
+    padding: 2px 9px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 0;
+  }
+
+  body.is-landscape .sensor-grid-6 .sensor-icon-wrap {
+    width: 21px;
+    height: 21px;
+    border-radius: 5px;
+  }
+  body.is-landscape .sensor-grid-6 .sensor-icon-wrap svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  body.is-landscape .sensor-grid-6 .sensor-info {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  body.is-landscape .sensor-grid-6 .sensor-val-row {
+    margin-top: 0;
+  }
+
+  body.is-landscape .sensor-grid-6 .sensor-val {
+    font-size: clamp(13.5px, 2vw, 16px);
+  }
+  body.is-landscape .sensor-grid-6 .sensor-unit {
+    font-size: 11.5px;
+  }
+
+  /* Bottom 2-Card Row in Landscape (RPM + LOAD/IGN combined, never clipped!) */
+  body.is-landscape .sensor-grid-bottom {
+    grid-template-columns: 1.05fr 1fr;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  body.is-landscape .sensor-card.compact {
+    padding: 4px 8px;
+    border-radius: 8px;
+  }
+  body.is-landscape .sensor-card.compact .sensor-icon-wrap {
+    width: 22px;
+    height: 22px;
+  }
+  body.is-landscape .sensor-card.compact .sensor-val {
+    font-size: clamp(13.5px, 2vw, 15.5px);
+  }
+  body.is-landscape #cardIgnStandalone {
+    display: none;
+  }
+  body.is-landscape .ign-inline-badge {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8.5px;
+    color: #cbd5e1;
+    margin-top: 1px;
+  }
+
+  body.is-landscape .bottom-nav-bar {
+    padding: 3px 20px max(env(safe-area-inset-bottom, 3px), 3px);
+  }
+</style>
+</head>
+
+<body>
+<div id="app-shell">
+  <!-- Shift Light Overlay -->
+  <div id="shiftFlashOverlay"></div>
+
+  <!-- ================= 1. TOP HEADER BAR ================= -->
+  <header class="top-header">
+    <div class="brand-block" onclick="toggleAudio()" title="Chạm để Bật/Tắt Âm thanh Pô">
+      <div class="brand-title">AIR BLADE</div>
+      <div class="brand-sub">
+        <span class="brand-125">125</span>
+        <span class="brand-special">2025 SPECIAL</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- ECU Connected Status Capsule -->
+      <div class="ecu-status-box" id="ecuStatusBox" onclick="connectBLE()" title="Kết nối Bluetooth ECU K-Line">
+        <span class="ecu-dot" id="ecuDot"></span>
+        <div class="ecu-text-col">
+          <span class="ecu-status-title" id="ecuStatusTitle" style="color:#ef4444;">BLE OFFLINE</span>
+          <span class="ecu-status-sub" id="ecuStatusSub">CHẠM ĐỂ KẾT NỐI</span>
+        </div>
+      </div>
+
+      <!-- Authentic Honda Wing Logo (Tap to switch Portrait / Landscape) -->
+      <div class="honda-wing-box" onclick="cycleOrientationMode()" title="Chạm để chuyển Màn Dọc / Màn Ngang">
+        <svg viewBox="0 0 64 48" fill="none">
+          <path d="M8 14 C18 13, 30 10, 48 4 C45 10, 39 14, 26 17 C36 16, 44 13, 55 9 C51 15, 43 19, 28 22 C37 21, 45 19, 53 16 C49 21, 41 24, 28 26 C35 26, 43 24, 49 22 C45 27, 37 29, 24 31 L16 31 C13 25, 10 19, 8 14 Z" fill="#e2e8f0"/>
+          <text x="32" y="42" text-anchor="middle" font-family="'Orbitron', sans-serif" font-size="8.5" font-weight="900" fill="#e2e8f0" letter-spacing="1.2">HONDA</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Sleek Red/Dark Angled Cockpit Line under Header -->
+    <svg class="header-deco-line" viewBox="0 0 400 8" preserveAspectRatio="none">
+      <path d="M 0 2 L 135 2 L 145 7 L 265 7 L 275 2 L 400 2" fill="none" stroke="rgba(230, 25, 46, 0.55)" stroke-width="1.5"/>
+    </svg>
+  </header>
+
+  <!-- ================= 2. MAIN COCKPIT STAGE (TAB 1: TỔNG QUAN) ================= -->
+  <main class="cockpit-main" id="mainOverviewStage">
+
+    <!-- -------- HERO GAUGE AREA (Dial + Side Bars + Landscape Speed/Trip) -------- -->
+    <section class="gauge-cluster-area">
+      <!-- Left Column: Live TPS Throttle Bar (100% Real ECU Data!) + Landscape TRIP A -->
+      <div class="left-fuel-column">
+        <div class="side-bar-gauge" id="tpsSideBar" title="Độ mở bướm ga TPS thực tế từ ECU">
+          <span class="side-bar-lbl">TPS</span>
+          <div class="side-bar-track">
+            <div class="side-bar-fill-tps" id="tpsVertBarFill" style="height: 0%;"></div>
+          </div>
+          <div class="side-mid-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          </div>
+          <span class="side-bar-lbl red">0%</span>
+        </div>
+
+        <div class="landscape-trip-left" onclick="resetTripA()" title="Chạm để Reset Trip A" style="cursor:pointer;">
+          <span class="trip-odo-lbl">TRIP A</span>
+          <span class="trip-odo-val"><span id="valTripLandscape">0.0</span><small>km</small></span>
+        </div>
+      </div>
+
+      <!-- Center Circular Tachometer with Angry/Wrinkled Character -->
+      <div class="dial-center-wrap" id="dialWrapper" title="Kéo lên/xuống trên đồng hồ để thử tốc độ & độ nhăn mặt!">
+        <svg id="tachSvg" viewBox="0 0 380 380">
+          <defs>
+            <radialGradient id="dialFaceGrad" cx="50%" cy="48%" r="52%">
+              <stop offset="0%" stop-color="#cbd5e1"/>
+              <stop offset="68%" stop-color="#f1f5f9"/>
+              <stop offset="92%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#94a3b8"/>
+            </radialGradient>
+
+            <radialGradient id="redlineBleedGrad" cx="88%" cy="56%" r="52%">
+              <stop offset="0%" stop-color="#ef4444" stop-opacity="0.62"/>
+              <stop offset="45%" stop-color="#ef4444" stop-opacity="0.24"/>
+              <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+            </radialGradient>
+
+            <radialGradient id="skinGrad" cx="50%" cy="44%" r="54%">
+              <stop offset="0%" stop-color="#f5c6a8"/>
+              <stop offset="75%" stop-color="#e7af8e"/>
+              <stop offset="100%" stop-color="#d49572"/>
+            </radialGradient>
+
+            <filter id="redNeedleGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#ff1e2d" flood-opacity="0.85"/>
+            </filter>
+
+            <clipPath id="innerDialClip">
+              <circle cx="190" cy="190" r="158"/>
+            </clipPath>
+          </defs>
+
+          <!-- 1. Outer Metallic Bezel & Segmented Ring -->
+          <circle cx="190" cy="190" r="176" fill="#090b10" stroke="#262b38" stroke-width="2.5"/>
+          <circle cx="190" cy="190" r="168" fill="#121620" stroke="#333a4b" stroke-width="1.5" stroke-dasharray="10 4"/>
+          <path d="M 296 66 A 164 164 0 0 1 304 308" fill="none" stroke="#ff1e2d" stroke-width="4" opacity="0.88" filter="url(#redNeedleGlow)"/>
+          <circle cx="190" cy="190" r="161" fill="#07090d" stroke="#1e2430" stroke-width="3"/>
+
+          <!-- 2. Inner Clipped Dial Face -->
+          <g clip-path="url(#innerDialClip)">
+            <circle cx="190" cy="190" r="158" fill="url(#dialFaceGrad)"/>
+            <circle cx="190" cy="190" r="158" fill="url(#redlineBleedGrad)" id="redlineGlowCircle"/>
+            <path id="redlineOuterArc" fill="none" stroke="#e6192e" stroke-width="12" opacity="0.88"/>
+
+            <!-- Dynamic Ticks & Numbers Group (0 to 9) -->
+            <g id="tachTicksGroup"></g>
+
+            <!-- x1000 RPM Label (Positioned cleanly at y=92 below 4 & 5 so it NEVER overlaps!) -->
+            <text x="190" y="92" text-anchor="middle" font-family="'Rajdhani', sans-serif" font-size="11.5" font-weight="800" fill="#334155" letter-spacing="0.8">x1000 RPM</text>
+
+            <!-- 3. SWEEPING RED TACHOMETER NEEDLE (Behind Character) -->
+            <g id="tachNeedleGroup" transform="rotate(230, 190, 190)" filter="url(#redNeedleGlow)">
+              <polygon points="190,26 184.5,190 195.5,190" fill="#dc2626"/>
+              <polygon points="190,26 188,190 192,190" fill="#ff5252"/>
+              <polygon points="186,190 187,220 193,220 194,190" fill="#1e293b"/>
+            </g>
+
+            <!-- 4. ANGRY / WRINKLED DRIVER CHARACTER (Shifted down 8px for clean headroom below x1000 RPM) -->
+            <g id="driverCharacterGroup" transform="translate(0, 8)">
+              <!-- High-speed wind lines around head -->
+              <g id="charWindLines" opacity="0.5">
+                <line x1="72" y1="158" x2="108" y2="160" stroke="#64748b" stroke-width="2" stroke-dasharray="8 4" stroke-linecap="round"/>
+                <line x1="66" y1="186" x2="102" y2="186" stroke="#64748b" stroke-width="2.5" stroke-dasharray="10 4" stroke-linecap="round"/>
+                <line x1="272" y1="158" x2="308" y2="160" stroke="#64748b" stroke-width="2" stroke-dasharray="8 4" stroke-linecap="round"/>
+                <line x1="278" y1="186" x2="314" y2="186" stroke="#64748b" stroke-width="2.5" stroke-dasharray="10 4" stroke-linecap="round"/>
+              </g>
+
+              <!-- Navy-Blue Sweatshirt / Shoulders -->
+              <path d="M 94 345 C 102 272, 136 250, 190 250 C 244 250, 278 272, 286 345 Z" fill="#27374d" stroke="#141c29" stroke-width="3.2" stroke-linejoin="round"/>
+              <path d="M 152 254 Q 190 276 228 254" fill="none" stroke="#141c29" stroke-width="3"/>
+              <path d="M 156 258 Q 190 280 224 258" fill="none" stroke="#1d2a3d" stroke-width="2"/>
+              <path d="M 122 286 Q 138 272 152 270" fill="none" stroke="#182232" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="M 258 286 Q 242 272 228 270" fill="none" stroke="#182232" stroke-width="2.4" stroke-linecap="round"/>
+
+              <!-- Neck -->
+              <path d="M 164 238 L 164 257 Q 190 272 216 257 L 216 238 Z" fill="#dca080" stroke="#18181b" stroke-width="2.8"/>
+
+              <!-- Left & Right Ears -->
+              <g id="charEars">
+                <ellipse cx="114" cy="196" rx="11" ry="15" fill="url(#skinGrad)" stroke="#18181b" stroke-width="3"/>
+                <path d="M 111 189 Q 117 196 111 203" fill="none" stroke="#8c5338" stroke-width="2.2" stroke-linecap="round"/>
+                <ellipse cx="266" cy="196" rx="11" ry="15" fill="url(#skinGrad)" stroke="#18181b" stroke-width="3"/>
+                <path d="M 269 189 Q 263 196 269 203" fill="none" stroke="#8c5338" stroke-width="2.2" stroke-linecap="round"/>
+              </g>
+
+              <!-- Chubby Round Head / Face Base -->
+              <path id="charHeadBase"
+                d="M 120 174
+                   C 112 224, 134 254, 190 254
+                   C 246 254, 268 224, 260 174
+                   C 256 130, 232 114, 190 114
+                   C 148 114, 124 130, 120 174 Z"
+                fill="url(#skinGrad)" stroke="#18181b" stroke-width="3.2" stroke-linejoin="round"/>
+
+              <!-- High-Speed Face Redness / Tension Flush Overlay -->
+              <ellipse id="faceFlushL" cx="144" cy="210" rx="18" ry="11" fill="#ef4444" opacity="0.22"/>
+              <ellipse id="faceFlushR" cx="236" cy="210" rx="18" ry="11" fill="#ef4444" opacity="0.22"/>
+
+              <!-- Curly Dark Afro-Crop Hair -->
+              <path id="charHair"
+                d="M 117 175
+                   C 110 162, 112 146, 121 136
+                   C 122 122, 132 111, 145 108
+                   C 152 97, 166 93, 178 96
+                   C 186 91, 196 91, 204 96
+                   C 216 93, 230 97, 237 108
+                   C 250 111, 260 122, 261 136
+                   C 270 146, 272 162, 265 175
+                   C 260 158, 252 146, 240 142
+                   C 230 145, 222 139, 211 139
+                   C 200 142, 180 142, 169 139
+                   C 158 139, 150 145, 140 142
+                   C 128 146, 120 158, 117 175 Z"
+                fill="#1c1e26" stroke="#111318" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M 136 124 Q 146 115 158 121" fill="none" stroke="#2e323d" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M 168 114 Q 182 106 196 114" fill="none" stroke="#2e323d" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M 206 116 Q 220 109 232 119" fill="none" stroke="#2e323d" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M 236 126 Q 246 120 252 132" fill="none" stroke="#2e323d" stroke-width="2.2" stroke-linecap="round"/>
+
+              <!-- PROGRESSIVE WRINKLE LAYERS -->
+              <g id="wrinkleGlabella" opacity="0.95">
+                <path d="M 183 166 C 185 175, 185 183, 183 190" fill="none" stroke="#18181b" stroke-width="2.4" stroke-linecap="round"/>
+                <path d="M 197 166 C 195 175, 195 183, 197 190" fill="none" stroke="#18181b" stroke-width="2.4" stroke-linecap="round"/>
+                <path d="M 190 170 L 190 186" fill="none" stroke="#7c472e" stroke-width="1.6" stroke-linecap="round"/>
+              </g>
+
+              <g id="wrinkleForehead" opacity="0.9">
+                <path d="M 138 152 Q 148 158 154 166" fill="none" stroke="#6b3e26" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 146 147 Q 149 156 144 163" fill="none" stroke="#6b3e26" stroke-width="1.7" stroke-linecap="round"/>
+                <path d="M 242 152 Q 232 158 226 166" fill="none" stroke="#6b3e26" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 234 147 Q 231 156 236 163" fill="none" stroke="#6b3e26" stroke-width="1.7" stroke-linecap="round"/>
+                <path d="M 164 150 Q 190 145 216 150" fill="none" stroke="#6b3e26" stroke-width="1.9" stroke-linecap="round"/>
+                <path d="M 170 157 Q 190 153 210 157" fill="none" stroke="#6b3e26" stroke-width="1.7" stroke-linecap="round"/>
+              </g>
+
+              <g id="wrinkleCheeks" opacity="0.9">
+                <path d="M 132 204 Q 142 212 138 224" fill="none" stroke="#6b3e26" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 140 212 L 148 218" fill="none" stroke="#6b3e26" stroke-width="1.7" stroke-linecap="round"/>
+                <path d="M 130 214 L 139 215" fill="none" stroke="#6b3e26" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M 248 204 Q 238 212 242 224" fill="none" stroke="#6b3e26" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 240 212 L 232 218" fill="none" stroke="#6b3e26" stroke-width="1.7" stroke-linecap="round"/>
+                <path d="M 250 214 L 241 215" fill="none" stroke="#6b3e26" stroke-width="1.6" stroke-linecap="round"/>
+              </g>
+
+              <g id="wrinkleEyesChin" opacity="0.9">
+                <path d="M 147 198 Q 158 203 168 197" fill="none" stroke="#5c3420" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 212 197 Q 222 203 233 198" fill="none" stroke="#5c3420" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 134 186 L 143 189 M 133 192 L 143 192" fill="none" stroke="#5c3420" stroke-width="1.7" stroke-linecap="round"/>
+                <path d="M 246 186 L 237 189 M 247 192 L 237 192" fill="none" stroke="#5c3420" stroke-width="1.7" stroke-linecap="round"/>
+                <path d="M 162 224 Q 165 231 169 235" fill="none" stroke="#18181b" stroke-width="2.2" stroke-linecap="round"/>
+                <path d="M 218 224 Q 215 231 211 235" fill="none" stroke="#18181b" stroke-width="2.2" stroke-linecap="round"/>
+                <path d="M 178 239 Q 190 233 202 239" fill="none" stroke="#5c3420" stroke-width="2" stroke-linecap="round"/>
+              </g>
+
+              <g id="wrinkleExtreme" opacity="0.4">
+                <path d="M 226 138 L 232 146 L 240 142 M 234 154 L 231 147 L 222 149" fill="none" stroke="#b91c1c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 126 164 C 126 158 131 151 131 151 C 131 151 136 158 136 164 C 136 168 134 170 131 170 C 128 170 126 168 126 164 Z" fill="#38bdf8" stroke="#0284c7" stroke-width="1.3"/>
+                <path d="M 250 168 C 250 163 254 157 254 157 C 254 157 258 163 258 168 C 258 171 256 173 254 173 C 252 173 250 171 250 168 Z" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2"/>
+              </g>
+
+              <!-- Eyes -->
+              <g id="charEyeL">
+                <circle cx="158" cy="188" r="6" fill="#111318"/>
+                <circle cx="156" cy="186" r="2" fill="#ffffff"/>
+              </g>
+              <g id="charEyeR">
+                <circle cx="222" cy="188" r="6" fill="#111318"/>
+                <circle cx="220" cy="186" r="2" fill="#ffffff"/>
+              </g>
+
+              <!-- Thick Dynamic Eyebrows -->
+              <path id="charBrowL" d="M 138 172 Q 156 177 176 187" fill="none" stroke="#111318" stroke-width="6" stroke-linecap="round"/>
+              <path id="charBrowR" d="M 242 172 Q 224 177 204 187" fill="none" stroke="#111318" stroke-width="6" stroke-linecap="round"/>
+
+              <!-- Cute Nose in Center -->
+              <path d="M 186 199 Q 190 195 194 199" fill="none" stroke="#18181b" stroke-width="2.6" stroke-linecap="round"/>
+              <ellipse cx="190" cy="202" rx="4" ry="2" fill="#c68667" opacity="0.5"/>
+
+              <!-- Dynamic Mouth -->
+              <g id="charMouthGroup">
+                <path id="charMouthPath" d="M 168 231 Q 190 214 212 231" fill="none" stroke="#18181b" stroke-width="3.4" stroke-linecap="round"/>
+              </g>
+
+              <!-- Steering Wheel Arch at Bottom of Dial -->
+              <path d="M 122 332 C 130 276, 162 260, 190 260 C 218 260, 250 276, 258 332" fill="none" stroke="#0f131a" stroke-width="18" stroke-linecap="round"/>
+              <path d="M 122 332 C 130 276, 162 260, 190 260 C 218 260, 250 276, 258 332" fill="none" stroke="#262d3d" stroke-width="10" stroke-linecap="round"/>
+              <circle cx="190" cy="312" r="26" fill="#11151d" stroke="#262d3d" stroke-width="3"/>
+            </g>
+          </g>
+
+          <!-- 5. Dial Bottom Bezel Plate (Live ECT Temp C-H Bar & ///M Logo visible in Landscape!) -->
+          <g id="dialBottomClusterPlate" transform="translate(190, 344)">
+            <path d="M -86 -18 L 86 -18 L 102 18 L -102 18 Z" fill="#0d1017" stroke="#262c3a" stroke-width="2"/>
+            <text x="-66" y="-2" font-family="'Orbitron', sans-serif" font-size="9" font-weight="800" fill="#94a3b8">C</text>
+            <rect x="-52" y="-9" width="104" height="6" rx="3" fill="#1e2430" stroke="#334155" stroke-width="1"/>
+            <rect id="dialBottomTempBar" x="-51" y="-8" width="68" height="4" rx="2" fill="#f8fafc"/>
+            <rect x="28" y="-8" width="23" height="4" rx="2" fill="#ef4444"/>
+            <text x="58" y="-2" font-family="'Orbitron', sans-serif" font-size="9" font-weight="800" fill="#ef4444">H</text>
+            <g transform="translate(0, 10)">
+              <polygon points="-18,5 -13,-5 -9,-5 -14,5" fill="#00b4d8"/>
+              <polygon points="-13,5 -8,-5 -4,-5 -9,5" fill="#1d4ed8"/>
+              <polygon points="-8,5 -3,-5 1,-5 -4,5" fill="#e6192e"/>
+              <text x="3" y="5" font-family="'Orbitron', sans-serif" font-size="11" font-weight="900" font-style="italic" fill="#ffffff">M</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Right Vertical Bar in Portrait: Engine Temp (H - C) -->
+      <div class="side-bar-gauge" id="tempSideBar" title="Nhiệt độ nước mát ECT thực tế từ ECU">
+        <span class="side-bar-lbl">H</span>
+        <div class="side-bar-track">
+          <div class="side-bar-fill-temp" id="tempVertBarFill" style="height: 0%;"></div>
+        </div>
+        <span class="side-bar-lbl red">C</span>
+      </div>
+
+      <!-- Right-of-Dial Speed + SPORT + ODO Column in Landscape -->
+      <div class="landscape-speed-col">
+        <div class="landscape-speed-readout" id="landscapeSpeedPod" onclick="toggleAutoSweep()" title="Chạm để Bật/Tắt Auto Demo">
+          <span class="speed-digits" id="speedValLandscape">0</span>
+          <span class="speed-unit" id="unitSpeedLandscape">km/h</span>
+          <div class="landscape-sport-box">
+            <span class="sport-mode-lbl" id="sportLblLandscape">SPORT</span>
+          </div>
+        </div>
+
+        <div class="landscape-odo-center">
+          <span class="trip-odo-lbl">ODO</span>
+          <span class="trip-odo-val"><span id="valOdoLandscape">0</span><small>km</small></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- -------- PORTRAIT SPEED POD (Overlapping bottom of dial in Portrait) -------- -->
+    <div class="portrait-speed-wings">
+      <div class="portrait-speed-pod" id="portraitSpeedPod" onclick="toggleAutoSweep()" title="Chạm để Bật/Tắt Auto Demo // Kéo lên xuống trên đồng hồ để chỉnh tốc độ">
+        <span class="speed-digits" id="speedValPortrait">0</span>
+        <span class="speed-unit" id="unitSpeedPortrait">km/h</span>
+        <span class="sport-mode-lbl" id="sportLblPortrait">SPORT</span>
+        <div class="m-badge-row">
+          <span class="m-stripe c1"></span>
+          <span class="m-stripe c2"></span>
+          <span class="m-stripe c3"></span>
+          <span class="m-letter">M</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 3. TELEMETRY CARDS SECTION ================= -->
+    <section class="telemetry-section">
+      <!-- 6 Primary Sensor Cards (ECT, IAT, TPS, MAP, O2, BAT) -->
+      <div class="sensor-grid-6">
+        <!-- 1. ECT -->
+        <div class="sensor-card">
+          <div class="sensor-icon-wrap red-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+            </svg>
+          </div>
+          <div class="sensor-info">
+            <span class="sensor-lbl">ECT</span>
+            <div class="sensor-val-row">
+              <span class="sensor-val" id="valEct">--</span>
+              <span class="sensor-unit" id="unitTempEct">&deg;C</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. IAT -->
+        <div class="sensor-card">
+          <div class="sensor-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
+            </svg>
+          </div>
+          <div class="sensor-info">
+            <span class="sensor-lbl">IAT</span>
+            <div class="sensor-val-row">
+              <span class="sensor-val" id="valIat">--</span>
+              <span class="sensor-unit" id="unitTempIat">&deg;C</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. TPS -->
+        <div class="sensor-card">
+          <div class="sensor-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 12l4-4"/>
+              <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="sensor-info">
+            <span class="sensor-lbl">TPS</span>
+            <div class="sensor-val-row">
+              <span class="sensor-val" id="valTps">--</span>
+              <span class="sensor-unit">%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. MAP -->
+        <div class="sensor-card">
+          <div class="sensor-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 14a8 8 0 0 1 16 0"/>
+              <circle cx="12" cy="14" r="2"/>
+              <path d="M12 12V7"/>
+              <path d="M7 18h10"/>
+            </svg>
+          </div>
+          <div class="sensor-info">
+            <span class="sensor-lbl">MAP</span>
+            <div class="sensor-val-row">
+              <span class="sensor-val" id="valMap">--</span>
+              <span class="sensor-unit">kPa</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. O2 -->
+        <div class="sensor-card">
+          <div class="sensor-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="8"/>
+              <path d="M12 8v4l2.5 2.5"/>
+              <path d="M3 12h2m14 0h2"/>
+            </svg>
+          </div>
+          <div class="sensor-info">
+            <span class="sensor-lbl">O2</span>
+            <div class="sensor-val-row">
+              <span class="sensor-val" id="valO2">--</span>
+              <span class="sensor-unit">V</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. BAT -->
+        <div class="sensor-card">
+          <div class="sensor-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="12" rx="2"/>
+              <line x1="6" y1="5" x2="8" y2="5"/>
+              <line x1="16" y1="5" x2="18" y2="5"/>
+              <line x1="7" y1="13" x2="10" y2="13"/>
+              <line x1="15.5" y1="11.5" x2="15.5" y2="14.5"/>
+              <line x1="14" y1="13" x2="17" y2="13"/>
+            </svg>
+          </div>
+          <div class="sensor-info">
+            <span class="sensor-lbl">BAT</span>
+            <div class="sensor-val-row">
+              <span class="sensor-val" id="valBat">--</span>
+              <span class="sensor-unit">V</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row: RPM, LOAD, IGN -->
+      <div class="sensor-grid-bottom">
+        <!-- 7. RPM -->
+        <div class="sensor-card compact">
+          <div class="sensor-icon-wrap red-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 15l3.5-3.5"/>
+              <path d="M20.3 18A9 9 0 1 0 3.7 18"/>
+            </svg>
+          </div>
+          <div class="sensor-info">
+            <span class="sensor-lbl">RPM</span>
+            <div class="sensor-val-row">
+              <span class="sensor-val" id="valRpm">0</span>
+            </div>
+            <span class="sensor-sub-tiny">x1000</span>
+          </div>
+        </div>
+
+        <!-- 8. LOAD -->
+        <div class="sensor-card compact">
+          <div class="sensor-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M8 14s1.5-2 4-2 4 2 4 2"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <div class="sensor-info">
+            <span class="sensor-lbl">LOAD</span>
+            <div class="sensor-val-row">
+              <span class="sensor-val" id="valLoad">--</span>
+              <span class="sensor-unit">%</span>
+            </div>
+            <div class="ign-inline-badge">
+              <span style="color:var(--red-bright);">&#9889;</span>
+              <span>IGN <strong id="valIgnInline">--&deg;</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9. IGN (Standalone in Portrait) -->
+        <div class="sensor-card compact" id="cardIgnStandalone">
+          <div class="sensor-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          </div>
+          <div class="sensor-info">
+            <span class="sensor-lbl">IGN</span>
+            <div class="sensor-val-row">
+              <span class="sensor-val" id="valIgn">--&deg;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= 4. SPA TAB PANELS ================= -->
+
+  <!-- TAB 2: THÔNG SỐ CHI TIẾT & BỘ TEST TỐC ĐỘ -->
+  <section class="spa-tab-panel" id="panelParams">
+    <div class="panel-header">
+      <span class="panel-title">THÔNG SỐ ĐỘNG CƠ // LIVE DATA STREAM</span>
+      <span class="panel-badge" id="moodBadgeParams">THƯ THÁI</span>
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="detail-lbl">HÀNH TRÌNH TRIP A</div>
+        <div class="detail-val" id="extTripA">0.0 km</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-lbl">TỔNG ODO</div>
+        <div class="detail-val" id="extOdo">0 km</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-lbl">THỜI GIAN PHUN (Ti)</div>
+        <div class="detail-val" id="extInjTi">-- ms</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-lbl">ƯỚC TÍNH TIÊU HAO (TỪ Ti)</div>
+        <div class="detail-val" id="extFuelEco">-- km/L</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-lbl">CHÂN CHỐNG / AN TOÀN</div>
+        <div class="detail-val" id="extFuelTrim" style="font-size:13px;">CHỜ K-LINE</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-lbl">THỜI GIAN NỔ MÁY</div>
+        <div class="detail-val" id="extRunTime">00:00:00</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-lbl">ĐỈNH TỐC ĐỘ (PEAK)</div>
+        <div class="detail-val" id="extPeakSpeed">0 km/h</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-lbl">ĐỈNH VÒNG TUA (PEAK)</div>
+        <div class="detail-val" id="extPeakRpm">0 RPM</div>
+      </div>
+    </div>
+
+    <div class="sim-btn-row">
+      <button class="action-btn red" id="btnTripRecParams" onclick="toggleNativeTrip()">&#9679; GHI HÀNH TRÌNH GPS</button>
+      <button class="action-btn" onclick="openNativeTripHistory()">LỊCH SỬ TRIP GPS</button>
+      <button class="action-btn" onclick="resetTripA()">RESET TRIP A</button>
+    </div>
+
+    <div class="sim-control-card">
+      <div class="sim-top-row">
+        <span>BỘ TEST BIỂU CẢM ĐỒNG HỒ (<strong id="simSpeedLabel" style="color:var(--red-bright);">0 km/h</strong>)</span>
+        <span style="font-family:'Share Tech Mono'; font-size:10px; color:#94a3b8;">Chỉ kích hoạt khi chưa nối xe hoặc bật Demo</span>
+      </div>
+      <input type="range" min="0" max="135" value="0" class="sim-slider" id="speedSlider" oninput="onSpeedSliderInput(this.value)">
+      <div class="sim-btn-row">
+        <button class="action-btn red" id="btnHoldGas">&#9889; GIỮ ĐỂ VẶN GA</button>
+        <button class="action-btn" id="btnAutoSweep" onclick="toggleAutoSweep()">AUTO DEMO</button>
+        <button class="action-btn" onclick="disableManualSim()">TẮT TEST (DỮ LIỆU THẬT)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: CHẨN ĐOÁN ECU & K-LINE MONITOR -->
+  <section class="spa-tab-panel" id="panelDiag">
+    <div class="panel-header">
+      <span class="panel-title">CHẨN ĐOÁN ECU // HONDA K-LINE KWP2000</span>
+      <span class="panel-badge" id="diagBaudBadge">10,400 BAUD</span>
+    </div>
+
+    <div class="sim-control-card" style="text-align:center; padding:14px;">
+      <div style="font-size:11px; color:#94a3b8; letter-spacing:1px;">BỘ NHỚ LỖI ĐỘNG CƠ PGM-FI (MODE 0x03)</div>
+      <div id="diagDtcStatus" style="font-family:'Orbitron'; font-size:14.5px; font-weight:800; color:#f59e0b; margin-top:6px;">
+        CHƯA KẾT NỐI ECU — HÃY BẤM KẾT NỐI BLE ĐỂ QUÉT LỖI
+      </div>
+      <div id="diagSubInfo" style="font-size:10.5px; color:#64748b; margin-top:4px;">ECM ID: 0104-AB125-2025 // Đọc trực tiếp ECT, IAT, TPS, O2, BAT, RPM, LOAD, IGN, Ti từ K-Line</div>
+    </div>
+
+    <div class="sim-btn-row">
+      <button class="action-btn red" onclick="sendClearDtcCommand()">XÓA MÃ LỖI ECU (MODE 0x04)</button>
+      <button class="action-btn" onclick="connectBLE()">QUÉT &amp; KẾT NỐI BLE</button>
+      <button class="action-btn" onclick="openNativeDiagnostics()">CHẨN ĐOÁN CHI TIẾT</button>
+      <button class="action-btn" onclick="openNativeLogs()">NHẬT KÝ LOG BLE</button>
+    </div>
+
+    <div class="detail-lbl" style="margin-top:4px;">NHẬT KÝ KHUNG TRUYỀN K-LINE / BLE TELEMETRY TRỰC TIẾP:</div>
+    <div class="kline-terminal" id="klineTerminal">
+      <div>[SYSTEM] Sẵn sàng. Chờ kết nối Bluetooth BLE với mạch ESP32-S3...</div>
+    </div>
+  </section>
+
+  <!-- TAB 4: CÀI ĐẶT HỆ THỐNG -->
+  <section class="spa-tab-panel" id="panelSettings">
+    <div class="panel-header">
+      <span class="panel-title">CÀI ĐẶT HỆ THỐNG // AIR BLADE 2025</span>
+      <span class="panel-badge">REAL ECU v2.6</span>
+    </div>
+
+    <div class="settings-group">
+      <div class="setting-row">
+        <div>
+          <div class="setting-name">Bố cục Màn hình (Dọc / Ngang)</div>
+          <div class="setting-desc">Tự động xoay theo điện thoại hoặc khóa cố định</div>
+        </div>
+        <div class="seg-group" id="segOrient">
+          <button class="seg-btn active" data-val="auto" onclick="setOrientPreference('auto')">TỰ ĐỘNG</button>
+          <button class="seg-btn" data-val="portrait" onclick="setOrientPreference('portrait')">MÀN DỌC</button>
+          <button class="seg-btn" data-val="landscape" onclick="setOrientPreference('landscape')">MÀN NGANG</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-name">Đơn vị Tốc độ</div>
+          <div class="setting-desc">Chuyển đổi giữa km/h và mph</div>
+        </div>
+        <div class="seg-group" id="segUnitSpeed">
+          <button class="seg-btn active" data-val="kmh" onclick="setUnitSpeed('kmh')">KM/H</button>
+          <button class="seg-btn" data-val="mph" onclick="setUnitSpeed('mph')">MPH</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-name">Đơn vị Nhiệt độ</div>
+          <div class="setting-desc">Chuyển đổi giữa &deg;C và &deg;F</div>
+        </div>
+        <div class="seg-group" id="segUnitTemp">
+          <button class="seg-btn active" data-val="c" onclick="setUnitTemp('c')">&deg;C</button>
+          <button class="seg-btn" data-val="f" onclick="setUnitTemp('f')">&deg;F</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-name">Chế độ Mô phỏng (Demo Mode)</div>
+          <div class="setting-desc">Bật/tắt dữ liệu giả lập khi chưa cắm mạch lên xe</div>
+        </div>
+        <button class="action-btn" style="flex:0 0 auto;" id="btnDemoSetting" onclick="toggleAutoSweep()">ĐANG TẮT (THẬT)</button>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-name">Âm thanh Pô Synthesizer &amp; Loa ESP32</div>
+          <div class="setting-desc">Tạo tiếng pô theo tua máy hoặc phát loa I2S trên mạch</div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="action-btn" style="flex:0 0 auto;" id="btnAudioSetting" onclick="toggleAudio()">BẬT TIẾNG PÔ</button>
+          <button class="action-btn red" style="flex:0 0 auto;" onclick="sendC4AudioCommand()">LOA ESP32</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-name">Test Khóa Chân chống nghiêng</div>
+          <div class="setting-desc">Kiểm tra giao diện khóa máy khi hạ chân chống</div>
+        </div>
+        <button class="action-btn" style="flex:0 0 auto;" id="btnStandSetting" onclick="toggleSideStand()">ĐANG GẠT LÊN</button>
+      </div>
+    </div>
+
+    <div class="sim-btn-row">
+      <button class="action-btn" onclick="openNativeTripHistory()">LỊCH SỬ TRIP GPS</button>
+      <button class="action-btn" onclick="openNativeDrag()">ĐO DRAG 0-100</button>
+      <button class="action-btn" onclick="openNativeLogs()">XEM LOG BLE</button>
+      <button class="action-btn red" onclick="openNativeSettingsIfAvailable()">CÀI ĐẶT HỆ THỐNG APP</button>
+    </div>
+  </section>
+
+  <!-- ================= 5. BOTTOM NAVIGATION BAR ================= -->
+  <nav class="bottom-nav-bar">
+    <button class="nav-tab-item active" id="tabOverview" onclick="switchNavTab('overview')">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 14l3.5-3.5"/>
+        <path d="M20.3 18A9 9 0 1 0 3.7 18"/>
+        <path d="M6 18h12"/>
+      </svg>
+      <span class="nav-tab-lbl">T&#7893;ng quan</span>
+    </button>
+
+    <button class="nav-tab-item" id="tabParams" onclick="switchNavTab('params')">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      <span class="nav-tab-lbl">Th&ocirc;ng s&#7889;</span>
+    </button>
+
+    <button class="nav-tab-item" id="tabDiag" onclick="switchNavTab('diag')">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="6"/>
+        <line x1="20" y1="20" x2="15.5" y2="15.5"/>
+        <path d="M8 11h2l1-2 2 4 1-2h2"/>
+      </svg>
+      <span class="nav-tab-lbl">Ch&#7849;n &#273;o&aacute;n</span>
+    </button>
+
+    <button class="nav-tab-item" id="tabSettings" onclick="switchNavTab('settings')">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      <span class="nav-tab-lbl">C&agrave;i &#273;&#7863;t</span>
+    </button>
+  </nav>
+
+</div>
+
+<script src="js/ios_statusbar.js"></script>
+<script src="js/trip_tracker.js"></script>
+<script src="js/gps_manager.js"></script>
+<script src="js/ble_manager.js"></script>
+<script>
+  // ================= INITIAL DASHBOARD STATE & PERSISTENCE (100% REAL APP DATA) =================
+  const savedTrip = parseFloat(localStorage.getItem('ab_trip_a') || localStorage.getItem('tripA'));
+  const savedOdo  = parseFloat(localStorage.getItem('ab_odo'));
+
+  const state = {
+    speed: null,
+    rpm: null,
+    ect: null,
+    iat: null,
+    tps: null,
+    map: null,
+    o2: null,
+    volt: null,
+    engineLoad: null,
+    ignitionTiming: null,
+    injectorTi: null,
+    fuelEcoKmL: null,
+    trip: !isNaN(savedTrip) ? savedTrip : 0.0,
+    odo: !isNaN(savedOdo) ? savedOdo : 0,
+    peakSpeed: 0,
+    peakRpm: 0,
+    runTime: 0,
+    sideStandDown: false,
+    idlingStopActive: false,
+    dtcPresent: false,
+    dtcCount: 0,
+    bleConnected: false,
+    bleState: 'OFFLINE',
+    ecuConnected: false,
+    hasReading: false,
+    demoMode: false,
+    isTripRecording: false,
+    packetCount: 0,
+    packetHz: 0,
+    autoSweep: false,
+    manualSimActive: false,
+    gasHeld: false,
+    audioEnabled: false,
+    unitSpeed: localStorage.getItem('unit_speed') || 'kmh',
+    unitTemp: localStorage.getItem('unit_temp') || 'c',
+    orientMode: 'landscape'
+  };
+
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('mode') === 'landscape' || urlParams.get('layout') === 'landscape') {
+    state.orientMode = 'landscape';
+  } else if (urlParams.get('mode') === 'portrait' || urlParams.get('layout') === 'portrait') {
+    state.orientMode = 'portrait';
+  } else if (urlParams.get('mode') === 'auto') {
+    state.orientMode = 'auto';
+  }
+  if (urlParams.has('speed')) {
+    const sp = parseFloat(urlParams.get('speed'));
+    if (!isNaN(sp)) {
+      state.manualSimActive = true;
+      applySpeedLinkedTelemetry(sp);
+    }
+  }
+  if (urlParams.get('auto') === '1' || urlParams.get('auto') === 'true') {
+    state.autoSweep = true;
+    state.manualSimActive = true;
+  }
+  if (urlParams.get('stand') === 'down' || urlParams.get('stand') === '1') {
+    state.sideStandDown = true;
+  }
+
+  window.addEventListener('message', (e) => {
+    const msg = e.data;
+    if (!msg || typeof msg !== 'object') return;
+    if (msg.type === 'SET_SPEED') {
+      state.autoSweep = false;
+      state.manualSimActive = true;
+      applySpeedLinkedTelemetry(parseFloat(msg.speed));
+      syncSliders();
+    } else if (msg.type === 'TOGGLE_AUTO') {
+      state.autoSweep = Boolean(msg.auto);
+      state.manualSimActive = state.autoSweep;
+      if (!state.autoSweep && !state.bleConnected && !state.demoMode) {
+        disableManualSim();
+      }
+      const btnAuto = document.getElementById('btnAutoSweep');
+      if (btnAuto) btnAuto.classList.toggle('active', state.autoSweep);
+    } else if (msg.type === 'RESET_REAL') {
+      disableManualSim();
+    } else if (msg.type === 'SET_STAND') {
+      state.sideStandDown = Boolean(msg.stand);
+    }
+  });
+
+  // ================= ORIENTATION HANDLER (Màn Dọc & Màn Ngang) =================
+  function applyOrientationClasses() {
+    const isWindowLandscape = window.innerWidth > window.innerHeight;
+    const useLandscape = state.orientMode === 'landscape' || (state.orientMode === 'auto' && isWindowLandscape);
+    document.body.classList.toggle('is-landscape', useLandscape);
+    document.body.classList.toggle('force-portrait', state.orientMode === 'portrait');
+    document.body.classList.toggle('force-landscape', state.orientMode === 'landscape');
+
+    document.querySelectorAll('#segOrient .seg-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.val === state.orientMode);
+    });
+  }
+
+  function setOrientPreference(mode) {
+    state.orientMode = mode;
+    applyOrientationClasses();
+    if (window.AndroidDash && window.AndroidDash.setOrientationMode) {
+      window.AndroidDash.setOrientationMode(mode);
+    }
+  }
+
+  function cycleOrientationMode() {
+    const isCurrentlyLandscape = document.body.classList.contains('is-landscape');
+    const nextMode = isCurrentlyLandscape ? 'portrait' : 'landscape';
+    setOrientPreference(nextMode);
+  }
+
+  window.addEventListener('resize', applyOrientationClasses);
+  applyOrientationClasses();
+
+  // ================= UNITS HANDLER =================
+  function setUnitSpeed(u, fromNative) {
+    state.unitSpeed = u;
+    localStorage.setItem('unit_speed', u);
+    document.querySelectorAll('#segUnitSpeed .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.val === u));
+    const lbl = u === 'mph' ? 'mph' : 'km/h';
+    const elP = document.getElementById('unitSpeedPortrait');
+    const elL = document.getElementById('unitSpeedLandscape');
+    if (elP) elP.innerText = lbl;
+    if (elL) elL.innerText = lbl;
+    if (!fromNative && window.AndroidDash && window.AndroidDash.setUnitSpeed) {
+      window.AndroidDash.setUnitSpeed(u);
+    }
+  }
+
+  function setUnitTemp(u, fromNative) {
+    state.unitTemp = u;
+    localStorage.setItem('unit_temp', u);
+    document.querySelectorAll('#segUnitTemp .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.val === u));
+    const lbl = u === 'f' ? '°F' : '°C';
+    const elEct = document.getElementById('unitTempEct');
+    const elIat = document.getElementById('unitTempIat');
+    if (elEct) elEct.innerText = lbl;
+    if (elIat) elIat.innerText = lbl;
+    if (!fromNative && window.AndroidDash && window.AndroidDash.setUnitTemp) {
+      window.AndroidDash.setUnitTemp(u);
+    }
+  }
+  setUnitSpeed(state.unitSpeed, true);
+  setUnitTemp(state.unitTemp, true);
+
+  // ================= BUILD TACHOMETER DIAL TICKS (0 to 9 x1000 RPM) =================
+  const START_ANG = 140;
+  const SWEEP_ANG = 260;
+  const MAX_DIAL_RPM = 9000;
+
+  function polarToCartesian(cx, cy, r, angleDeg) {
+    const rad = (angleDeg * Math.PI) / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  }
+
+  function describeArc(cx, cy, r, startAngle, endAngle) {
+    const start = polarToCartesian(cx, cy, r, endAngle);
+    const end = polarToCartesian(cx, cy, r, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+    return ['M', start.x, start.y, 'A', r, r, 0, largeArcFlag, 0, end.x, end.y].join(' ');
+  }
+
+  function initTachDial() {
+    const ticksGroup = document.getElementById('tachTicksGroup');
+    const redlineArc = document.getElementById('redlineOuterArc');
+    if (!ticksGroup) return;
+    ticksGroup.innerHTML = '';
+
+    const cx = 190, cy = 190;
+    const redStartAng = START_ANG + (5.8 / 9) * SWEEP_ANG;
+    const redEndAng = START_ANG + SWEEP_ANG;
+    if (redlineArc) {
+      redlineArc.setAttribute('d', describeArc(cx, cy, 151, redStartAng, redEndAng));
+    }
+
+    for (let i = 0; i <= 9; i++) {
+      const angDeg = START_ANG + (i / 9) * SWEEP_ANG;
+      const isRedZone = i >= 6;
+
+      const pOuter = polarToCartesian(cx, cy, 156, angDeg);
+      const pInner = polarToCartesian(cx, cy, 141, angDeg);
+      const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      tick.setAttribute('x1', pOuter.x);
+      tick.setAttribute('y1', pOuter.y);
+      tick.setAttribute('x2', pInner.x);
+      tick.setAttribute('y2', pInner.y);
+      tick.setAttribute('stroke', isRedZone ? '#dc2626' : '#0f172a');
+      tick.setAttribute('stroke-width', '3.5');
+      ticksGroup.appendChild(tick);
+
+      if (i < 9) {
+        for (let sub = 1; sub <= 4; sub++) {
+          const subDeg = angDeg + (sub / 5) * (SWEEP_ANG / 9);
+          const subRed = (i + sub / 5) >= 5.8;
+          const sOuter = polarToCartesian(cx, cy, 156, subDeg);
+          const sInner = polarToCartesian(cx, cy, sub === 2 || sub === 3 ? 146 : 148, subDeg);
+          const sTick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          sTick.setAttribute('x1', sOuter.x);
+          sTick.setAttribute('y1', sOuter.y);
+          sTick.setAttribute('x2', sInner.x);
+          sTick.setAttribute('y2', sInner.y);
+          sTick.setAttribute('stroke', subRed ? '#ef4444' : '#334155');
+          sTick.setAttribute('stroke-width', '1.6');
+          ticksGroup.appendChild(sTick);
+        }
+      }
+
+      const pNum = polarToCartesian(cx, cy, 125, angDeg);
+      const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      txt.setAttribute('x', pNum.x);
+      txt.setAttribute('y', pNum.y + 6);
+      txt.setAttribute('text-anchor', 'middle');
+      txt.setAttribute('font-family', "'Orbitron', sans-serif");
+      txt.setAttribute('font-size', '17.5');
+      txt.setAttribute('font-weight', '900');
+      txt.setAttribute('font-style', 'italic');
+      txt.setAttribute('fill', isRedZone ? '#dc2626' : '#0f172a');
+      txt.textContent = i;
+      ticksGroup.appendChild(txt);
+    }
+  }
+  initTachDial();
+
+  // ================= DYNAMIC WRINKLED FACE ENGINE ("Tốc càng cao mặt càng nhăn") =================
+  const tachNeedleGroup = document.getElementById('tachNeedleGroup');
+  const dialWrapper = document.getElementById('dialWrapper');
+  const charBrowL = document.getElementById('charBrowL');
+  const charBrowR = document.getElementById('charBrowR');
+  const charMouthGroup = document.getElementById('charMouthGroup');
+  const charEyeL = document.getElementById('charEyeL');
+  const charEyeR = document.getElementById('charEyeR');
+  const wrinkleGlabella = document.getElementById('wrinkleGlabella');
+  const wrinkleForehead = document.getElementById('wrinkleForehead');
+  const wrinkleCheeks = document.getElementById('wrinkleCheeks');
+  const wrinkleEyesChin = document.getElementById('wrinkleEyesChin');
+  const wrinkleExtreme = document.getElementById('wrinkleExtreme');
+  const charWindLines = document.getElementById('charWindLines');
+  const faceFlushL = document.getElementById('faceFlushL');
+  const faceFlushR = document.getElementById('faceFlushR');
+  const moodBadgeParams = document.getElementById('moodBadgeParams');
+
+  function lerp(a, b, t) {
+    return a + (b - a) * Math.min(Math.max(t, 0), 1);
+  }
+
+  function updateFaceAndTach(speedVal, rpmVal, isLocked) {
+    const speed = typeof speedVal === 'number' ? speedVal : 0;
+    const rpm = typeof rpmVal === 'number' ? rpmVal : 0;
+    const rpmClamped = Math.min(Math.max(rpm, 0), 9300);
+    const needleDeg = (START_ANG + (rpmClamped / MAX_DIAL_RPM) * SWEEP_ANG) + 90;
+    if (tachNeedleGroup) {
+      tachNeedleGroup.setAttribute('transform', `rotate(${needleDeg.toFixed(1)}, 190, 190)`);
+    }
+
+    if (isLocked) {
+      if (moodBadgeParams) moodBadgeParams.innerText = 'KHÓA CHÂN CHỐNG';
+      if (charBrowL) charBrowL.setAttribute('d', 'M 140 178 Q 158 172 174 180');
+      if (charBrowR) charBrowR.setAttribute('d', 'M 240 178 Q 222 172 206 180');
+      if (charEyeL) charEyeL.innerHTML = '<line x1="152" y1="183" x2="164" y2="193" stroke="#111318" stroke-width="3" stroke-linecap="round"/><line x1="164" y1="183" x2="152" y2="193" stroke="#111318" stroke-width="3" stroke-linecap="round"/>';
+      if (charEyeR) charEyeR.innerHTML = '<line x1="216" y1="183" x2="228" y2="193" stroke="#111318" stroke-width="3" stroke-linecap="round"/><line x1="228" y1="183" x2="216" y2="193" stroke="#111318" stroke-width="3" stroke-linecap="round"/>';
+      if (charMouthGroup) charMouthGroup.innerHTML = '<path d="M 174 228 Q 190 220 206 228" fill="none" stroke="#18181b" stroke-width="3.2" stroke-linecap="round"/>';
+      if (wrinkleGlabella) wrinkleGlabella.setAttribute('opacity', '0.2');
+      if (wrinkleForehead) wrinkleForehead.setAttribute('opacity', '0');
+      if (wrinkleCheeks) wrinkleCheeks.setAttribute('opacity', '0');
+      if (wrinkleEyesChin) wrinkleEyesChin.setAttribute('opacity', '0');
+      if (wrinkleExtreme) wrinkleExtreme.setAttribute('opacity', '0');
+      if (dialWrapper) dialWrapper.className = 'dial-center-wrap';
+      return;
+    }
+
+    const effectiveIntensity = Math.max(speed / 120, (rpm - 1800) / 7200, 0);
+    const t = Math.min(effectiveIntensity, 1.12);
+
+    const browOuterY = lerp(179, 169, t);
+    const browMidY   = lerp(176, 176, t);
+    const browInnerY = lerp(179, 189, t);
+    const browInnerXOffset = lerp(16, 13, t);
+    if (charBrowL) {
+      charBrowL.setAttribute('d', `M 138 ${browOuterY.toFixed(1)} Q 156 ${browMidY.toFixed(1)} ${(190 - browInnerXOffset).toFixed(1)} ${browInnerY.toFixed(1)}`);
+    }
+    if (charBrowR) {
+      charBrowR.setAttribute('d', `M 242 ${browOuterY.toFixed(1)} Q 224 ${browMidY.toFixed(1)} ${(190 + browInnerXOffset).toFixed(1)} ${browInnerY.toFixed(1)}`);
+    }
+
+    const pupilR = lerp(5.4, 6.2, t);
+    if (charEyeL) {
+      charEyeL.innerHTML = `<circle cx="158" cy="188" r="${pupilR.toFixed(1)}" fill="#111318"/><circle cx="156" cy="186" r="2" fill="#ffffff"/>`;
+    }
+    if (charEyeR) {
+      charEyeR.innerHTML = `<circle cx="222" cy="188" r="${pupilR.toFixed(1)}" fill="#111318"/><circle cx="220" cy="186" r="2" fill="#ffffff"/>`;
+    }
+
+    if (speed <= 122 && rpm <= 8500) {
+      const mouthCornerY = lerp(222, 232, t);
+      const mouthCtrlY   = lerp(229, 212, t);
+      const mouthWidth   = lerp(16, 22, t);
+      if (charMouthGroup) {
+        charMouthGroup.innerHTML = `<path d="M ${(190 - mouthWidth).toFixed(1)} ${mouthCornerY.toFixed(1)} Q 190 ${mouthCtrlY.toFixed(1)} ${(190 + mouthWidth).toFixed(1)} ${mouthCornerY.toFixed(1)}" fill="none" stroke="#18181b" stroke-width="3.4" stroke-linecap="round"/>`;
+      }
+    } else {
+      if (charMouthGroup) {
+        charMouthGroup.innerHTML = `
+          <path d="M 166 231 Q 190 210 214 231 Q 204 236 190 236 Q 176 236 166 231 Z" fill="#ffffff" stroke="#18181b" stroke-width="2.8" stroke-linejoin="round"/>
+          <line x1="178" y1="221" x2="178" y2="234" stroke="#18181b" stroke-width="1.5"/>
+          <line x1="190" y1="219" x2="190" y2="235" stroke="#18181b" stroke-width="1.5"/>
+          <line x1="202" y1="221" x2="202" y2="234" stroke="#18181b" stroke-width="1.5"/>
+        `;
+      }
+    }
+
+    const eqSpd = t * 120;
+    const opGlabella = Math.min(Math.max((eqSpd - 12) / 55, 0), 1);
+    const opForehead = Math.min(Math.max((eqSpd - 28) / 65, 0), 1);
+    const opEyesChin = Math.min(Math.max((eqSpd - 35) / 60, 0), 1);
+    const opCheeks   = Math.min(Math.max((eqSpd - 45) / 60, 0), 1);
+    const opExtreme  = Math.min(Math.max((eqSpd - 92) / 35, 0), 1);
+    const opWind     = Math.min(Math.max((eqSpd - 50) / 65, 0), 0.85);
+    const opFlush    = lerp(0.06, 0.34, t);
+
+    if (wrinkleGlabella) wrinkleGlabella.setAttribute('opacity', opGlabella.toFixed(2));
+    if (wrinkleForehead) wrinkleForehead.setAttribute('opacity', opForehead.toFixed(2));
+    if (wrinkleEyesChin) wrinkleEyesChin.setAttribute('opacity', opEyesChin.toFixed(2));
+    if (wrinkleCheeks)   wrinkleCheeks.setAttribute('opacity', opCheeks.toFixed(2));
+    if (wrinkleExtreme)  wrinkleExtreme.setAttribute('opacity', opExtreme.toFixed(2));
+    if (charWindLines)   charWindLines.setAttribute('opacity', opWind.toFixed(2));
+    if (faceFlushL)      faceFlushL.setAttribute('opacity', opFlush.toFixed(2));
+    if (faceFlushR)      faceFlushR.setAttribute('opacity', opFlush.toFixed(2));
+
+    let moodTxt = 'THƯ THÁI';
+    if (eqSpd >= 110) {
+      moodTxt = 'NHĂN CỰC ĐỘ (MAX)';
+      if (dialWrapper) dialWrapper.className = 'dial-center-wrap rumble-heavy';
+    } else if (eqSpd >= 80) {
+      moodTxt = 'MẶT NHĂN GẮT';
+      if (dialWrapper) dialWrapper.className = 'dial-center-wrap rumble-light';
+    } else if (eqSpd >= 45) {
+      moodTxt = 'MẶT CĂNG THẲNG';
+      if (dialWrapper) dialWrapper.className = 'dial-center-wrap';
+    } else if (eqSpd >= 20) {
+      moodTxt = 'HƠI NHÍU MÀY';
+      if (dialWrapper) dialWrapper.className = 'dial-center-wrap';
+    } else {
+      if (dialWrapper) dialWrapper.className = 'dial-center-wrap';
+    }
+    if (moodBadgeParams) moodBadgeParams.innerText = moodTxt;
+  }
+
+  // ================= SPEED-LINKED TELEMETRY ENGINE (ONLY FOR DEMO / TEST MODE) =================
+  function applySpeedLinkedTelemetry(targetSpeed) {
+    state.speed = Math.min(Math.max(targetSpeed, 0), 135);
+    if (state.speed > state.peakSpeed) state.peakSpeed = Math.round(state.speed);
+
+    if (state.speed === 0) {
+      state.rpm = state.sideStandDown ? 0 : 1700;
+      state.tps = 0;
+      state.map = 29;
+      state.ect = 82;
+      state.iat = 36;
+      state.volt = 13.6;
+      state.engineLoad = 12;
+      state.ignitionTiming = 10;
+      state.o2 = 0.45;
+      state.injectorTi = 1650;
+    } else if (Math.round(state.speed) === 118) {
+      state.rpm = 5800;
+      state.ect = 87;
+      state.iat = 42;
+      state.tps = 72;
+      state.map = 54;
+      state.o2 = 0.68;
+      state.volt = 13.8;
+      state.engineLoad = 68;
+      state.ignitionTiming = 23;
+      state.injectorTi = 2850;
+    } else {
+      const ratio = state.speed / 125;
+      state.rpm = Math.round(1750 + ratio * 6800);
+      state.ect = Math.round(80 + ratio * 16);
+      state.iat = Math.round(35 + ratio * 10);
+      state.tps = Math.min(Math.round(ratio * 92), 100);
+      state.map = Math.round(28 + ratio * 42);
+      state.engineLoad = Math.min(Math.round(15 + ratio * 76), 98);
+      state.ignitionTiming = Math.round(10 + ratio * 18);
+      state.o2 = +(0.25 + ratio * 0.58).toFixed(2);
+      state.volt = +(12.6 + (state.rpm > 2800 ? 1.2 : 0.4)).toFixed(1);
+      state.injectorTi = Math.round(1700 + ratio * 2100);
+    }
+    if (state.rpm > state.peakRpm) state.peakRpm = Math.round(state.rpm);
+  }
+
+  function disableManualSim() {
+    state.autoSweep = false;
+    state.manualSimActive = false;
+    state.gasHeld = false;
+    const btnAuto = document.getElementById('btnAutoSweep');
+    if (btnAuto) btnAuto.classList.remove('active');
+    const btnDemo = document.getElementById('btnDemoSetting');
+    if (btnDemo) {
+      btnDemo.innerText = 'ĐANG TẮT (THẬT)';
+      btnDemo.classList.remove('active');
+    }
+    if (window.AndroidDash && window.AndroidDash.setDemoMode) {
+      window.AndroidDash.setDemoMode(false);
+    }
+    if (!state.bleConnected) {
+      state.speed = null;
+      state.rpm = null;
+      state.ect = null;
+      state.iat = null;
+      state.tps = null;
+      state.map = null;
+      state.o2 = null;
+      state.volt = null;
+      state.engineLoad = null;
+      state.ignitionTiming = null;
+      state.injectorTi = null;
+      syncSliders();
+      setBleHeaderStatus(false, false);
+    }
+  }
+
+  function syncSliders() {
+    const sl = document.getElementById('speedSlider');
+    const lbl = document.getElementById('simSpeedLabel');
+    const spd = typeof state.speed === 'number' ? Math.round(state.speed) : 0;
+    if (sl) sl.value = spd;
+    if (lbl) lbl.innerText = `${spd} km/h`;
+  }
+
+  function onSpeedSliderInput(val) {
+    if (state.bleConnected) return;
+    state.autoSweep = false;
+    state.manualSimActive = true;
+    const btnAuto = document.getElementById('btnAutoSweep');
+    if (btnAuto) btnAuto.classList.remove('active');
+    applySpeedLinkedTelemetry(parseFloat(val));
+    syncSliders();
+    initAudio();
+  }
+
+  function toggleAutoSweep() {
+    if (state.bleConnected) return;
+    state.autoSweep = !state.autoSweep;
+    state.manualSimActive = state.autoSweep;
+    if (window.AndroidDash && window.AndroidDash.setDemoMode) {
+      window.AndroidDash.setDemoMode(state.autoSweep);
+    }
+    const btnAuto = document.getElementById('btnAutoSweep');
+    if (btnAuto) btnAuto.classList.toggle('active', state.autoSweep);
+    const btnDemo = document.getElementById('btnDemoSetting');
+    if (btnDemo) {
+      btnDemo.innerText = state.autoSweep ? 'ĐANG BẬT DEMO' : 'ĐANG TẮT (THẬT)';
+      btnDemo.classList.toggle('active', state.autoSweep);
+    }
+    if (!state.autoSweep && !state.demoMode) {
+      disableManualSim();
+    }
+  }
+
+  function resetTripA() {
+    state.trip = 0.0;
+    localStorage.setItem('ab_trip_a', '0');
+    localStorage.setItem('tripA', '0');
+  }
+
+  function toggleSideStand() {
+    if (state.bleConnected) return;
+    state.sideStandDown = !state.sideStandDown;
+    const btn = document.getElementById('btnStandSetting');
+    if (btn) {
+      btn.innerText = state.sideStandDown ? 'ĐANG HẠ (KHÓA MÁY)' : 'ĐANG GẠT LÊN';
+      btn.classList.toggle('red', state.sideStandDown);
+    }
+  }
+
+  function toggleNativeTrip() {
+    if (window.AndroidDash && window.AndroidDash.toggleTrip) {
+      window.AndroidDash.toggleTrip();
+    } else if (window.TripTracker && window.TripTracker.toggle) {
+      window.TripTracker.toggle();
+    }
+  }
+
+  function openNativeTripHistory() {
+    if (window.AndroidDash && window.AndroidDash.openTripHistory) {
+      window.AndroidDash.openTripHistory();
+    } else {
+      window.location.href = 'trip_history.html';
+    }
+  }
+
+  function openNativeDiagnostics() {
+    if (window.AndroidDash && window.AndroidDash.openDiagnostics) {
+      window.AndroidDash.openDiagnostics();
+    } else {
+      window.location.href = 'diagnostics.html';
+    }
+  }
+
+  function openNativeLogs() {
+    if (window.AndroidDash && window.AndroidDash.openLogs) {
+      window.AndroidDash.openLogs();
+    } else {
+      switchNavTab('diag');
+    }
+  }
+
+  function openNativeDrag() {
+    if (window.AndroidDash && window.AndroidDash.openDrag) {
+      window.AndroidDash.openDrag();
+    } else {
+      window.location.href = 'drag.html';
+    }
+  }
+
+  function openNativeSettingsIfAvailable() {
+    if (window.AndroidDash && window.AndroidDash.openSettings) {
+      window.AndroidDash.openSettings();
+    } else {
+      window.location.href = 'settings.html';
+    }
+  }
+
+  const btnHoldGas = document.getElementById('btnHoldGas');
+  function startHoldGas(e) {
+    if (e) e.preventDefault();
+    if (state.bleConnected || state.sideStandDown) return;
+    state.gasHeld = true;
+    state.manualSimActive = true;
+    state.autoSweep = false;
+    if (state.speed === null) applySpeedLinkedTelemetry(0);
+    const btnAuto = document.getElementById('btnAutoSweep');
+    if (btnAuto) btnAuto.classList.remove('active');
+    if (btnHoldGas) btnHoldGas.classList.add('active');
+    initAudio();
+  }
+  function stopHoldGas(e) {
+    if (e) e.preventDefault();
+    state.gasHeld = false;
+    if (btnHoldGas) btnHoldGas.classList.remove('active');
+  }
+  if (btnHoldGas) {
+    btnHoldGas.addEventListener('mousedown', startHoldGas);
+    btnHoldGas.addEventListener('mouseup', stopHoldGas);
+    btnHoldGas.addEventListener('mouseleave', stopHoldGas);
+    btnHoldGas.addEventListener('touchstart', startHoldGas, { passive: false });
+    btnHoldGas.addEventListener('touchend', stopHoldGas, { passive: false });
+  }
+
+  // ================= WEB AUDIO EXHAUST SYNTHESIZER =================
+  let audioCtx = null, osc1 = null, osc2 = null, engineFilter = null, engineGain = null;
+  function initAudio() {
+    if (audioCtx) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+      osc1 = audioCtx.createOscillator();
+      osc2 = audioCtx.createOscillator();
+      engineFilter = audioCtx.createBiquadFilter();
+      engineGain = audioCtx.createGain();
+      osc1.type = 'sawtooth';
+      osc2.type = 'triangle';
+      engineFilter.type = 'lowpass';
+      engineFilter.frequency.value = 380;
+      engineFilter.Q.value = 3.0;
+      engineGain.gain.value = 0.0;
+      osc1.connect(engineFilter);
+      osc2.connect(engineFilter);
+      engineFilter.connect(engineGain);
+      engineGain.connect(audioCtx.destination);
+      osc1.start();
+      osc2.start();
+    } catch (e) {}
+  }
+
+  function updateAudio(rpm, tps) {
+    if (!audioCtx || !state.audioEnabled || state.sideStandDown || typeof rpm !== 'number' || rpm <= 0) {
+      if (engineGain && audioCtx) engineGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.05);
+      return;
+    }
+    const baseFreq = 32 + (rpm / 9500) * 125;
+    osc1.frequency.setTargetAtTime(baseFreq, audioCtx.currentTime, 0.05);
+    osc2.frequency.setTargetAtTime(baseFreq * 1.5, audioCtx.currentTime, 0.05);
+    const cutoff = 300 + ((tps || 0) / 100) * 1400 + (rpm / 9500) * 900;
+    engineFilter.frequency.setTargetAtTime(cutoff, audioCtx.currentTime, 0.05);
+    engineGain.gain.setTargetAtTime(state.gasHeld ? 0.25 : 0.12, audioCtx.currentTime, 0.05);
+  }
+
+  function toggleAudio() {
+    initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    state.audioEnabled = !state.audioEnabled;
+    const btn = document.getElementById('btnAudioSetting');
+    if (btn) {
+      btn.innerText = state.audioEnabled ? 'ĐANG BẬT PÔ' : 'BẬT TIẾNG PÔ';
+      btn.classList.toggle('active', state.audioEnabled);
+    }
+  }
+
+  // ================= SPA BOTTOM TAB NAVIGATION =================
+  function switchNavTab(tab) {
+    document.getElementById('tabOverview').classList.toggle('active', tab === 'overview');
+    document.getElementById('tabParams').classList.toggle('active', tab === 'params');
+    document.getElementById('tabDiag').classList.toggle('active', tab === 'diag');
+    document.getElementById('tabSettings').classList.toggle('active', tab === 'settings');
+
+    document.getElementById('panelParams').classList.toggle('active', tab === 'params');
+    document.getElementById('panelDiag').classList.toggle('active', tab === 'diag');
+    document.getElementById('panelSettings').classList.toggle('active', tab === 'settings');
+  }
+
+  // ================= UI RENDER LOOP (60 FPS) =================
+  const speedValPortrait = document.getElementById('speedValPortrait');
+  const speedValLandscape = document.getElementById('speedValLandscape');
+  const sportLblPortrait = document.getElementById('sportLblPortrait');
+  const sportLblLandscape = document.getElementById('sportLblLandscape');
+  const valEct = document.getElementById('valEct');
+  const valIat = document.getElementById('valIat');
+  const valTps = document.getElementById('valTps');
+  const valMap = document.getElementById('valMap');
+  const valO2 = document.getElementById('valO2');
+  const valBat = document.getElementById('valBat');
+  const valRpm = document.getElementById('valRpm');
+  const valLoad = document.getElementById('valLoad');
+  const valIgn = document.getElementById('valIgn');
+  const valIgnInline = document.getElementById('valIgnInline');
+  const valTripLandscape = document.getElementById('valTripLandscape');
+  const valOdoLandscape = document.getElementById('valOdoLandscape');
+  const tpsVertBarFill = document.getElementById('tpsVertBarFill');
+  const tempVertBarFill = document.getElementById('tempVertBarFill');
+  const dialBottomTempBar = document.getElementById('dialBottomTempBar');
+  const shiftFlashOverlay = document.getElementById('shiftFlashOverlay');
+
+  let sweepPhase = 0;
+
+  function renderLoop() {
+    if (!state.bleConnected && (state.manualSimActive || state.autoSweep)) {
+      if (state.gasHeld && !state.sideStandDown) {
+        applySpeedLinkedTelemetry(Math.min((state.speed || 0) + 0.9, 134));
+        syncSliders();
+      } else if (state.autoSweep && !state.sideStandDown) {
+        sweepPhase += 0.018;
+        const wave = (Math.sin(sweepPhase) + 1) / 2;
+        applySpeedLinkedTelemetry(wave * 128);
+        syncSliders();
+      }
+      if ((state.speed || 0) > 5 && !state.sideStandDown) {
+        state.trip += (state.speed / 3600) * 0.016;
+        state.odo += (state.speed / 3600) * 0.016;
+      }
+    }
+
+    const hasLive = state.bleConnected || state.hasReading || state.demoMode || state.manualSimActive || state.autoSweep;
+    const rawSpd = (hasLive && typeof state.speed === 'number') ? state.speed : 0;
+    const rawRpm = (hasLive && typeof state.rpm === 'number') ? state.rpm : 0;
+
+    const displaySpd = state.unitSpeed === 'mph' ? Math.round(rawSpd * 0.621371) : Math.round(rawSpd);
+    if (speedValPortrait) speedValPortrait.innerText = displaySpd;
+    if (speedValLandscape) speedValLandscape.innerText = displaySpd;
+
+    let modeTxt = 'OFFLINE';
+    if (state.sideStandDown && hasLive) {
+      modeTxt = 'LOCKED (CHỐNG)';
+    } else if (state.idlingStopActive && hasLive) {
+      modeTxt = 'IDLING STOP';
+    } else if (state.bleConnected && state.ecuConnected) {
+      modeTxt = 'SPORT // LIVE';
+    } else if (state.bleConnected) {
+      modeTxt = 'WAIT K-LINE';
+    } else if (state.demoMode || state.autoSweep || state.manualSimActive) {
+      modeTxt = 'SPORT // DEMO';
+    }
+    if (sportLblPortrait) sportLblPortrait.innerText = modeTxt;
+    if (sportLblLandscape) sportLblLandscape.innerText = modeTxt;
+
+    if (shiftFlashOverlay) {
+      shiftFlashOverlay.classList.toggle('flashing', hasLive && rawRpm >= 8200 && !state.sideStandDown);
+    }
+
+    updateFaceAndTach(rawSpd, rawRpm, hasLive && state.sideStandDown);
+
+    // 9 Telemetry Cards: Show real numbers when hasLive, '--' when disconnected
+    if (valEct) {
+      if (hasLive && typeof state.ect === 'number') {
+        valEct.innerText = state.unitTemp === 'f' ? Math.round(state.ect * 1.8 + 32) : Math.round(state.ect);
+      } else {
+        valEct.innerText = '--';
+      }
+    }
+    if (valIat) {
+      if (hasLive && typeof state.iat === 'number') {
+        valIat.innerText = state.unitTemp === 'f' ? Math.round(state.iat * 1.8 + 32) : Math.round(state.iat);
+      } else {
+        valIat.innerText = '--';
+      }
+    }
+    if (valTps) {
+      valTps.innerText = (hasLive && typeof state.tps === 'number') ? Math.round(state.tps) : '--';
+    }
+    if (valMap) {
+      if (hasLive && typeof state.map === 'number') {
+        valMap.innerText = Math.round(state.map);
+      } else if (hasLive && typeof state.tps === 'number') {
+        valMap.innerText = Math.round(28 + (state.tps / 100) * 55);
+      } else {
+        valMap.innerText = '--';
+      }
+    }
+    if (valO2) {
+      valO2.innerText = (hasLive && typeof state.o2 === 'number') ? state.o2.toFixed(2) : '--';
+    }
+    if (valBat) {
+      valBat.innerText = (hasLive && typeof state.volt === 'number') ? state.volt.toFixed(1) : '--';
+    }
+    if (valRpm) {
+      valRpm.innerText = hasLive ? Math.round(rawRpm).toLocaleString('en-US') : '0';
+    }
+    if (valLoad) {
+      valLoad.innerText = (hasLive && typeof state.engineLoad === 'number') ? Math.round(state.engineLoad) : '--';
+    }
+    const ignTxt = (hasLive && typeof state.ignitionTiming === 'number') ? `${Math.round(state.ignitionTiming)}°` : '--°';
+    if (valIgn) valIgn.innerText = ignTxt;
+    if (valIgnInline) valIgnInline.innerText = ignTxt;
+
+    if (valTripLandscape) valTripLandscape.innerText = state.trip.toFixed(1);
+    if (valOdoLandscape) valOdoLandscape.innerText = Math.round(state.odo).toLocaleString('en-US');
+
+    // Update Real ECU Bars (Left Bar = TPS %, Right/Bottom Bar = ECT Temp)
+    if (tpsVertBarFill) {
+      const tpsPct = (hasLive && typeof state.tps === 'number') ? Math.min(Math.max(state.tps, 0), 100) : 0;
+      tpsVertBarFill.style.height = `${tpsPct}%`;
+    }
+    const tempPct = (hasLive && typeof state.ect === 'number')
+      ? Math.min(Math.max(((state.ect - 30) / 85) * 100, 8), 100)
+      : 0;
+    if (tempVertBarFill) {
+      tempVertBarFill.style.height = `${tempPct}%`;
+    }
+    if (dialBottomTempBar) {
+      dialBottomTempBar.setAttribute('width', ((tempPct / 100) * 78).toFixed(1));
+    }
+
+    // Update Tab 2 Details
+    const extTripA = document.getElementById('extTripA');
+    const extOdo = document.getElementById('extOdo');
+    const extInjTi = document.getElementById('extInjTi');
+    const extFuelEco = document.getElementById('extFuelEco');
+    const extFuelTrim = document.getElementById('extFuelTrim');
+    const extPeakSpeed = document.getElementById('extPeakSpeed');
+    const extPeakRpm = document.getElementById('extPeakRpm');
+    const extRunTime = document.getElementById('extRunTime');
+
+    if (extTripA) extTripA.innerText = `${state.trip.toFixed(1)} km`;
+    if (extOdo) extOdo.innerText = `${Math.round(state.odo).toLocaleString('en-US')} km`;
+
+    if (extInjTi) {
+      if (hasLive && typeof state.injectorTi === 'number' && state.injectorTi > 0) {
+        const tiMs = state.injectorTi > 50 ? (state.injectorTi / 1000) : state.injectorTi;
+        extInjTi.innerText = `${tiMs.toFixed(2)} ms`;
+      } else {
+        extInjTi.innerText = '-- ms';
+      }
+    }
+
+    if (extFuelEco) {
+      if (hasLive && rawSpd >= 5 && rawRpm > 800 && typeof state.injectorTi === 'number' && state.injectorTi > 0) {
+        const tiMs = state.injectorTi > 50 ? (state.injectorTi / 1000) : state.injectorTi;
+        const litersPerHour = Math.max((rawRpm * tiMs * 0.000048), 0.15);
+        const kmPerLiter = Math.min(Math.max(rawSpd / litersPerHour, 15), 75);
+        extFuelEco.innerText = `${kmPerLiter.toFixed(1)} km/L`;
+      } else {
+        extFuelEco.innerText = '-- km/L';
+      }
+    }
+
+    if (extFuelTrim) {
+      if (!hasLive) {
+        extFuelTrim.innerText = 'CHỜ K-LINE';
+        extFuelTrim.style.color = '#94a3b8';
+      } else if (state.sideStandDown) {
+        extFuelTrim.innerText = 'HẠ CHỐNG (KHÓA)';
+        extFuelTrim.style.color = '#ef4444';
+      } else if (state.idlingStopActive) {
+        extFuelTrim.innerText = 'IDLING STOP';
+        extFuelTrim.style.color = '#22c55e';
+      } else {
+        extFuelTrim.innerText = 'GẠT LÊN (OK)';
+        extFuelTrim.style.color = '#22c55e';
+      }
+    }
+
+    if (extPeakSpeed) extPeakSpeed.innerText = `${state.peakSpeed} km/h`;
+    if (extPeakRpm) extPeakRpm.innerText = `${state.peakRpm.toLocaleString('en-US')} RPM`;
+    if (extRunTime) {
+      const rt = hasLive ? (state.runTime || 0) : 0;
+      const h = String(Math.floor(rt / 3600)).padStart(2, '0');
+      const m = String(Math.floor((rt % 3600) / 60)).padStart(2, '0');
+      const s = String(rt % 60).padStart(2, '0');
+      extRunTime.innerText = `${h}:${m}:${s}`;
+    }
+
+    updateAudio(rawRpm, state.tps || 0);
+    requestAnimationFrame(renderLoop);
+  }
+  requestAnimationFrame(renderLoop);
+
+  setInterval(() => {
+    localStorage.setItem('ab_trip_a', state.trip.toFixed(2));
+    localStorage.setItem('tripA', state.trip.toFixed(2));
+    localStorage.setItem('ab_odo', Math.round(state.odo).toString());
+  }, 2000);
+
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar) {
+    try {
+      window.Capacitor.Plugins.StatusBar.hide();
+      window.Capacitor.Plugins.StatusBar.setOverlaysWebView({ overlay: true });
+    } catch (e) {}
+  }
+
+  window.addEventListener('ble_telemetry', (e) => {
+    const d = e.detail;
+    if (!d) return;
+    if (d.rawDataView) {
+      parseBlePacket(d.rawDataView);
+    }
+  });
+
+  window.addEventListener('ecu_dtc', (e) => {
+    const codes = (e.detail && e.detail.codes) || [];
+    state.dtcPresent = codes.length > 0;
+    state.dtcCount = codes.length;
+    updateDiagDtcBanner();
+  });
+
+  window.addEventListener('ble_status', (e) => {
+    const st = e.detail && e.detail.status;
+    if (st === 'scanning') setBleHeaderStatus(false, false, 'SCANNING...');
+    else if (st === 'connecting') setBleHeaderStatus(false, false, 'CONNECTING...');
+    else if (st === 'connected') setBleHeaderStatus(true, state.ecuConnected);
+    else if (st === 'disconnected') setBleHeaderStatus(false, false);
+  });
+
+  async function requestScreenWakeLock() {
+    if ('wakeLock' in navigator) {
+      try { await navigator.wakeLock.request('screen'); } catch (e) {}
+    }
+  }
+  document.addEventListener('click', requestScreenWakeLock, { once: true });
+
+  // ================= NATIVE ANDROID / iOS / CAPACITOR / WEB BLE BRIDGE =================
+  const BLE_SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+  const BLE_CHAR_TELE    = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+  const BLE_CHAR_CTRL    = 'aab1c2d3-e4f5-4a6b-8c7d-1e2f3a4b5c6d';
+  let activeBleControlChar = null;
+  let activeCapDeviceId = null;
+  let lastLoggedPkt = -1;
+
+  function appendKlineLog(line) {
+    const term = document.getElementById('klineTerminal');
+    if (!term) return;
+    const div = document.createElement('div');
+    div.textContent = line;
+    term.appendChild(div);
+    while (term.childNodes.length > 35) term.removeChild(term.firstChild);
+    term.scrollTop = term.scrollHeight;
+  }
+
+  function updateDiagDtcBanner() {
+    const dtcEl = document.getElementById('diagDtcStatus');
+    if (!dtcEl) return;
+    if (!state.bleConnected && !state.demoMode) {
+      dtcEl.innerText = 'CHƯA KẾT NỐI ECU — HÃY BẤM KẾT NỐI BLE ĐỂ QUÉT LỖI';
+      dtcEl.style.color = '#f59e0b';
+    } else if (state.dtcPresent) {
+      const cntTxt = state.dtcCount > 0 ? `${state.dtcCount} ` : '';
+      dtcEl.innerText = `⚠ PHÁT HIỆN ${cntTxt}MÃ LỖI ĐỘNG CƠ (DTC ACTIVE)`;
+      dtcEl.style.color = '#ef4444';
+    } else {
+      dtcEl.innerText = '✓ HỆ THỐNG HOẠT ĐỘNG TỐT — 0 MÃ LỖI (0 DTC)';
+      dtcEl.style.color = '#22c55e';
+    }
+  }
+
+  function setBleHeaderStatus(connected, ecuOnline, customTitle) {
+    const dot = document.getElementById('ecuDot');
+    const title = document.getElementById('ecuStatusTitle');
+    const sub = document.getElementById('ecuStatusSub');
+    state.bleConnected = connected;
+    state.ecuConnected = ecuOnline;
+    if (connected) {
+      if (dot) {
+        dot.style.background = ecuOnline ? '#22c55e' : '#f59e0b';
+        dot.style.boxShadow = ecuOnline ? '0 0 8px #22c55e' : '0 0 8px #f59e0b';
+      }
+      if (title) {
+        title.innerText = customTitle || (ecuOnline ? 'ECU CONNECTED' : 'BLE ONLINE');
+        title.style.color = ecuOnline ? '#22c55e' : '#f59e0b';
+      }
+      if (sub) {
+        const hzTxt = state.packetHz > 0 ? ` (${state.packetHz.toFixed(1)}Hz)` : '';
+        sub.innerText = ecuOnline ? `K-LINE 10.4K${hzTxt}` : 'CHỜ K-LINE ECU...';
+      }
+    } else if (state.demoMode || state.autoSweep || state.manualSimActive) {
+      if (dot) {
+        dot.style.background = '#f59e0b';
+        dot.style.boxShadow = '0 0 8px #f59e0b';
+      }
+      if (title) {
+        title.innerText = 'CHẾ ĐỘ DEMO';
+        title.style.color = '#f59e0b';
+      }
+      if (sub) sub.innerText = 'DỮ LIỆU GIẢ LẬP';
+    } else {
+      const isConnecting = customTitle === 'SCANNING...' || customTitle === 'CONNECTING...' || customTitle === 'SCANNING' || customTitle === 'CONNECTING';
+      if (dot) {
+        dot.style.background = isConnecting ? '#f59e0b' : '#ef4444';
+        dot.style.boxShadow = isConnecting ? '0 0 8px #f59e0b' : '0 0 8px #ef4444';
+      }
+      if (title) {
+        title.innerText = customTitle || 'BLE OFFLINE';
+        title.style.color = isConnecting ? '#f59e0b' : '#ef4444';
+      }
+      if (sub) sub.innerText = isConnecting ? 'ĐANG TÌM MẠCH...' : 'CHẠM ĐỂ KẾT NỐI';
+    }
+    updateDiagDtcBanner();
+  }
+  setBleHeaderStatus(false, false);
+
+  window.updateFromNative = function(payload) {
+    if (!payload) return;
+
+    state.demoMode = Boolean(payload.demoMode);
+    state.isTripRecording = Boolean(payload.isTripRecording);
+    state.hasReading = Boolean(payload.hasReading);
+    state.packetCount = typeof payload.packetCount === 'number' ? payload.packetCount : state.packetCount;
+    state.packetHz = typeof payload.packetHz === 'number' ? payload.packetHz : 0;
+
+    if (typeof payload.unitSpeed === 'string' && payload.unitSpeed !== state.unitSpeed) {
+      setUnitSpeed(payload.unitSpeed, true);
+    }
+    if (typeof payload.unitTemp === 'string' && payload.unitTemp !== state.unitTemp) {
+      setUnitTemp(payload.unitTemp, true);
+    }
+
+    const btnDemo = document.getElementById('btnDemoSetting');
+    if (btnDemo) {
+      btnDemo.innerText = state.demoMode ? 'ĐANG BẬT DEMO' : 'ĐANG TẮT (THẬT)';
+      btnDemo.classList.toggle('active', state.demoMode);
+    }
+
+    const btnTripRec = document.getElementById('btnTripRecParams');
+    if (btnTripRec) {
+      btnTripRec.innerText = state.isTripRecording ? '■ DỪNG & LƯU TRIP GPS' : '● GHI HÀNH TRÌNH GPS';
+      btnTripRec.classList.toggle('active', state.isTripRecording);
+    }
+
+    if (payload.bleConnected) {
+      state.autoSweep = false;
+      state.manualSimActive = false;
+      setBleHeaderStatus(true, Boolean(payload.ecuConnected));
+    } else if (payload.bleState === 'SCANNING' || payload.bleState === 'CONNECTING') {
+      setBleHeaderStatus(false, false, payload.bleState);
+    } else {
+      setBleHeaderStatus(false, false);
+    }
+
+    const activeData = Boolean(payload.bleConnected || payload.hasReading || state.demoMode);
+    if (activeData) {
+      state.rpm = typeof payload.rpm === 'number' ? payload.rpm : null;
+      state.speed = typeof payload.speed === 'number' ? payload.speed : null;
+      state.ect = typeof payload.ect === 'number' ? payload.ect : null;
+      state.tps = typeof payload.tps === 'number' ? payload.tps : null;
+      state.map = typeof state.tps === 'number' ? Math.round(28 + (state.tps / 100) * 55) : null;
+      state.volt = typeof payload.volt === 'number' ? payload.volt : null;
+      state.iat = typeof payload.iat === 'number' ? payload.iat : null;
+      state.o2 = typeof payload.o2 === 'number' ? payload.o2 : null;
+      state.engineLoad = typeof payload.engineLoad === 'number' ? payload.engineLoad : null;
+      state.ignitionTiming = typeof payload.ignitionTiming === 'number' ? payload.ignitionTiming : null;
+      state.injectorTi = typeof payload.injectorTi === 'number' ? payload.injectorTi : null;
+      state.runTime = typeof payload.runTime === 'number' ? payload.runTime : 0;
+
+      if (typeof state.speed === 'number' && state.speed > state.peakSpeed) state.peakSpeed = Math.round(state.speed);
+      if (typeof state.rpm === 'number' && state.rpm > state.peakRpm) state.peakRpm = Math.round(state.rpm);
+      syncSliders();
+
+      if (payload.bleConnected && state.packetCount > 0 && state.packetCount !== lastLoggedPkt && state.packetCount % 10 === 0) {
+        lastLoggedPkt = state.packetCount;
+        appendKlineLog(`[BLE #${state.packetCount}] RPM=${state.rpm ?? 0} SPD=${state.speed ?? 0} ECT=${state.ect ?? '--'}C TPS=${state.tps ?? '--'}% BAT=${state.volt ? state.volt.toFixed(1) : '--'}V`);
+      }
+    } else if (!state.manualSimActive && !state.autoSweep) {
+      state.rpm = null;
+      state.speed = null;
+      state.ect = null;
+      state.tps = null;
+      state.map = null;
+      state.volt = null;
+      state.iat = null;
+      state.o2 = null;
+      state.engineLoad = null;
+      state.ignitionTiming = null;
+      state.injectorTi = null;
+      state.runTime = 0;
+    }
+
+    if (typeof payload.tripKm === 'number') state.trip = payload.tripKm;
+    if (typeof payload.sideStandDown === 'boolean') state.sideStandDown = payload.sideStandDown;
+    if (typeof payload.idlingStopActive === 'boolean') state.idlingStopActive = payload.idlingStopActive;
+    if (typeof payload.dtcPresent === 'boolean') state.dtcPresent = payload.dtcPresent;
+    if (typeof payload.dtcCount === 'number') state.dtcCount = payload.dtcCount;
+    updateDiagDtcBanner();
+  };
+
+  function hexToDataView(hex) {
+    if (typeof hex !== 'string' || hex.length === 0) return new DataView(new ArrayBuffer(0));
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+    }
+    return new DataView(bytes.buffer);
+  }
+
+  function parseBlePacket(dv) {
+    if (!dv || dv.byteLength < 12) return;
+    state.autoSweep = false;
+    state.manualSimActive = false;
+    state.hasReading = true;
+    state.rpm = dv.getUint16(0, false);
+    state.speed = dv.getUint8(2);
+    state.ect = dv.getInt8(3);
+    state.tps = dv.getUint8(4);
+    state.volt = dv.getUint16(5, false) / 100.0;
+    state.iat = dv.getInt8(7);
+    state.o2 = dv.getUint16(8, false) / 100.0;
+    state.map = Math.round(28 + (state.tps / 100) * 55);
+
+    const flags = dv.getUint8(10);
+    state.ecuConnected = Boolean(flags & 0x01);
+    state.dtcPresent = Boolean(flags & 0x02);
+
+    if (dv.byteLength >= 20) {
+      state.ignitionTiming = dv.getInt8(12);
+      state.injectorTi = dv.getUint16(13, false);
+      const sw = dv.getUint8(15);
+      state.sideStandDown = Boolean(sw & 0x01);
+      state.idlingStopActive = Boolean(sw & 0x10);
+      state.runTime = dv.getUint16(16, false);
+      state.engineLoad = dv.getUint8(18);
+    }
+    if (state.speed > state.peakSpeed) state.peakSpeed = state.speed;
+    if (state.rpm > state.peakRpm) state.peakRpm = state.rpm;
+    syncSliders();
+    setBleHeaderStatus(true, state.ecuConnected);
+    appendKlineLog(`[BLE 20B] RPM=${state.rpm} SPD=${state.speed} ECT=${state.ect}C TPS=${state.tps}% BAT=${state.volt.toFixed(1)}V`);
+  }
+
+  async function sendEsp32ControlByte(cmdByte) {
+    try {
+      if (window.BLEManager) {
+        const sent = await window.BLEManager.sendControlCommand([cmdByte]);
+        if (sent) {
+          appendKlineLog(`[TX CTRL] Sent 0x${cmdByte.toString(16).toUpperCase()} via BLEManager`);
+          return;
+        }
+      }
+      if (activeBleControlChar) {
+        await activeBleControlChar.writeValue(new Uint8Array([cmdByte]));
+        appendKlineLog(`[TX CTRL] Sent 0x${cmdByte.toString(16).toUpperCase()} to ESP32`);
+        return;
+      }
+      if (activeCapDeviceId && window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BluetoothLe) {
+        const hex = cmdByte.toString(16).padStart(2, '0');
+        await Capacitor.Plugins.BluetoothLe.write({
+          deviceId: activeCapDeviceId,
+          service: BLE_SERVICE_UUID,
+          characteristic: BLE_CHAR_CTRL,
+          value: hex
+        });
+        appendKlineLog(`[TX CTRL] Sent 0x${hex.toUpperCase()} via Capacitor BLE`);
+      }
+    } catch (e) {
+      appendKlineLog(`[WARN] Control command 0x${cmdByte.toString(16)} failed: ${e}`);
+    }
+  }
+
+  function sendClearDtcCommand() {
+    if (window.AndroidDash && window.AndroidDash.clearDtc) {
+      window.AndroidDash.clearDtc();
+      appendKlineLog('[TX CTRL] Đã gửi lệnh xóa lỗi DTC (Mode 0x04) qua App Native');
+    } else {
+      sendEsp32ControlByte(0x44);
+    }
+    state.dtcPresent = false;
+    state.dtcCount = 0;
+    updateDiagDtcBanner();
+  }
+
+  function sendC4AudioCommand() {
+    if (window.AndroidDash && window.AndroidDash.triggerC4) {
+      window.AndroidDash.triggerC4();
+      appendKlineLog('[TX CTRL] Đã kích hoạt phát loa ESP32-S3');
+    } else {
+      sendEsp32ControlByte(0x43);
+    }
+  }
+
+  async function connectBLE() {
+    initAudio();
+    if (window.AndroidDash && window.AndroidDash.connectBle) {
+      setBleHeaderStatus(false, false, 'SCANNING...');
+      window.AndroidDash.connectBle();
+      return;
+    }
+
+    if (window.BLEManager && window.BLEManager.isAvailable()) {
+      try {
+        await window.BLEManager.scanAndConnect();
+      } catch (e) {
+        setBleHeaderStatus(false, false);
+      }
+      return;
+    }
+
+    if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BluetoothLe) {
+      try {
+        setBleHeaderStatus(false, false, 'SCANNING...');
+        const ble = Capacitor.Plugins.BluetoothLe;
+        await ble.initialize();
+        const device = await ble.requestDevice({ services: [BLE_SERVICE_UUID] });
+        const deviceId = device.deviceId;
+        activeCapDeviceId = deviceId;
+        await ble.connect({ deviceId });
+        try { await ble.discoverServices({ deviceId }); } catch (e) {}
+        const key = `notification|${deviceId}|${BLE_SERVICE_UUID}|${BLE_CHAR_TELE}`;
+        await ble.addListener(key, (event) => {
+          if (event && event.value) parseBlePacket(hexToDataView(event.value));
+        });
+        await ble.startNotifications({ deviceId, service: BLE_SERVICE_UUID, characteristic: BLE_CHAR_TELE });
+        setBleHeaderStatus(true, state.ecuConnected);
+      } catch (err) {
+        setBleHeaderStatus(false, false);
+      }
+      return;
+    }
+
+    if (navigator.bluetooth) {
+      try {
+        setBleHeaderStatus(false, false, 'SCANNING...');
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [
+            { services: [BLE_SERVICE_UUID] },
+            { namePrefix: 'Honda' },
+            { namePrefix: 'HONDA' },
+            { namePrefix: 'AirBlade' }
+          ],
+          optionalServices: [BLE_SERVICE_UUID]
+        });
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(BLE_SERVICE_UUID);
+        const char = await service.getCharacteristic(BLE_CHAR_TELE);
+        try { activeBleControlChar = await service.getCharacteristic(BLE_CHAR_CTRL); } catch (e) {}
+        await char.startNotifications();
+        char.addEventListener('characteristicvaluechanged', (e) => parseBlePacket(e.target.value));
+        setBleHeaderStatus(true, state.ecuConnected);
+      } catch (err) {
+        setBleHeaderStatus(false, false);
+      }
+    }
+  }
+</script>
+</body>
+</html>

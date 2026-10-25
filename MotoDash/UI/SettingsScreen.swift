@@ -271,17 +271,20 @@ private struct GeneralTab: View {
                 }
             }
 
-            SectionTitle("GIAO DIỆN ĐỒNG HỒ (8 THEMES)")
+            SectionTitle("GIAO DIỆN ĐỒNG HỒ (9 THEMES)")
             GroupCard {
                 VStack(spacing: 8) {
                     HStack(spacing: 8) {
-                        ThemeChip(label: "📱 STEALTH DỌC", value: "portrait", current: settings.theme, onSelect: onSetTheme)
+                        ThemeChip(label: "📱 AB2025 DỌC", value: "portrait", current: settings.theme, onSelect: onSetTheme)
+                        ThemeChip(label: "📲 AB2025 NGANG", value: "landscape", current: settings.theme, onSelect: onSetTheme)
                         ThemeChip(label: "RACE", value: "sport", current: settings.theme, onSelect: onSetTheme)
-                        ThemeChip(label: "CYBER", value: "cyber", current: settings.theme, onSelect: onSetTheme)
-                        ThemeChip(label: "AIRBLADE", value: "airblade", current: settings.theme, onSelect: onSetTheme)
                     }
                     HStack(spacing: 8) {
+                        ThemeChip(label: "CYBER", value: "cyber", current: settings.theme, onSelect: onSetTheme)
+                        ThemeChip(label: "AIRBLADE", value: "airblade", current: settings.theme, onSelect: onSetTheme)
                         ThemeChip(label: "SUPERBIKE", value: "superbike", current: settings.theme, onSelect: onSetTheme)
+                    }
+                    HStack(spacing: 8) {
                         ThemeChip(label: "DAILY", value: "daily", current: settings.theme, onSelect: onSetTheme)
                         ThemeChip(label: "CLASSIC", value: "classic", current: settings.theme, onSelect: onSetTheme)
                         ThemeChip(label: "NITRO", value: "crazy", current: settings.theme, onSelect: onSetTheme)
