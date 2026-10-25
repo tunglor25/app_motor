@@ -1175,14 +1175,14 @@
           <span class="side-bar-lbl red">0%</span>
         </div>
 
-        <div class="landscape-trip-left" onclick="resetTripA()" title="Chạm để Reset Trip A" style="cursor:pointer;">
-          <span class="trip-odo-lbl">TRIP A</span>
+        <div class="landscape-trip-left" onclick="toggleNativeTrip()" title="Chạm để Ghi / Lưu Hành trình GPS" style="cursor:pointer;">
+          <span class="trip-odo-lbl" id="lblTripLandscape">TRIP GPS</span>
           <span class="trip-odo-val"><span id="valTripLandscape">0.0</span><small>km</small></span>
         </div>
       </div>
 
       <!-- Center Circular Tachometer with Angry/Wrinkled Character -->
-      <div class="dial-center-wrap" id="dialWrapper" title="Kéo lên/xuống trên đồng hồ để thử tốc độ & độ nhăn mặt!">
+      <div class="dial-center-wrap" id="dialWrapper">
         <svg id="tachSvg" viewBox="0 0 380 380">
           <defs>
             <radialGradient id="dialFaceGrad" cx="50%" cy="48%" r="52%">
@@ -1400,32 +1400,32 @@
 
       <!-- Right-of-Dial Speed + SPORT + ODO Column in Landscape -->
       <div class="landscape-speed-col">
-        <div class="landscape-speed-readout" id="landscapeSpeedPod" onclick="toggleAutoSweep()" title="Chạm để Bật/Tắt Auto Demo">
+        <div class="landscape-speed-readout" id="landscapeSpeedPod">
           <span class="speed-digits" id="speedValLandscape">0</span>
           <span class="speed-unit" id="unitSpeedLandscape">km/h</span>
           <div class="landscape-sport-box">
-            <span class="sport-mode-lbl" id="sportLblLandscape">SPORT</span>
+            <span class="sport-mode-lbl" id="sportLblLandscape">OFFLINE</span>
           </div>
         </div>
 
         <div class="landscape-odo-center">
-          <span class="trip-odo-lbl">ODO</span>
-          <span class="trip-odo-val"><span id="valOdoLandscape">0</span><small>km</small></span>
+          <span class="trip-odo-lbl">CHÂN CHỐNG</span>
+          <span class="trip-odo-val"><span id="valOdoLandscape" style="font-size:13px; color:#94a3b8;">CHỜ ECU</span></span>
         </div>
       </div>
     </section>
 
     <!-- -------- PORTRAIT SPEED POD (Overlapping bottom of dial in Portrait) -------- -->
     <div class="portrait-speed-wings">
-      <div class="portrait-speed-pod" id="portraitSpeedPod" onclick="toggleAutoSweep()" title="Chạm để Bật/Tắt Auto Demo // Kéo lên xuống trên đồng hồ để chỉnh tốc độ">
+      <div class="portrait-speed-pod" id="portraitSpeedPod" onclick="toggleNativeTrip()" title="Chạm để Bắt đầu / Dừng Ghi Hành trình GPS">
         <span class="speed-digits" id="speedValPortrait">0</span>
         <span class="speed-unit" id="unitSpeedPortrait">km/h</span>
-        <span class="sport-mode-lbl" id="sportLblPortrait">SPORT</span>
+        <span class="sport-mode-lbl" id="sportLblPortrait">OFFLINE</span>
         <div class="m-badge-row">
           <span class="m-stripe c1"></span>
           <span class="m-stripe c2"></span>
           <span class="m-stripe c3"></span>
-          <span class="m-letter">M</span>
+          <span class="m-letter" id="portraitTripSub">TRIP 0.0 KM</span>
         </div>
       </div>
     </div>
@@ -1484,21 +1484,19 @@
           </div>
         </div>
 
-        <!-- 4. MAP -->
+        <!-- 4. INJ Ti (Real PGM-FI Injector Pulse Width) -->
         <div class="sensor-card">
-          <div class="sensor-icon-wrap">
+          <div class="sensor-icon-wrap red-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 14a8 8 0 0 1 16 0"/>
-              <circle cx="12" cy="14" r="2"/>
-              <path d="M12 12V7"/>
-              <path d="M7 18h10"/>
+              <path d="M12 2v6m0 0l-3-3m3 3l3-3"/>
+              <path d="M6 12h12l-1.5 9h-9L6 12z"/>
             </svg>
           </div>
           <div class="sensor-info">
-            <span class="sensor-lbl">MAP</span>
+            <span class="sensor-lbl">INJ Ti</span>
             <div class="sensor-val-row">
               <span class="sensor-val" id="valMap">--</span>
-              <span class="sensor-unit">kPa</span>
+              <span class="sensor-unit">ms</span>
             </div>
           </div>
         </div>
@@ -1605,24 +1603,24 @@
 
   <!-- ================= 4. SPA TAB PANELS ================= -->
 
-  <!-- TAB 2: THÔNG SỐ CHI TIẾT & BỘ TEST TỐC ĐỘ -->
+  <!-- TAB 2: HÀNH TRÌNH GPS, DRAG & THÔNG SỐ MỞ RỘNG CỦA APP -->
   <section class="spa-tab-panel" id="panelParams">
     <div class="panel-header">
-      <span class="panel-title">THÔNG SỐ ĐỘNG CƠ // LIVE DATA STREAM</span>
+      <span class="panel-title">HÀNH TRÌNH &amp; THÔNG SỐ ECU THỰC TẾ</span>
       <span class="panel-badge" id="moodBadgeParams">THƯ THÁI</span>
     </div>
 
     <div class="detail-grid">
       <div class="detail-item">
-        <div class="detail-lbl">HÀNH TRÌNH TRIP A</div>
+        <div class="detail-lbl">QUÃNG ĐƯỜNG TRIP GPS</div>
         <div class="detail-val" id="extTripA">0.0 km</div>
       </div>
       <div class="detail-item">
-        <div class="detail-lbl">TỔNG ODO</div>
-        <div class="detail-val" id="extOdo">0 km</div>
+        <div class="detail-lbl">TRẠNG THÁI GHI TRIP</div>
+        <div class="detail-val" id="extOdo" style="font-size:13px; color:#94a3b8;">ĐANG DỪNG</div>
       </div>
       <div class="detail-item">
-        <div class="detail-lbl">THỜI GIAN PHUN (Ti)</div>
+        <div class="detail-lbl">THỜI GIAN PHUN (INJ Ti)</div>
         <div class="detail-val" id="extInjTi">-- ms</div>
       </div>
       <div class="detail-item">
@@ -1634,7 +1632,7 @@
         <div class="detail-val" id="extFuelTrim" style="font-size:13px;">CHỜ K-LINE</div>
       </div>
       <div class="detail-item">
-        <div class="detail-lbl">THỜI GIAN NỔ MÁY</div>
+        <div class="detail-lbl">THỜI GIAN NỔ MÁY (ECU)</div>
         <div class="detail-val" id="extRunTime">00:00:00</div>
       </div>
       <div class="detail-item">
@@ -1647,23 +1645,19 @@
       </div>
     </div>
 
-    <div class="sim-btn-row">
-      <button class="action-btn red" id="btnTripRecParams" onclick="toggleNativeTrip()">&#9679; GHI HÀNH TRÌNH GPS</button>
+    <div class="sim-btn-row" style="margin-top:4px;">
+      <button class="action-btn red" id="btnTripRecParams" onclick="toggleNativeTrip()">&#9679; BẮT ĐẦU GHI TRIP GPS</button>
       <button class="action-btn" onclick="openNativeTripHistory()">LỊCH SỬ TRIP GPS</button>
-      <button class="action-btn" onclick="resetTripA()">RESET TRIP A</button>
     </div>
 
-    <div class="sim-control-card">
-      <div class="sim-top-row">
-        <span>BỘ TEST BIỂU CẢM ĐỒNG HỒ (<strong id="simSpeedLabel" style="color:var(--red-bright);">0 km/h</strong>)</span>
-        <span style="font-family:'Share Tech Mono'; font-size:10px; color:#94a3b8;">Chỉ kích hoạt khi chưa nối xe hoặc bật Demo</span>
-      </div>
-      <input type="range" min="0" max="135" value="0" class="sim-slider" id="speedSlider" oninput="onSpeedSliderInput(this.value)">
-      <div class="sim-btn-row">
-        <button class="action-btn red" id="btnHoldGas">&#9889; GIỮ ĐỂ VẶN GA</button>
-        <button class="action-btn" id="btnAutoSweep" onclick="toggleAutoSweep()">AUTO DEMO</button>
-        <button class="action-btn" onclick="disableManualSim()">TẮT TEST (DỮ LIỆU THẬT)</button>
-      </div>
+    <div class="sim-btn-row">
+      <button class="action-btn" onclick="openNativeDrag()">ĐO GIA TỐC DRAG 0-100</button>
+      <button class="action-btn" onclick="openNativeLogs()">NHẬT KÝ LOG BLE TRỰC TIẾP</button>
+    </div>
+
+    <div class="sim-btn-row">
+      <button class="action-btn" onclick="openNativeDiagnostics()">MỞ CHẨN ĐOÁN ECU K-LINE</button>
+      <button class="action-btn red" onclick="openNativeSettingsIfAvailable()">MỞ CÀI ĐẶT HỆ THỐNG APP</button>
     </div>
   </section>
 
@@ -1818,9 +1812,12 @@
 <script src="js/gps_manager.js"></script>
 <script src="js/ble_manager.js"></script>
 <script>
-  // ================= INITIAL DASHBOARD STATE & PERSISTENCE (100% REAL APP DATA) =================
-  const savedTrip = parseFloat(localStorage.getItem('ab_trip_a') || localStorage.getItem('tripA'));
-  const savedOdo  = parseFloat(localStorage.getItem('ab_odo'));
+  // ================= INITIAL DASHBOARD STATE (100% REAL APP DATA — NO POLLUTED LOCALSTORAGE) =================
+  try {
+    localStorage.removeItem('ab_trip_a');
+    localStorage.removeItem('tripA');
+    localStorage.removeItem('ab_odo');
+  } catch (e) {}
 
   const state = {
     speed: null,
@@ -1835,8 +1832,8 @@
     ignitionTiming: null,
     injectorTi: null,
     fuelEcoKmL: null,
-    trip: !isNaN(savedTrip) ? savedTrip : 0.0,
-    odo: !isNaN(savedOdo) ? savedOdo : 0,
+    trip: 0.0,
+    odo: 0,
     peakSpeed: 0,
     peakRpm: 0,
     runTime: 0,
@@ -2422,8 +2419,16 @@
     }
   }
 
-  // ================= SPA BOTTOM TAB NAVIGATION =================
+  // ================= SPA BOTTOM TAB NAVIGATION (DIRECT NATIVE APP SCREENS) =================
   function switchNavTab(tab) {
+    if (tab === 'diag' && window.AndroidDash && window.AndroidDash.openDiagnostics) {
+      window.AndroidDash.openDiagnostics();
+      return;
+    }
+    if (tab === 'settings' && window.AndroidDash && window.AndroidDash.openSettings) {
+      window.AndroidDash.openSettings();
+      return;
+    }
     document.getElementById('tabOverview').classList.toggle('active', tab === 'overview');
     document.getElementById('tabParams').classList.toggle('active', tab === 'params');
     document.getElementById('tabDiag').classList.toggle('active', tab === 'diag');
@@ -2523,10 +2528,9 @@
       valTps.innerText = (hasLive && typeof state.tps === 'number') ? Math.round(state.tps) : '--';
     }
     if (valMap) {
-      if (hasLive && typeof state.map === 'number') {
-        valMap.innerText = Math.round(state.map);
-      } else if (hasLive && typeof state.tps === 'number') {
-        valMap.innerText = Math.round(28 + (state.tps / 100) * 55);
+      if (hasLive && typeof state.injectorTi === 'number' && state.injectorTi > 0) {
+        const tiMs = state.injectorTi > 50 ? (state.injectorTi / 1000) : state.injectorTi;
+        valMap.innerText = tiMs.toFixed(2);
       } else {
         valMap.innerText = '--';
       }
@@ -2548,7 +2552,28 @@
     if (valIgnInline) valIgnInline.innerText = ignTxt;
 
     if (valTripLandscape) valTripLandscape.innerText = state.trip.toFixed(1);
-    if (valOdoLandscape) valOdoLandscape.innerText = Math.round(state.odo).toLocaleString('en-US');
+    const lblTripL = document.getElementById('lblTripLandscape');
+    if (lblTripL) {
+      lblTripL.innerText = state.isTripRecording ? '● ĐANG GHI TRIP' : 'TRIP GPS';
+      lblTripL.style.color = state.isTripRecording ? '#22c55e' : '';
+    }
+    const pTripSub = document.getElementById('portraitTripSub');
+    if (pTripSub) {
+      pTripSub.innerText = state.isTripRecording ? `● REC ${state.trip.toFixed(1)} KM` : `TRIP ${state.trip.toFixed(1)} KM`;
+      pTripSub.style.color = state.isTripRecording ? '#22c55e' : '#ffffff';
+    }
+    if (valOdoLandscape) {
+      if (!hasLive) {
+        valOdoLandscape.innerText = 'CHỜ ECU';
+        valOdoLandscape.style.color = '#94a3b8';
+      } else if (state.sideStandDown) {
+        valOdoLandscape.innerText = 'ĐANG HẠ ⚠';
+        valOdoLandscape.style.color = '#ef4444';
+      } else {
+        valOdoLandscape.innerText = 'GẠT LÊN ✓';
+        valOdoLandscape.style.color = '#22c55e';
+      }
+    }
 
     // Update Real ECU Bars (Left Bar = TPS %, Right/Bottom Bar = ECT Temp)
     if (tpsVertBarFill) {
@@ -2576,7 +2601,10 @@
     const extRunTime = document.getElementById('extRunTime');
 
     if (extTripA) extTripA.innerText = `${state.trip.toFixed(1)} km`;
-    if (extOdo) extOdo.innerText = `${Math.round(state.odo).toLocaleString('en-US')} km`;
+    if (extOdo) {
+      extOdo.innerText = state.isTripRecording ? '● ĐANG GHI GPS' : 'ĐANG DỪNG';
+      extOdo.style.color = state.isTripRecording ? '#22c55e' : '#94a3b8';
+    }
 
     if (extInjTi) {
       if (hasLive && typeof state.injectorTi === 'number' && state.injectorTi > 0) {
@@ -2629,11 +2657,7 @@
   }
   requestAnimationFrame(renderLoop);
 
-  setInterval(() => {
-    localStorage.setItem('ab_trip_a', state.trip.toFixed(2));
-    localStorage.setItem('tripA', state.trip.toFixed(2));
-    localStorage.setItem('ab_odo', Math.round(state.odo).toString());
-  }, 2000);
+
 
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar) {
     try {

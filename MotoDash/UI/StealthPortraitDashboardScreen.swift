@@ -219,8 +219,10 @@ private struct StealthPortraitWebView: UIViewRepresentable {
 
         func pushTelemetry(to webView: WKWebView, state: DashboardUiState) {
             let r = state.reading
-            let bleConnected = (state.connectionState == .connected)
+            let isDemo = state.settings.demoMode
+            let bleConnected = !isDemo && (state.connectionState == .connected)
             let bleStateStr: String = {
+                if isDemo { return "DEMO" }
                 switch state.connectionState {
                 case .connected: return "ONLINE"
                 case .scanning: return "SCANNING"
@@ -228,7 +230,7 @@ private struct StealthPortraitWebView: UIViewRepresentable {
                 default: return "OFFLINE"
                 }
             }()
-            let hasReading = r.rpm != nil || r.speed != nil || r.battery != nil || r.ect != nil
+            let hasReading = !isDemo && (r.rpm != nil || r.speed != nil || r.battery != nil || r.ect != nil)
 
             let payload: [String: Any] = [
                 "bleConnected": bleConnected,

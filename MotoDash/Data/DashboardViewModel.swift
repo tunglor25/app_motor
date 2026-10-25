@@ -27,6 +27,7 @@ final class DashboardViewModel: ObservableObject {
     init() {
         gpsTripRecorder = GpsTripRecorder(tripRepository: tripRepository)
         dragRecorder = DragRecorder(repository: dragRepository)
+        settingsRepository.setDemoMode(false)
         dragRecorder.onFinished = { [dragRepository] run in
             Task { await dragRepository.save(run) }
         }
