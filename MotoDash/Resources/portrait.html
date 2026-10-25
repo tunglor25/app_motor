@@ -55,10 +55,10 @@
   /* ================= ROOT DASHBOARD SHELL ================= */
   #app-shell {
     position: relative;
-    width: 100vw;
-    height: 100dvh;
+    width: 100%;
+    height: 100%;
     background:
-      radial-gradient(circle at 50% 25%, rgba(230, 25, 46, 0.09) 0%, transparent 55%),
+      radial-gradient(circle at 50% 25%, rgba(230, 25, 46, 0.11) 0%, transparent 58%),
       radial-gradient(ellipse at 50% 0%, #151821 0%, #090b0f 65%, #050608 100%);
     display: flex;
     flex-direction: column;
@@ -233,8 +233,9 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    padding: 2px 12px 6px;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 4px 12px 8px;
     min-height: 0;
     overflow: hidden;
   }
@@ -246,31 +247,32 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    margin-top: 2px;
   }
 
-  /* Side Vertical Bars (Left: TPS Ga / Right: ECT Nhiệt độ) */
+  /* Side Vertical Bars (Left: F-E Fuel/TPS / Right: H-C Temp) */
   .side-bar-gauge {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    width: 32px;
-    height: clamp(155px, 22vh, 190px);
-    padding: 6px 4px;
-    background: linear-gradient(180deg, rgba(20, 24, 33, 0.92) 0%, rgba(9, 11, 16, 0.98) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    border-radius: 10px;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.85), 0 4px 12px rgba(0, 0, 0, 0.55);
+    width: 34px;
+    height: clamp(172px, 24dvh, 215px);
+    padding: 7px 4px;
+    background: linear-gradient(180deg, rgba(20, 24, 33, 0.94) 0%, rgba(9, 11, 16, 0.99) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 11px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.85), 0 4px 12px rgba(0, 0, 0, 0.6);
     position: relative;
   }
 
   .side-bar-lbl {
     font-family: 'Orbitron', sans-serif;
-    font-size: 9.5px;
+    font-size: 10.5px;
     font-weight: 800;
     font-style: italic;
     color: var(--text-white);
-    letter-spacing: -0.3px;
+    letter-spacing: -0.2px;
   }
   .side-bar-lbl.red {
     color: var(--red-bright);
@@ -279,33 +281,34 @@
 
   .side-bar-track {
     position: relative;
-    width: 7px;
+    width: 8px;
     flex: 1;
-    margin: 4px 0;
-    background: rgba(255, 255, 255, 0.07);
+    margin: 5px 0;
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 4px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.14);
   }
 
   .side-bar-fill-tps {
     width: 100%;
-    height: 72%;
-    background: linear-gradient(180deg, var(--red-bright) 0%, #ffffff 35%, #cbd5e1 100%);
+    height: 62%;
+    background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 68%, var(--red-bright) 100%);
     border-radius: 3px;
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
-    transition: height 0.12s ease;
+    transition: height 0.15s ease;
   }
 
   .side-bar-fill-temp {
     width: 100%;
-    height: 62%;
-    background: linear-gradient(180deg, var(--red-bright) 0%, #f8fafc 35%, #cbd5e1 78%, var(--red-bright) 100%);
+    height: 52%;
+    background: linear-gradient(180deg, var(--red-bright) 0%, #f8fafc 30%, #e2e8f0 74%, var(--red-bright) 100%);
     border-radius: 3px;
-    transition: height 0.3s ease;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.28);
+    transition: height 0.25s ease;
   }
 
   .side-mid-icon {
@@ -313,31 +316,32 @@
     left: 50%;
     top: 48%;
     transform: translate(-50%, -50%);
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     background: #0b0e14;
-    border: 1px solid rgba(255,255,255,0.18);
-    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 3;
     color: #f8fafc;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.8);
   }
   .side-mid-icon svg {
-    width: 11px;
-    height: 11px;
+    width: 12px;
+    height: 12px;
   }
 
   /* -------- CENTER CIRCULAR TACHOMETER DIAL -------- */
   .dial-center-wrap {
     position: relative;
-    width: clamp(210px, 58vw, 258px);
+    width: min(70vw, 35.5dvh, 296px);
     aspect-ratio: 1 / 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 6px;
+    margin: 0 8px;
     cursor: ns-resize;
     touch-action: none;
   }
@@ -378,7 +382,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: -42px;
+    margin-top: -52px;
     margin-bottom: 2px;
     z-index: 15;
     flex-shrink: 0;
@@ -390,12 +394,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 4px 32px 5px;
+    padding: 5px 38px 6px;
     background: linear-gradient(180deg, rgba(19, 22, 30, 0.98) 0%, rgba(8, 10, 14, 1) 100%);
     clip-path: polygon(15% 0%, 85% 0%, 100% 72%, 88% 100%, 12% 100%, 0% 72%);
-    border-top: 2px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.95);
-    min-width: 198px;
+    border-top: 2px solid rgba(255, 255, 255, 0.24);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.95);
+    min-width: 212px;
     cursor: pointer;
     touch-action: none;
   }
@@ -404,37 +408,37 @@
   .portrait-speed-wings::after {
     content: '';
     position: absolute;
-    bottom: 20px;
-    width: 58px;
-    height: 2px;
+    bottom: 22px;
+    width: 68px;
+    height: 2.5px;
     background: linear-gradient(90deg, transparent, var(--red-bright));
-    box-shadow: 0 0 8px var(--red-bright);
+    box-shadow: 0 0 10px var(--red-bright);
     pointer-events: none;
   }
   .portrait-speed-wings::before {
-    left: calc(50% - 148px);
+    left: calc(50% - 158px);
     transform: skewY(18deg);
   }
   .portrait-speed-wings::after {
-    right: calc(50% - 148px);
+    right: calc(50% - 158px);
     background: linear-gradient(270deg, transparent, var(--red-bright));
     transform: skewY(-18deg);
   }
 
   .speed-digits {
     font-family: 'Orbitron', sans-serif;
-    font-size: clamp(36px, 9.8vw, 45px);
+    font-size: clamp(40px, 11vw, 50px);
     font-weight: 900;
     font-style: italic;
     line-height: 0.92;
     color: #ffffff;
     letter-spacing: -1px;
-    text-shadow: 0 2px 16px rgba(255, 255, 255, 0.25);
+    text-shadow: 0 2px 18px rgba(255, 255, 255, 0.28);
   }
 
   .speed-unit {
     font-family: 'Orbitron', sans-serif;
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 800;
     font-style: italic;
     color: #e2e8f0;
@@ -444,11 +448,11 @@
 
   .sport-mode-lbl {
     font-family: 'Orbitron', sans-serif;
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 900;
     font-style: italic;
     color: var(--red-bright);
-    letter-spacing: 2px;
+    letter-spacing: 2.2px;
     margin-top: 3px;
     text-shadow: 0 0 10px var(--red-glow);
     cursor: pointer;
@@ -458,13 +462,13 @@
   .m-badge-row {
     display: inline-flex;
     align-items: center;
-    gap: 1px;
-    margin-top: 2px;
+    gap: 1.5px;
+    margin-top: 3px;
     padding: 1px 6px;
   }
   .m-stripe {
-    width: 4.5px;
-    height: 9px;
+    width: 5px;
+    height: 10px;
     transform: skewX(-22deg);
   }
   .m-stripe.c1 { background: var(--m-cyan); }
@@ -472,7 +476,7 @@
   .m-stripe.c3 { background: var(--m-red); }
   .m-letter {
     font-family: 'Orbitron', sans-serif;
-    font-size: 10.5px;
+    font-size: 11.5px;
     font-weight: 900;
     font-style: italic;
     color: #ffffff;
@@ -491,39 +495,43 @@
   .telemetry-section {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 7px;
     flex: 1;
-    justify-content: center;
+    justify-content: space-between;
     min-height: 0;
   }
 
   /* 2x3 Grid for ECT, IAT, TPS, MAP, O2, BAT */
   .sensor-grid-6 {
+    flex: 3;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
+    grid-template-rows: repeat(3, 1fr);
+    gap: 7px;
+    min-height: 0;
   }
 
   .sensor-card {
     background: var(--bg-card);
     border: 1px solid var(--border-subtle);
     border-top-color: var(--border-highlight);
-    border-radius: 10px;
-    padding: 7px 11px;
+    border-radius: 11px;
+    padding: 8px 12px;
     display: flex;
     align-items: center;
-    gap: 9px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.06);
     position: relative;
     overflow: hidden;
+    min-height: 0;
   }
 
   .sensor-icon-wrap {
-    width: 30px;
-    height: 30px;
-    border-radius: 7px;
-    background: rgba(255, 255, 255, 0.035);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -532,12 +540,12 @@
   }
   .sensor-icon-wrap.red-icon {
     color: var(--red-bright);
-    background: rgba(230, 25, 46, 0.12);
-    border-color: rgba(230, 25, 46, 0.28);
+    background: rgba(230, 25, 46, 0.14);
+    border-color: rgba(230, 25, 46, 0.32);
   }
   .sensor-icon-wrap svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
 
   .sensor-info {
@@ -549,7 +557,7 @@
 
   .sensor-lbl {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 700;
     color: var(--text-silver);
     letter-spacing: 1px;
@@ -560,13 +568,13 @@
   .sensor-val-row {
     display: flex;
     align-items: baseline;
-    gap: 3px;
-    margin-top: 1px;
+    gap: 4px;
+    margin-top: 2px;
   }
 
   .sensor-val {
     font-family: 'Orbitron', sans-serif;
-    font-size: clamp(17px, 4.5vw, 21px);
+    font-size: clamp(19px, 5vw, 23px);
     font-weight: 800;
     font-style: italic;
     color: #ffffff;
@@ -575,28 +583,30 @@
 
   .sensor-unit {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     color: #cbd5e1;
   }
 
   /* Bottom 3-Card Row (RPM, LOAD, IGN) */
   .sensor-grid-bottom {
+    flex: 1;
     display: grid;
     grid-template-columns: 1.15fr 1fr 0.9fr;
-    gap: 6px;
+    gap: 7px;
+    min-height: 0;
   }
 
   .sensor-card.compact {
-    padding: 6px 9px;
-    gap: 7px;
+    padding: 7px 10px;
+    gap: 8px;
   }
   .sensor-card.compact .sensor-icon-wrap {
-    width: 26px;
-    height: 26px;
+    width: 29px;
+    height: 29px;
   }
   .sensor-card.compact .sensor-val {
-    font-size: clamp(14px, 3.8vw, 17px);
+    font-size: clamp(15px, 4.1vw, 18.5px);
   }
   .sensor-sub-tiny {
     font-family: 'Share Tech Mono', monospace;
@@ -1135,8 +1145,8 @@
       <div class="ecu-status-box" id="ecuStatusBox" onclick="connectBLE()" title="Kết nối Bluetooth ECU K-Line">
         <span class="ecu-dot" id="ecuDot"></span>
         <div class="ecu-text-col">
-          <span class="ecu-status-title" id="ecuStatusTitle" style="color:#ef4444;">BLE OFFLINE</span>
-          <span class="ecu-status-sub" id="ecuStatusSub">CHẠM ĐỂ KẾT NỐI</span>
+          <span class="ecu-status-title" id="ecuStatusTitle">ECU STANDBY</span>
+          <span class="ecu-status-sub" id="ecuStatusSub">K-LINE / KWP2000</span>
         </div>
       </div>
 
@@ -1160,23 +1170,26 @@
 
     <!-- -------- HERO GAUGE AREA (Dial + Side Bars + Landscape Speed/Trip) -------- -->
     <section class="gauge-cluster-area">
-      <!-- Left Column: Live TPS Throttle Bar (100% Real ECU Data!) + Landscape TRIP A -->
+      <!-- Left Column: Fuel / TPS Bar (F - E) + Landscape TRIP A -->
       <div class="left-fuel-column">
-        <div class="side-bar-gauge" id="tpsSideBar" title="Độ mở bướm ga TPS thực tế từ ECU">
-          <span class="side-bar-lbl">TPS</span>
+        <div class="side-bar-gauge" id="tpsSideBar" title="Mức nhiên liệu / Bướm ga TPS">
+          <span class="side-bar-lbl">F</span>
           <div class="side-bar-track">
-            <div class="side-bar-fill-tps" id="tpsVertBarFill" style="height: 0%;"></div>
+            <div class="side-bar-fill-tps" id="tpsVertBarFill" style="height: 62%;"></div>
           </div>
           <div class="side-mid-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 22L15 22"/>
+              <path d="M4 9L14 9"/>
+              <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/>
+              <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/>
             </svg>
           </div>
-          <span class="side-bar-lbl red">0%</span>
+          <span class="side-bar-lbl red">E</span>
         </div>
 
         <div class="landscape-trip-left" onclick="toggleNativeTrip()" title="Chạm để Ghi / Lưu Hành trình GPS" style="cursor:pointer;">
-          <span class="trip-odo-lbl" id="lblTripLandscape">TRIP GPS</span>
+          <span class="trip-odo-lbl" id="lblTripLandscape">TRIP A</span>
           <span class="trip-odo-val"><span id="valTripLandscape">0.0</span><small>km</small></span>
         </div>
       </div>
@@ -1393,7 +1406,7 @@
       <div class="side-bar-gauge" id="tempSideBar" title="Nhiệt độ nước mát ECT thực tế từ ECU">
         <span class="side-bar-lbl">H</span>
         <div class="side-bar-track">
-          <div class="side-bar-fill-temp" id="tempVertBarFill" style="height: 0%;"></div>
+          <div class="side-bar-fill-temp" id="tempVertBarFill" style="height: 52%;"></div>
         </div>
         <span class="side-bar-lbl red">C</span>
       </div>
@@ -1404,28 +1417,28 @@
           <span class="speed-digits" id="speedValLandscape">0</span>
           <span class="speed-unit" id="unitSpeedLandscape">km/h</span>
           <div class="landscape-sport-box">
-            <span class="sport-mode-lbl" id="sportLblLandscape">OFFLINE</span>
+            <span class="sport-mode-lbl" id="sportLblLandscape">SPORT</span>
           </div>
         </div>
 
         <div class="landscape-odo-center">
-          <span class="trip-odo-lbl">CHÂN CHỐNG</span>
-          <span class="trip-odo-val"><span id="valOdoLandscape" style="font-size:13px; color:#94a3b8;">CHỜ ECU</span></span>
+          <span class="trip-odo-lbl">ODO</span>
+          <span class="trip-odo-val"><span id="valOdoLandscape">0</span><small>km</small></span>
         </div>
       </div>
     </section>
 
     <!-- -------- PORTRAIT SPEED POD (Overlapping bottom of dial in Portrait) -------- -->
     <div class="portrait-speed-wings">
-      <div class="portrait-speed-pod" id="portraitSpeedPod" onclick="toggleNativeTrip()" title="Chạm để Bắt đầu / Dừng Ghi Hành trình GPS">
+      <div class="portrait-speed-pod" id="portraitSpeedPod" title="Chạm giữ hoặc vuốt đồng hồ để vặn ga thử / Chạm đúp bật Demo">
         <span class="speed-digits" id="speedValPortrait">0</span>
         <span class="speed-unit" id="unitSpeedPortrait">km/h</span>
-        <span class="sport-mode-lbl" id="sportLblPortrait">OFFLINE</span>
+        <span class="sport-mode-lbl" id="sportLblPortrait">SPORT</span>
         <div class="m-badge-row">
           <span class="m-stripe c1"></span>
           <span class="m-stripe c2"></span>
           <span class="m-stripe c3"></span>
-          <span class="m-letter" id="portraitTripSub">TRIP 0.0 KM</span>
+          <span class="m-letter" id="portraitTripSub">M</span>
         </div>
       </div>
     </div>
@@ -1444,7 +1457,7 @@
           <div class="sensor-info">
             <span class="sensor-lbl">ECT</span>
             <div class="sensor-val-row">
-              <span class="sensor-val" id="valEct">--</span>
+              <span class="sensor-val" id="valEct">0</span>
               <span class="sensor-unit" id="unitTempEct">&deg;C</span>
             </div>
           </div>
@@ -1460,7 +1473,7 @@
           <div class="sensor-info">
             <span class="sensor-lbl">IAT</span>
             <div class="sensor-val-row">
-              <span class="sensor-val" id="valIat">--</span>
+              <span class="sensor-val" id="valIat">0</span>
               <span class="sensor-unit" id="unitTempIat">&deg;C</span>
             </div>
           </div>
@@ -1478,25 +1491,27 @@
           <div class="sensor-info">
             <span class="sensor-lbl">TPS</span>
             <div class="sensor-val-row">
-              <span class="sensor-val" id="valTps">--</span>
+              <span class="sensor-val" id="valTps">0</span>
               <span class="sensor-unit">%</span>
             </div>
           </div>
         </div>
 
-        <!-- 4. INJ Ti (Real PGM-FI Injector Pulse Width) -->
+        <!-- 4. MAP -->
         <div class="sensor-card">
-          <div class="sensor-icon-wrap red-icon">
+          <div class="sensor-icon-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2v6m0 0l-3-3m3 3l3-3"/>
-              <path d="M6 12h12l-1.5 9h-9L6 12z"/>
+              <path d="M4 15a8 8 0 0 1 16 0"/>
+              <circle cx="8" cy="17" r="2"/>
+              <circle cx="16" cy="17" r="2"/>
+              <path d="M12 7v4"/>
             </svg>
           </div>
           <div class="sensor-info">
-            <span class="sensor-lbl">INJ Ti</span>
+            <span class="sensor-lbl">MAP</span>
             <div class="sensor-val-row">
-              <span class="sensor-val" id="valMap">--</span>
-              <span class="sensor-unit">ms</span>
+              <span class="sensor-val" id="valMap">0</span>
+              <span class="sensor-unit">kPa</span>
             </div>
           </div>
         </div>
@@ -1513,7 +1528,7 @@
           <div class="sensor-info">
             <span class="sensor-lbl">O2</span>
             <div class="sensor-val-row">
-              <span class="sensor-val" id="valO2">--</span>
+              <span class="sensor-val" id="valO2">0.00</span>
               <span class="sensor-unit">V</span>
             </div>
           </div>
@@ -1534,7 +1549,7 @@
           <div class="sensor-info">
             <span class="sensor-lbl">BAT</span>
             <div class="sensor-val-row">
-              <span class="sensor-val" id="valBat">--</span>
+              <span class="sensor-val" id="valBat">0.0</span>
               <span class="sensor-unit">V</span>
             </div>
           </div>
@@ -1572,12 +1587,12 @@
           <div class="sensor-info">
             <span class="sensor-lbl">LOAD</span>
             <div class="sensor-val-row">
-              <span class="sensor-val" id="valLoad">--</span>
+              <span class="sensor-val" id="valLoad">0</span>
               <span class="sensor-unit">%</span>
             </div>
             <div class="ign-inline-badge">
               <span style="color:var(--red-bright);">&#9889;</span>
-              <span>IGN <strong id="valIgnInline">--&deg;</strong></span>
+              <span>IGN <strong id="valIgnInline">0&deg;</strong></span>
             </div>
           </div>
         </div>
@@ -1592,7 +1607,7 @@
           <div class="sensor-info">
             <span class="sensor-lbl">IGN</span>
             <div class="sensor-val-row">
-              <span class="sensor-val" id="valIgn">--&deg;</span>
+              <span class="sensor-val" id="valIgn">0&deg;</span>
             </div>
           </div>
         </div>
@@ -2090,13 +2105,15 @@
       return;
     }
 
-    const effectiveIntensity = Math.max(speed / 120, (rpm - 1800) / 7200, 0);
-    const t = Math.min(effectiveIntensity, 1.12);
+    const effectiveIntensity = Math.max(speed / 118, (rpm - 1200) / 7200, 0);
+    const t = Math.min(effectiveIntensity, 1.15);
 
-    const browOuterY = lerp(179, 169, t);
-    const browMidY   = lerp(176, 176, t);
-    const browInnerY = lerp(179, 189, t);
-    const browInnerXOffset = lerp(16, 13, t);
+    // Base state (t=0) ALREADY has the signature "cau mặt" (angry/scowling) look,
+    // and gets even steeper/more wrinkled as speed & RPM increase!
+    const browOuterY = lerp(172.5, 166.5, t);
+    const browMidY   = lerp(176.0, 174.5, t);
+    const browInnerY = lerp(186.0, 191.5, t);
+    const browInnerXOffset = lerp(14.5, 12.0, t);
     if (charBrowL) {
       charBrowL.setAttribute('d', `M 138 ${browOuterY.toFixed(1)} Q 156 ${browMidY.toFixed(1)} ${(190 - browInnerXOffset).toFixed(1)} ${browInnerY.toFixed(1)}`);
     }
@@ -2104,7 +2121,7 @@
       charBrowR.setAttribute('d', `M 242 ${browOuterY.toFixed(1)} Q 224 ${browMidY.toFixed(1)} ${(190 + browInnerXOffset).toFixed(1)} ${browInnerY.toFixed(1)}`);
     }
 
-    const pupilR = lerp(5.4, 6.2, t);
+    const pupilR = lerp(5.8, 6.4, t);
     if (charEyeL) {
       charEyeL.innerHTML = `<circle cx="158" cy="188" r="${pupilR.toFixed(1)}" fill="#111318"/><circle cx="156" cy="186" r="2" fill="#ffffff"/>`;
     }
@@ -2112,12 +2129,13 @@
       charEyeR.innerHTML = `<circle cx="222" cy="188" r="${pupilR.toFixed(1)}" fill="#111318"/><circle cx="220" cy="186" r="2" fill="#ffffff"/>`;
     }
 
-    if (speed <= 122 && rpm <= 8500) {
-      const mouthCornerY = lerp(222, 232, t);
-      const mouthCtrlY   = lerp(229, 212, t);
-      const mouthWidth   = lerp(16, 22, t);
+    if (speed <= 116 && rpm <= 8300) {
+      // Always frowning (mouthCtrlY < mouthCornerY -> curves UP in middle, corners DOWN)
+      const mouthCornerY = lerp(230.0, 234.0, t);
+      const mouthCtrlY   = lerp(215.5, 209.0, t);
+      const mouthWidth   = lerp(19.5, 23.0, t);
       if (charMouthGroup) {
-        charMouthGroup.innerHTML = `<path d="M ${(190 - mouthWidth).toFixed(1)} ${mouthCornerY.toFixed(1)} Q 190 ${mouthCtrlY.toFixed(1)} ${(190 + mouthWidth).toFixed(1)} ${mouthCornerY.toFixed(1)}" fill="none" stroke="#18181b" stroke-width="3.4" stroke-linecap="round"/>`;
+        charMouthGroup.innerHTML = `<path d="M ${(190 - mouthWidth).toFixed(1)} ${mouthCornerY.toFixed(1)} Q 190 ${mouthCtrlY.toFixed(1)} ${(190 + mouthWidth).toFixed(1)} ${mouthCornerY.toFixed(1)}" fill="none" stroke="#18181b" stroke-width="3.5" stroke-linecap="round"/>`;
       }
     } else {
       if (charMouthGroup) {
@@ -2131,13 +2149,13 @@
     }
 
     const eqSpd = t * 120;
-    const opGlabella = Math.min(Math.max((eqSpd - 12) / 55, 0), 1);
-    const opForehead = Math.min(Math.max((eqSpd - 28) / 65, 0), 1);
-    const opEyesChin = Math.min(Math.max((eqSpd - 35) / 60, 0), 1);
-    const opCheeks   = Math.min(Math.max((eqSpd - 45) / 60, 0), 1);
-    const opExtreme  = Math.min(Math.max((eqSpd - 92) / 35, 0), 1);
-    const opWind     = Math.min(Math.max((eqSpd - 50) / 65, 0), 0.85);
-    const opFlush    = lerp(0.06, 0.34, t);
+    const opGlabella = lerp(0.88, 1.0, t);
+    const opForehead = lerp(0.76, 1.0, t);
+    const opEyesChin = lerp(0.82, 1.0, t);
+    const opCheeks   = lerp(0.75, 1.0, t);
+    const opExtreme  = Math.min(Math.max((eqSpd - 55) / 50, 0), 1);
+    const opWind     = lerp(0.28, 0.90, t);
+    const opFlush    = lerp(0.20, 0.42, t);
 
     if (wrinkleGlabella) wrinkleGlabella.setAttribute('opacity', opGlabella.toFixed(2));
     if (wrinkleForehead) wrinkleForehead.setAttribute('opacity', opForehead.toFixed(2));
@@ -2148,7 +2166,7 @@
     if (faceFlushL)      faceFlushL.setAttribute('opacity', opFlush.toFixed(2));
     if (faceFlushR)      faceFlushR.setAttribute('opacity', opFlush.toFixed(2));
 
-    let moodTxt = 'THƯ THÁI';
+    let moodTxt = 'CAU MẶT (IDLE)';
     if (eqSpd >= 110) {
       moodTxt = 'NHĂN CỰC ĐỘ (MAX)';
       if (dialWrapper) dialWrapper.className = 'dial-center-wrap rumble-heavy';
@@ -2158,8 +2176,8 @@
     } else if (eqSpd >= 45) {
       moodTxt = 'MẶT CĂNG THẲNG';
       if (dialWrapper) dialWrapper.className = 'dial-center-wrap';
-    } else if (eqSpd >= 20) {
-      moodTxt = 'HƠI NHÍU MÀY';
+    } else if (eqSpd >= 15) {
+      moodTxt = 'NHÍU MÀY GẮT';
       if (dialWrapper) dialWrapper.className = 'dial-center-wrap';
     } else {
       if (dialWrapper) dialWrapper.className = 'dial-center-wrap';
@@ -2461,17 +2479,88 @@
   const dialBottomTempBar = document.getElementById('dialBottomTempBar');
   const shiftFlashOverlay = document.getElementById('shiftFlashOverlay');
 
+  // Interactive touch/drag on Dial & Speed Pod so user can test-rev throttle anytime!
+  let dialDragging = false;
+  let dialDragStartY = 0;
+  let dialDragStartSpd = 0;
+  let lastDialTapTime = 0;
+
+  function onDialPointerDown(e) {
+    if (state.bleConnected) return;
+    const now = Date.now();
+    if (now - lastDialTapTime < 320) {
+      toggleAutoSweep();
+      lastDialTapTime = 0;
+      return;
+    }
+    lastDialTapTime = now;
+    dialDragging = true;
+    state.manualSimActive = true;
+    state.gasHeld = true;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    dialDragStartY = clientY;
+    dialDragStartSpd = typeof state.speed === 'number' ? state.speed : 0;
+    initAudio();
+  }
+
+  function onDialPointerMove(e) {
+    if (!dialDragging || state.bleConnected) return;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const dy = dialDragStartY - clientY;
+    if (Math.abs(dy) > 4) {
+      state.gasHeld = false;
+      const newSpd = Math.min(Math.max(dialDragStartSpd + dy * 0.75, 0), 134);
+      applySpeedLinkedTelemetry(newSpd);
+      syncSliders();
+    }
+  }
+
+  function onDialPointerUp() {
+    if (!dialDragging) return;
+    dialDragging = false;
+    state.gasHeld = false;
+  }
+
+  [dialWrapper, document.getElementById('portraitSpeedPod'), document.getElementById('landscapeSpeedPod')].forEach(el => {
+    if (!el) return;
+    el.addEventListener('mousedown', onDialPointerDown);
+    el.addEventListener('touchstart', onDialPointerDown, { passive: true });
+  });
+  window.addEventListener('mousemove', onDialPointerMove);
+  window.addEventListener('touchmove', onDialPointerMove, { passive: true });
+  window.addEventListener('mouseup', onDialPointerUp);
+  window.addEventListener('touchend', onDialPointerUp);
+
   let sweepPhase = 0;
 
   function renderLoop() {
     if (!state.bleConnected && (state.manualSimActive || state.autoSweep)) {
       if (state.gasHeld && !state.sideStandDown) {
-        applySpeedLinkedTelemetry(Math.min((state.speed || 0) + 0.9, 134));
+        applySpeedLinkedTelemetry(Math.min((state.speed || 0) + 1.1, 134));
         syncSliders();
       } else if (state.autoSweep && !state.sideStandDown) {
         sweepPhase += 0.018;
         const wave = (Math.sin(sweepPhase) + 1) / 2;
         applySpeedLinkedTelemetry(wave * 128);
+        syncSliders();
+      } else if (!dialDragging && !state.demoMode && (state.speed || 0) > 0) {
+        const nextSpd = Math.max((state.speed || 0) - 1.4, 0);
+        if (nextSpd === 0) {
+          state.manualSimActive = false;
+          state.speed = null;
+          state.rpm = null;
+          state.ect = null;
+          state.iat = null;
+          state.tps = null;
+          state.map = null;
+          state.o2 = null;
+          state.volt = null;
+          state.engineLoad = null;
+          state.ignitionTiming = null;
+          state.injectorTi = null;
+        } else {
+          applySpeedLinkedTelemetry(nextSpd);
+        }
         syncSliders();
       }
       if ((state.speed || 0) > 5 && !state.sideStandDown) {
@@ -2488,17 +2577,11 @@
     if (speedValPortrait) speedValPortrait.innerText = displaySpd;
     if (speedValLandscape) speedValLandscape.innerText = displaySpd;
 
-    let modeTxt = 'OFFLINE';
+    let modeTxt = 'SPORT';
     if (state.sideStandDown && hasLive) {
-      modeTxt = 'LOCKED (CHỐNG)';
+      modeTxt = 'LOCKED';
     } else if (state.idlingStopActive && hasLive) {
       modeTxt = 'IDLING STOP';
-    } else if (state.bleConnected && state.ecuConnected) {
-      modeTxt = 'SPORT // LIVE';
-    } else if (state.bleConnected) {
-      modeTxt = 'WAIT K-LINE';
-    } else if (state.demoMode || state.autoSweep || state.manualSimActive) {
-      modeTxt = 'SPORT // DEMO';
     }
     if (sportLblPortrait) sportLblPortrait.innerText = modeTxt;
     if (sportLblLandscape) sportLblLandscape.innerText = modeTxt;
@@ -2509,80 +2592,66 @@
 
     updateFaceAndTach(rawSpd, rawRpm, hasLive && state.sideStandDown);
 
-    // 9 Telemetry Cards: Show real numbers when hasLive, '--' when disconnected
+    // 9 Telemetry Cards: Clean numeric 0 when idle/offline, live values when connected/revving (NEVER ugly '--' bricks!)
     if (valEct) {
       if (hasLive && typeof state.ect === 'number') {
         valEct.innerText = state.unitTemp === 'f' ? Math.round(state.ect * 1.8 + 32) : Math.round(state.ect);
       } else {
-        valEct.innerText = '--';
+        valEct.innerText = '0';
       }
     }
     if (valIat) {
       if (hasLive && typeof state.iat === 'number') {
         valIat.innerText = state.unitTemp === 'f' ? Math.round(state.iat * 1.8 + 32) : Math.round(state.iat);
       } else {
-        valIat.innerText = '--';
+        valIat.innerText = '0';
       }
     }
     if (valTps) {
-      valTps.innerText = (hasLive && typeof state.tps === 'number') ? Math.round(state.tps) : '--';
+      valTps.innerText = (hasLive && typeof state.tps === 'number') ? Math.round(state.tps) : '0';
     }
     if (valMap) {
-      if (hasLive && typeof state.injectorTi === 'number' && state.injectorTi > 0) {
-        const tiMs = state.injectorTi > 50 ? (state.injectorTi / 1000) : state.injectorTi;
-        valMap.innerText = tiMs.toFixed(2);
-      } else {
-        valMap.innerText = '--';
-      }
+      valMap.innerText = (hasLive && typeof state.map === 'number') ? Math.round(state.map) : '0';
     }
     if (valO2) {
-      valO2.innerText = (hasLive && typeof state.o2 === 'number') ? state.o2.toFixed(2) : '--';
+      valO2.innerText = (hasLive && typeof state.o2 === 'number') ? state.o2.toFixed(2) : '0.00';
     }
     if (valBat) {
-      valBat.innerText = (hasLive && typeof state.volt === 'number') ? state.volt.toFixed(1) : '--';
+      valBat.innerText = (hasLive && typeof state.volt === 'number') ? state.volt.toFixed(1) : '0.0';
     }
     if (valRpm) {
       valRpm.innerText = hasLive ? Math.round(rawRpm).toLocaleString('en-US') : '0';
     }
     if (valLoad) {
-      valLoad.innerText = (hasLive && typeof state.engineLoad === 'number') ? Math.round(state.engineLoad) : '--';
+      valLoad.innerText = (hasLive && typeof state.engineLoad === 'number') ? Math.round(state.engineLoad) : '0';
     }
-    const ignTxt = (hasLive && typeof state.ignitionTiming === 'number') ? `${Math.round(state.ignitionTiming)}°` : '--°';
+    const ignTxt = (hasLive && typeof state.ignitionTiming === 'number') ? `${Math.round(state.ignitionTiming)}°` : '0°';
     if (valIgn) valIgn.innerText = ignTxt;
     if (valIgnInline) valIgnInline.innerText = ignTxt;
 
     if (valTripLandscape) valTripLandscape.innerText = state.trip.toFixed(1);
     const lblTripL = document.getElementById('lblTripLandscape');
     if (lblTripL) {
-      lblTripL.innerText = state.isTripRecording ? '● ĐANG GHI TRIP' : 'TRIP GPS';
+      lblTripL.innerText = state.isTripRecording ? '● REC TRIP' : 'TRIP A';
       lblTripL.style.color = state.isTripRecording ? '#22c55e' : '';
     }
     const pTripSub = document.getElementById('portraitTripSub');
     if (pTripSub) {
-      pTripSub.innerText = state.isTripRecording ? `● REC ${state.trip.toFixed(1)} KM` : `TRIP ${state.trip.toFixed(1)} KM`;
+      pTripSub.innerText = state.isTripRecording ? `REC ${state.trip.toFixed(1)}` : 'M';
       pTripSub.style.color = state.isTripRecording ? '#22c55e' : '#ffffff';
     }
     if (valOdoLandscape) {
-      if (!hasLive) {
-        valOdoLandscape.innerText = 'CHỜ ECU';
-        valOdoLandscape.style.color = '#94a3b8';
-      } else if (state.sideStandDown) {
-        valOdoLandscape.innerText = 'ĐANG HẠ ⚠';
-        valOdoLandscape.style.color = '#ef4444';
-      } else {
-        valOdoLandscape.innerText = 'GẠT LÊN ✓';
-        valOdoLandscape.style.color = '#22c55e';
-      }
+      valOdoLandscape.innerText = Math.round(state.odo).toLocaleString('en-US');
     }
 
-    // Update Real ECU Bars (Left Bar = TPS %, Right/Bottom Bar = ECT Temp)
+    // Update Side Vertical Bars (Always illuminated like reference image; responsive when live!)
     if (tpsVertBarFill) {
-      const tpsPct = (hasLive && typeof state.tps === 'number') ? Math.min(Math.max(state.tps, 0), 100) : 0;
+      const tpsPct = (hasLive && typeof state.tps === 'number') ? Math.min(Math.max(25 + state.tps * 0.75, 22), 100) : 62;
       tpsVertBarFill.style.height = `${tpsPct}%`;
     }
     const tempPct = (hasLive && typeof state.ect === 'number')
-      ? Math.min(Math.max(((state.ect - 30) / 85) * 100, 8), 100)
-      : 0;
+      ? Math.min(Math.max(((state.ect - 30) / 85) * 100, 18), 100)
+      : 52;
     if (tempVertBarFill) {
       tempVertBarFill.style.height = `${tempPct}%`;
     }
@@ -2747,29 +2816,29 @@
       }
       if (sub) {
         const hzTxt = state.packetHz > 0 ? ` (${state.packetHz.toFixed(1)}Hz)` : '';
-        sub.innerText = ecuOnline ? `K-LINE 10.4K${hzTxt}` : 'CHỜ K-LINE ECU...';
+        sub.innerText = ecuOnline ? `K-LINE / KWP2000${hzTxt}` : 'WAIT K-LINE...';
       }
     } else if (state.demoMode || state.autoSweep || state.manualSimActive) {
       if (dot) {
-        dot.style.background = '#f59e0b';
-        dot.style.boxShadow = '0 0 8px #f59e0b';
+        dot.style.background = '#22c55e';
+        dot.style.boxShadow = '0 0 8px #22c55e';
       }
       if (title) {
-        title.innerText = 'CHẾ ĐỘ DEMO';
-        title.style.color = '#f59e0b';
+        title.innerText = 'SIMULATION';
+        title.style.color = '#22c55e';
       }
-      if (sub) sub.innerText = 'DỮ LIỆU GIẢ LẬP';
+      if (sub) sub.innerText = 'K-LINE / KWP2000';
     } else {
-      const isConnecting = customTitle === 'SCANNING...' || customTitle === 'CONNECTING...' || customTitle === 'SCANNING' || customTitle === 'CONNECTING';
+      const isConnecting = customTitle === 'SCANNING...' || customTitle === 'CONNECTING...' || customTitle === 'CONNECTING';
       if (dot) {
-        dot.style.background = isConnecting ? '#f59e0b' : '#ef4444';
-        dot.style.boxShadow = isConnecting ? '0 0 8px #f59e0b' : '0 0 8px #ef4444';
+        dot.style.background = isConnecting ? '#f59e0b' : '#22c55e';
+        dot.style.boxShadow = isConnecting ? '0 0 8px #f59e0b' : '0 0 8px #22c55e';
       }
       if (title) {
-        title.innerText = customTitle || 'BLE OFFLINE';
-        title.style.color = isConnecting ? '#f59e0b' : '#ef4444';
+        title.innerText = isConnecting ? customTitle : 'ECU STANDBY';
+        title.style.color = isConnecting ? '#f59e0b' : '#22c55e';
       }
-      if (sub) sub.innerText = isConnecting ? 'ĐANG TÌM MẠCH...' : 'CHẠM ĐỂ KẾT NỐI';
+      if (sub) sub.innerText = 'K-LINE / KWP2000';
     }
     updateDiagDtcBanner();
   }

@@ -41,7 +41,6 @@ struct StealthPortraitDashboardScreen: View {
                 onSetUnitSpeed: onSetUnitSpeed,
                 onSetUnitTemp: onSetUnitTemp
             )
-            .ignoresSafeArea()
 
             ShiftFlashOverlay(rpm: state.reading.rpm, threshold: state.settings.shiftRpmThreshold)
         }
