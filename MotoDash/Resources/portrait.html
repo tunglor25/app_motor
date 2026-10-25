@@ -971,15 +971,15 @@
 
   <!-- 1. HEADER STATUS STRIP -->
   <div class="header-status-strip">
-    <div class="ecm-badge" onclick="openLogsPage()" style="cursor:pointer;" title="Xem Nhật Ký K-Line / BLE">
-      <span class="ecm-dot" id="ecmDot"></span>
-      <span id="ecmTitle">ECM 0104 [AB125]</span>
+    <div class="ecm-badge" onclick="connectBLE()" style="cursor:pointer;" title="Chạm để kết nối Bluetooth tới mạch ESP32-S3">
+      <span class="ecm-dot" id="ecmDot" style="background:#738496; box-shadow:none;"></span>
+      <span id="ecmTitle">CHƯA KẾT NỐI BLE</span>
     </div>
-    <div class="clock-display" id="clockDisplay">18:28:00</div>
+    <div class="clock-display" id="clockDisplay">--:--:--</div>
     <div class="header-right-group">
       <div class="header-battery-pill" onclick="openDiagnosticsPage()" style="cursor:pointer;">
         <span>⚡</span>
-        <span id="headerVolt">12.35V</span>
+        <span id="headerVolt">--.-V</span>
       </div>
       <button class="header-gear-btn" onclick="openSettingsPage()" title="Cài đặt Hệ thống & Âm thanh">⚙</button>
     </div>
@@ -990,16 +990,16 @@
     <div class="indi-icon" id="indiTurnLeft" title="Xi-nhan Trái">
       <svg viewBox="0 0 24 24" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
     </div>
-    <div class="indi-icon" id="indiBeam" title="Đèn Pha">
+    <div class="indi-icon" id="indiBeam" title="Đèn Pha / Kết nối K-Line">
       <svg viewBox="0 0 24 24" stroke-width="2"><path d="M10 7a5 5 0 0 0 0 10V7z" fill="currentColor"/><line x1="13" y1="8" x2="20" y2="8"/><line x1="13" y1="12" x2="20" y2="12"/><line x1="13" y1="16" x2="20" y2="16"/></svg>
     </div>
-    <div class="indi-icon active-idling" id="indiIdling" title="Idling Stop (E)">
+    <div class="indi-icon" id="indiIdling" title="Idling Stop (A)">
       <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="8" stroke-dasharray="14 4"/><text x="12" y="15" text-anchor="middle" font-family="Orbitron" font-size="9" font-weight="900" fill="currentColor" stroke="none">A</text></svg>
     </div>
-    <div class="indi-icon" id="indiMil" title="Báo lỗi động cơ MIL">
+    <div class="indi-icon" id="indiMil" onclick="openDiagnosticsPage()" style="cursor:pointer;" title="Báo lỗi động cơ PGM-FI (MIL)">
       <svg viewBox="0 0 24 24" stroke-width="2"><rect x="5" y="8" width="14" height="8" rx="1"/><line x1="2" y1="11" x2="5" y2="11"/><line x1="19" y1="11" x2="22" y2="11"/><line x1="12" y1="5" x2="12" y2="8"/></svg>
     </div>
-    <div class="indi-icon active-key" id="indiKey" title="SmartKey">
+    <div class="indi-icon" id="indiKey" title="SmartKey / ECU Online">
       <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="7" cy="12" r="3"/><path d="M10 12h11M17 12v3M20 12v2"/></svg>
     </div>
     <div class="indi-icon" id="indiTurnRight" title="Xi-nhan Phải">
@@ -1007,9 +1007,9 @@
     </div>
   </div>
 
-  <!-- 3. KICKSTAND SAFETY BANNER -->
+  <!-- 3. KICKSTAND SAFETY BANNER (REAL K-LINE SWITCHES BIT 0) -->
   <div class="kickstand-container">
-    <div class="kickstand-switch up" id="kickstandBanner" onclick="toggleKickstand()">
+    <div class="kickstand-switch up" id="kickstandBanner" onclick="openDiagnosticsPage()">
       <div class="ks-left">
         <svg class="ks-sensor-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="7" cy="7" r="3.5" />
@@ -1018,246 +1018,51 @@
         </svg>
         <div class="ks-text-group">
           <span class="ks-title">CHÂN CHỐNG NGHIÊNG // INTERLOCK</span>
-          <span class="ks-desc" id="standDesc">SENSOR ARMED // READY TO START</span>
+          <span class="ks-desc" id="standDesc">CHỜ TÍN HIỆU ECU K-LINE (10.4K BAUD)</span>
         </div>
       </div>
       <div class="ks-rocker ok" id="standBadge">
         <span class="ks-led"></span>
-        <span class="ks-badge-txt" id="standBadgeText">SẴN SÀNG</span>
+        <span class="ks-badge-txt" id="standBadgeText">CHỜ ECU</span>
       </div>
     </div>
   </div>
 
-  <!-- 4. VIRAL M-PERFORMANCE FACE TACHOMETER CLUSTER (HERO) -->
+  <!-- 4. MASTER SPEED & TACHOMETER ARCH (HERO) -->
   <div class="hero-gauge-container">
-    <!-- Main Circular Sport Dial with Driver Face & Sweeping Needle -->
-    <div class="m-face-dial-wrapper" id="mDialWrapper">
-      <svg id="mFaceSvg" viewBox="0 0 380 380">
-        <defs>
-          <filter id="needleShadow" x="-30%" y="-30%" width="160%" height="160%">
-            <feDropShadow dx="1" dy="3" stdDeviation="3" flood-opacity="0.45"/>
-          </filter>
-          <clipPath id="dialClip">
-            <circle cx="190" cy="190" r="162" />
-          </clipPath>
-        </defs>
+    <svg id="verticalTachoSvg" viewBox="0 0 380 190">
+      <defs>
+        <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
 
-        <!-- Outer Sport Bezel (Chamfered look like BMW M cluster) -->
-        <polygon points="190,8 350,75 372,190 350,305 190,372 30,305 8,190 30,75" fill="#0d111a" stroke="#1f293d" stroke-width="4" />
-        <circle cx="190" cy="190" r="166" fill="#141a26" stroke="#000000" stroke-width="3" />
+      <!-- Background Gauge Arch Track -->
+      <path d="M 45 170 A 155 155 0 1 1 335 170" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="3" stroke-dasharray="5,4" />
+      <path d="M 65 165 A 135 135 0 1 1 315 165" fill="none" stroke="rgba(0, 240, 255, 0.22)" stroke-width="1.5" />
 
-        <!-- Dial Face (White Face like the user photo) -->
-        <g id="dialFaceGroup" clip-path="url(#dialClip)">
-          <circle cx="190" cy="190" r="162" fill="#f8fafc" />
+      <!-- Multi-segment Tachometer Arc -->
+      <g id="svgTachoGroup"></g>
 
-          <!-- Yellow / Orange Warning Zone (5.5k to 7k) -->
-          <path d="M 190 190 L 320 105 A 162 162 0 0 1 352 195 Z" fill="#fbbf24" opacity="0.35" />
+      <!-- Apex Pointer Needle -->
+      <polygon id="tachoNeedle" points="190,8 185,22 195,22" fill="#00f0ff" filter="url(#neonGlow)" />
+    </svg>
 
-          <!-- Redline Zone (7k to 9.5k) -->
-          <path d="M 190 190 L 352 195 A 162 162 0 0 1 295 305 Z" fill="#ef4444" opacity="0.75" />
-
-          <!-- Redline outer hash block pattern -->
-          <path d="M 338 190 A 150 150 0 0 1 285 295" fill="none" stroke="#ef4444" stroke-width="12" stroke-dasharray="6 3" />
-          <path d="M 310 110 A 150 150 0 0 1 338 190" fill="none" stroke="#f59e0b" stroke-width="10" stroke-dasharray="6 3" />
-
-          <!-- Circular tick marks and numbers (0 to 9) -->
-          <g id="ticksGroup"></g>
-
-          <!-- 1000 R/MIN label -->
-          <text x="316" y="248" font-family="'Orbitron', sans-serif" font-size="8.5" font-weight="800" fill="#64748b" letter-spacing="1" transform="rotate(68, 316, 248)">1000 R/MIN</text>
-
-          <!-- ================= 1. SWEEPING NEEDLE LAYER (Behind Character!) ================= -->
-          <g id="needleGroup" transform="rotate(140, 190, 190)" filter="url(#needleShadow)">
-            <!-- Vibrant Yellow-Orange Sport Needle with tip pointing right at the tick marks -->
-            <polygon points="190,32 186,190 194,190" fill="#ffaa00" stroke="#b45309" stroke-width="0.8" />
-            <polygon points="190,32 188.5,190 191.5,190" fill="#fde047" />
-            <!-- Counterweight tail -->
-            <polygon points="187.5,190 188,222 192,222 192.5,190" fill="#1e293b" />
-          </g>
-
-          <!-- ================= 2. THE DRIVER CHARACTER (Drawn ON TOP of needle!) ================= -->
-          <g id="driverCharacter" transform="translate(0, 0)">
-            <!-- Wind streaks behind head (visible at high speeds) -->
-            <g id="windLines" opacity="0">
-              <line x1="90" y1="160" x2="125" y2="162" stroke="#94a3b8" stroke-width="2" stroke-dasharray="8 4" />
-              <line x1="85" y1="185" x2="120" y2="186" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="10 5" />
-              <line x1="92" y1="210" x2="126" y2="210" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 3" />
-              <line x1="290" y1="160" x2="255" y2="162" stroke="#94a3b8" stroke-width="2" stroke-dasharray="8 4" />
-              <line x1="295" y1="185" x2="260" y2="186" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="10 5" />
-              <line x1="288" y1="210" x2="254" y2="210" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 3" />
-            </g>
-
-            <!-- Shirt / Torso (Slate Blue like photo) -->
-            <path d="M 98 355 Q 128 248 190 248 Q 252 248 282 355 Z" fill="#2d425c" stroke="#16202e" stroke-width="3" />
-            <!-- Collar & Shoulder lines -->
-            <path d="M 168 250 Q 190 268 212 250" fill="none" stroke="#16202e" stroke-width="2.5" />
-            <path d="M 130 280 Q 150 265 170 265" fill="none" stroke="#1e2e42" stroke-width="2" />
-            <path d="M 250 280 Q 230 265 210 265" fill="none" stroke="#1e2e42" stroke-width="2" />
-
-            <!-- Neck -->
-            <rect x="174" y="224" width="32" height="30" rx="3" fill="#fed8be" stroke="#16202e" stroke-width="2.5" />
-
-            <!-- Ears (Exact skin match, matching photo position) -->
-            <g id="earLeft">
-              <ellipse cx="126" cy="192" rx="9" ry="13" fill="#fed8be" stroke="#18181b" stroke-width="2.8" />
-              <path d="M 125 186 Q 129 192 125 198" fill="none" stroke="#e0a98b" stroke-width="2" stroke-linecap="round" />
-            </g>
-            <g id="earRight">
-              <ellipse cx="254" cy="192" rx="9" ry="13" fill="#fed8be" stroke="#18181b" stroke-width="2.8" />
-              <path d="M 255 186 Q 251 192 255 198" fill="none" stroke="#e0a98b" stroke-width="2" stroke-linecap="round" />
-            </g>
-
-            <!-- Head / Face Base (Chubby round cheeks matching photo) -->
-            <path id="charHead" d="M 132 176 
-                     C 128 230 150 246 190 246 
-                     C 230 246 252 230 248 176 
-                     C 246 138 226 128 190 128 
-                     C 154 128 134 138 132 176 Z" 
-                  fill="#fed8be" stroke="#18181b" stroke-width="3" />
-
-            <!-- Cheeks subtle blush -->
-            <ellipse cx="148" cy="208" rx="8" ry="5" fill="#fca5a5" opacity="0.4" />
-            <ellipse cx="232" cy="208" rx="8" ry="5" fill="#fca5a5" opacity="0.4" />
-
-            <!-- Hair (Wavy textured curly cap matching photo) -->
-            <path id="charHair" d="M 130 172 
-                     C 126 154 134 138 144 132 
-                     C 152 124 165 122 174 124 
-                     C 182 118 198 118 206 124 
-                     C 215 122 228 124 236 132 
-                     C 246 138 254 154 250 172 
-                     C 245 160 238 152 228 150 
-                     C 218 153 212 147 200 147 
-                     C 188 147 182 153 172 150 
-                     C 162 152 155 160 150 172 
-                     C 142 166 136 170 130 172 Z" 
-                  fill="#38393e" stroke="#18181b" stroke-width="3" />
-            <!-- Hair curls texture -->
-            <path d="M 148 140 Q 156 133 165 137" fill="none" stroke="#52525b" stroke-width="2.2" stroke-linecap="round" />
-            <path d="M 172 133 Q 182 128 192 134" fill="none" stroke="#52525b" stroke-width="2.2" stroke-linecap="round" />
-            <path d="M 200 133 Q 210 128 220 135" fill="none" stroke="#52525b" stroke-width="2.2" stroke-linecap="round" />
-            <path d="M 225 139 Q 234 134 242 142" fill="none" stroke="#52525b" stroke-width="2.2" stroke-linecap="round" />
-
-            <!-- ================= EXPRESSION & WRINKLE ELEMENTS ================= -->
-            <!-- 1. Deep Forehead Wrinkles (Multiple scrunched waves) -->
-            <g id="foreheadWrinkles" opacity="0">
-              <path d="M 166 148 Q 190 144 214 148" fill="none" stroke="#18181b" stroke-width="2.2" stroke-linecap="round" />
-              <path d="M 162 155 Q 190 150 218 155" fill="none" stroke="#18181b" stroke-width="2.2" stroke-linecap="round" />
-              <path d="M 166 162 Q 190 157 214 162" fill="none" stroke="#18181b" stroke-width="2.2" stroke-linecap="round" />
-              <path d="M 172 168 Q 190 164 208 168" fill="none" stroke="#18181b" stroke-width="1.8" stroke-linecap="round" />
-            </g>
-
-            <!-- 2. Glabella Frown Lines (Between eyebrows) -->
-            <g id="glabellaWrinkles" opacity="0">
-              <path d="M 186 174 Q 185 182 187 188" fill="none" stroke="#18181b" stroke-width="2.2" stroke-linecap="round" />
-              <path d="M 194 174 Q 195 182 193 188" fill="none" stroke="#18181b" stroke-width="2.2" stroke-linecap="round" />
-            </g>
-
-            <!-- 3. Eyebrows (Dynamic morphing paths) -->
-            <path id="browL" d="M 154 180 Q 166 178 176 182" fill="none" stroke="#18181b" stroke-width="4" stroke-linecap="round" />
-            <path id="browR" d="M 226 180 Q 214 178 204 182" fill="none" stroke="#18181b" stroke-width="4" stroke-linecap="round" />
-
-            <!-- 4. Eyes (Dynamic morphing) -->
-            <g id="eyeL">
-              <circle cx="166" cy="191" r="3.6" fill="#18181b" />
-            </g>
-            <g id="eyeR">
-              <circle cx="214" cy="191" r="3.6" fill="#18181b" />
-            </g>
-
-            <!-- Crow's feet wrinkle lines around eyes (speed > 70) -->
-            <g id="crowsFeet" opacity="0">
-              <path d="M 150 188 L 157 190 M 149 193 L 157 192 M 151 197 L 158 194" stroke="#18181b" stroke-width="1.5" stroke-linecap="round" />
-              <path d="M 230 188 L 223 190 M 231 193 L 223 192 M 229 197 L 222 194" stroke="#18181b" stroke-width="1.5" stroke-linecap="round" />
-            </g>
-
-            <!-- 5. Nose (Cute hook nose matching photo) -->
-            <path id="charNose" d="M 189 195 L 189 203 Q 192 206 195 204" fill="none" stroke="#18181b" stroke-width="2.2" stroke-linecap="round" />
-
-            <!-- 6. Cheek / Nasolabial Creases (Speed > 50) -->
-            <g id="cheekCreases" opacity="0">
-              <path d="M 160 206 Q 166 216 169 224" fill="none" stroke="#18181b" stroke-width="2" stroke-linecap="round" />
-              <path d="M 220 206 Q 214 216 211 224" fill="none" stroke="#18181b" stroke-width="2" stroke-linecap="round" />
-            </g>
-
-            <!-- 7. Mouth (Dynamic morphing: smile -> photo wave -> grimace -> gritted teeth -> scream) -->
-            <g id="mouthGroup">
-              <path id="charMouth" d="M 178 220 Q 190 221 202 220" fill="none" stroke="#18181b" stroke-width="2.6" stroke-linecap="round" />
-            </g>
-
-            <!-- 8. Flying Sweat Drops -->
-            <g id="sweatGroup" opacity="0">
-              <path d="M 234 162 C 234 157 239 150 239 150 C 239 150 244 157 244 162 C 244 166 241 168 239 168 C 236 168 234 166 234 162 Z" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2" />
-              <circle cx="238" cy="160" r="1" fill="#fff" />
-              <path d="M 144 168 C 144 164 148 158 148 158 C 148 158 152 164 152 168 C 152 171 150 173 148 173 C 146 173 144 171 144 168 Z" fill="#38bdf8" stroke="#0284c7" stroke-width="1" />
-              <circle cx="204" cy="154" r="2.5" fill="#38bdf8" stroke="#0284c7" stroke-width="0.8" id="sweatBead" />
-            </g>
-
-            <!-- ================= 3. STEERING WHEEL & HANDS (Framing bottom) ================= -->
-            <!-- Wheel Rim -->
-            <path d="M 120 326 C 126 264 168 246 190 246 C 212 246 254 264 260 326" fill="none" stroke="#1e293b" stroke-width="15" stroke-linecap="round" />
-            <path d="M 120 326 C 126 264 168 246 190 246 C 212 246 254 264 260 326" fill="none" stroke="#334155" stroke-width="9" stroke-linecap="round" />
-
-            <!-- Center Spoke -->
-            <circle cx="190" cy="308" r="25" fill="#0f172a" stroke="#334155" stroke-width="3" />
-            <line x1="190" y1="246" x2="190" y2="284" stroke="#334155" stroke-width="9" />
-            <circle cx="190" cy="308" r="14" fill="#1e293b" stroke="#475569" stroke-width="1.5" />
-
-            <!-- Left Hand gripping at 9 o'clock -->
-            <g id="handL">
-              <ellipse cx="138" cy="276" rx="12" ry="10" fill="#fed8be" stroke="#18181b" stroke-width="2.6" transform="rotate(-15, 138, 276)" />
-              <ellipse cx="145" cy="268" rx="5.5" ry="7" fill="#fed8be" stroke="#18181b" stroke-width="2.2" />
-              <path d="M 132 278 Q 138 282 144 278" fill="none" stroke="#e0a98b" stroke-width="1.5" />
-            </g>
-
-            <!-- Right Hand gripping at 3 o'clock -->
-            <g id="handR">
-              <ellipse cx="242" cy="276" rx="12" ry="10" fill="#fed8be" stroke="#18181b" stroke-width="2.6" transform="rotate(15, 242, 276)" />
-              <ellipse cx="235" cy="268" rx="5.5" ry="7" fill="#fed8be" stroke="#18181b" stroke-width="2.2" />
-              <path d="M 248 278 Q 242 282 236 278" fill="none" stroke="#e0a98b" stroke-width="1.5" />
-            </g>
-          </g>
-        </g> <!-- end dialFaceGroup -->
-
-        <!-- ================= BOTTOM ///M PERFORMANCE CLUSTER PLATE ================= -->
-        <g transform="translate(190, 345)">
-          <rect x="-92" y="-13" width="184" height="26" rx="6" fill="#0d111a" stroke="#1e293b" stroke-width="2" />
-          <polygon points="-80,7 -72,-7 -67,-7 -75,7" fill="#00b4d8" />
-          <polygon points="-73,7 -65,-7 -60,-7 -68,7" fill="#2563eb" />
-          <polygon points="-66,7 -58,-7 -53,-7 -61,7" fill="#ef4444" />
-          <text x="-46" y="5" font-family="'Orbitron', sans-serif" font-size="10.5" font-weight="900" font-style="italic" fill="#ffffff" letter-spacing="1.2">MPERFORMANCE</text>
-        </g>
-
-        <!-- Bottom Flanking Temp & Volt Bars (Real ECU Live Telemetry) -->
-        <g transform="translate(48, 335)">
-          <path d="M 12 10 L 22 10 L 24 18 L 10 18 Z M 22 12 L 26 8 M 8 13 L 10 13" fill="none" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" />
-          <text x="32" y="16" font-family="'Share Tech Mono', monospace" font-size="12" font-weight="700" fill="#94a3b8" id="clusterEctVal">38°C</text>
-          <path d="M 10 22 L 56 22" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" />
-        </g>
-
-        <g transform="translate(276, 335)">
-          <text x="10" y="16" font-family="'Share Tech Mono', monospace" font-size="12" font-weight="700" fill="#94a3b8" id="clusterVoltVal">12.35V</text>
-          <rect x="54" y="9" width="14" height="8" rx="2" fill="none" stroke="#64748b" stroke-width="1.5" />
-          <rect x="68" y="11" width="2" height="4" fill="#64748b" />
-          <path d="M 10 22 L 56 22" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" />
-        </g>
-      </svg>
+    <!-- Speed Digits Hero Center -->
+    <div class="hero-speed-block">
+      <div class="hero-speed-digits" id="heroSpeed">0</div>
+      <div class="hero-speed-unit" id="heroSpeedUnit">KM/H</div>
+      <div class="hero-gear-pill" id="heroGear">CHỜ KẾT NỐI</div>
     </div>
 
-    <!-- Precision Speed & Gear HUD Bar directly under dial -->
-    <div class="hero-speed-bar">
-      <div class="speed-left">
-        <span class="hero-speed-digits" id="heroSpeed">0</span>
-        <span class="hero-speed-unit">KM/H</span>
-      </div>
-      <div class="speed-center">
-        <div class="hero-gear-pill" id="heroGear">CVT DRIVE</div>
-        <span class="speed-mode-tag" id="faceMoodTag">TIER 0 // CHILL</span>
-      </div>
-      <div class="speed-right">
-        <span class="hero-rpm-val" id="heroRpm">1,750</span>
-        <span class="hero-rpm-lbl">RPM LIVE</span>
-      </div>
+    <!-- Digital RPM Counter Bottom -->
+    <div class="hero-rpm-counter">
+      <span class="hero-rpm-val" id="heroRpm">0</span>
+      <span class="hero-rpm-lbl">RPM</span>
     </div>
   </div>
 
@@ -1269,8 +1074,8 @@
       <div class="tech-bracket-bl"></div>
       <div class="tech-bracket-br"></div>
 
-      <div class="holo-tag-tl">CAD // AB125-ESP+</div>
-      <div class="holo-tag-br" id="holoStatusTag">KWP // 10.4K</div>
+      <div class="holo-tag-tl" id="holoTagLeft">CAD // AB125-ESP+</div>
+      <div class="holo-tag-br" id="holoStatusTag">K-LINE // STANDBY</div>
 
       <div class="holo-laser-beam"></div>
 
@@ -1282,10 +1087,10 @@
     </div>
   </div>
 
-  <!-- 6. UNIFIED STEALTH TELEMETRY MATRIX (2x4 Grid from Real Scan) -->
+  <!-- 6. UNIFIED STEALTH TELEMETRY MATRIX (REAL ECU LIVE DATA) -->
   <div class="telemetry-title">
     <span>ECU LIVE TELEMETRY // PGM-FI</span>
-    <span style="font-family:'Share Tech Mono'; font-size:9px; color:var(--cyan);">10.4K BAUD</span>
+    <span id="klineBaudStatus" style="font-family:'Share Tech Mono'; font-size:9px; color:var(--cyan);">10.4K KWP2000</span>
   </div>
 
   <div class="matrix-grid">
@@ -1296,11 +1101,11 @@
         <span class="tele-pid">PID 0x05</span>
       </div>
       <div class="tele-body">
-        <span class="tele-val" id="valEct">38</span>
-        <span class="tele-unit">°C</span>
+        <span class="tele-val" id="valEct">--</span>
+        <span class="tele-unit" id="unitEct">°C</span>
       </div>
       <div class="tele-bar-track">
-        <div class="tele-bar-fill" id="barEct" style="width: 32%;"></div>
+        <div class="tele-bar-fill" id="barEct" style="width: 0%;"></div>
       </div>
     </div>
 
@@ -1311,11 +1116,11 @@
         <span class="tele-pid">PID 0x42</span>
       </div>
       <div class="tele-body">
-        <span class="tele-val" id="valVolt">12.35</span>
+        <span class="tele-val" id="valVolt">--</span>
         <span class="tele-unit">V</span>
       </div>
       <div class="tele-bar-track">
-        <div class="tele-bar-fill" id="barVolt" style="width: 75%;"></div>
+        <div class="tele-bar-fill" id="barVolt" style="width: 0%;"></div>
       </div>
     </div>
 
@@ -1326,11 +1131,11 @@
         <span class="tele-pid">PID 0x11</span>
       </div>
       <div class="tele-body">
-        <span class="tele-val" id="valTps">9.4</span>
+        <span class="tele-val" id="valTps">--</span>
         <span class="tele-unit">%</span>
       </div>
       <div class="tele-bar-track">
-        <div class="tele-bar-fill" id="barTps" style="width: 9.4%;"></div>
+        <div class="tele-bar-fill" id="barTps" style="width: 0%;"></div>
       </div>
     </div>
 
@@ -1341,7 +1146,7 @@
         <span class="tele-pid">PID 0x04</span>
       </div>
       <div class="tele-body">
-        <span class="tele-val" id="valLoad">0</span>
+        <span class="tele-val" id="valLoad">--</span>
         <span class="tele-unit">%</span>
       </div>
       <div class="tele-bar-track">
@@ -1356,11 +1161,11 @@
         <span class="tele-pid">PID 0x0E</span>
       </div>
       <div class="tele-body">
-        <span class="tele-val" id="valTiming">-20.0</span>
+        <span class="tele-val" id="valTiming">--</span>
         <span class="tele-unit">°BTDC</span>
       </div>
       <div class="tele-bar-track">
-        <div class="tele-bar-fill" id="barTiming" style="width: 40%;"></div>
+        <div class="tele-bar-fill" id="barTiming" style="width: 0%;"></div>
       </div>
     </div>
 
@@ -1371,11 +1176,11 @@
         <span class="tele-pid">PID 0x0F</span>
       </div>
       <div class="tele-body">
-        <span class="tele-val" id="valIat">37</span>
-        <span class="tele-unit">°C</span>
+        <span class="tele-val" id="valIat">--</span>
+        <span class="tele-unit" id="unitIat">°C</span>
       </div>
       <div class="tele-bar-track">
-        <div class="tele-bar-fill" id="barIat" style="width: 45%;"></div>
+        <div class="tele-bar-fill" id="barIat" style="width: 0%;"></div>
       </div>
     </div>
 
@@ -1386,58 +1191,59 @@
         <span class="tele-pid">PID 0x14</span>
       </div>
       <div class="tele-body">
-        <span class="tele-val" id="valO2">0.00</span>
+        <span class="tele-val" id="valO2">--</span>
         <span class="tele-unit">V</span>
       </div>
       <div class="tele-bar-track">
-        <div class="tele-bar-fill" id="barO2" style="width: 10%;"></div>
+        <div class="tele-bar-fill" id="barO2" style="width: 0%;"></div>
       </div>
     </div>
 
-    <!-- STFT / LTFT Fuel Trims -->
+    <!-- Injector Pulse Width Ti (Real 20-byte Telemetry byte 13..14) -->
     <div class="tele-card" id="cardTrims">
       <div class="tele-header">
-        <span class="tele-lbl">BÙ XĂNG STFT/LTFT</span>
-        <span class="tele-pid">PID 06/07</span>
+        <span class="tele-lbl">PHUN XĂNG (INJ TI)</span>
+        <span class="tele-pid">PGM-FI</span>
       </div>
       <div class="tele-body">
-        <span class="tele-val" id="valTrims" style="font-size:16px;">+0.0% / +2.3%</span>
+        <span class="tele-val" id="valTrims">--</span>
+        <span class="tele-unit">ms</span>
       </div>
       <div class="tele-bar-track">
-        <div class="tele-bar-fill" id="barTrims" style="width: 52%;"></div>
+        <div class="tele-bar-fill" id="barTrims" style="width: 0%;"></div>
       </div>
     </div>
   </div>
 
-  <!-- 7. TRIP & FUEL EFFICIENCY RIBBON -->
+  <!-- 7. TRIP & REAL ECU STATUS RIBBON -->
   <div class="trip-fuel-ribbon">
     <div class="tf-row">
       <div class="tf-col">
         <span class="tf-lbl">ĂN XĂNG TỨC THỜI</span>
-        <span class="tf-val" id="valFuelEco" style="color:var(--cyan);">52.4 km/L</span>
+        <span class="tf-val" id="valFuelEco" style="color:var(--cyan);">-- km/L</span>
       </div>
       <div class="tf-col" style="text-align:right;">
         <span class="tf-lbl">THỜI GIAN NỔ (RUN TIME)</span>
-        <span class="tf-val" id="valRunTime">00:00:09</span>
+        <span class="tf-val" id="valRunTime">00:00:00</span>
       </div>
     </div>
     <div class="tf-row">
-      <div class="tf-col">
-        <span class="tf-lbl">HÀNH TRÌNH (TRIP)</span>
-        <span class="tf-val" id="valTrip">14.8 KM</span>
+      <div class="tf-col" onclick="openTripHistoryPage()" style="cursor:pointer;">
+        <span class="tf-lbl">HÀNH TRÌNH GPS (TRIP)</span>
+        <span class="tf-val" id="valTrip">0.0 KM</span>
       </div>
-      <div class="tf-col" style="text-align:right;">
-        <span class="tf-lbl">TỔNG QUÃNG ĐƯỜNG (ODO)</span>
-        <span class="tf-val" id="valOdo">12,560 KM</span>
+      <div class="tf-col" style="text-align:right; cursor:pointer;" onclick="openDiagnosticsPage()">
+        <span class="tf-lbl">CHẨN ĐOÁN MÃ LỖI DTC</span>
+        <span class="tf-val" id="valOdo">CHỜ ECU</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 8. BOTTOM STEALTH DOCK -->
+<!-- 8. BOTTOM NATIVE APP CONTROL DECK -->
 <div class="bottom-control-deck">
   <!-- 1. BLE Connection Button -->
-  <button class="deck-btn" id="btnBle" onclick="connectBLE()" title="Bluetooth Telemetry Link">
+  <button class="deck-btn" id="btnBle" onclick="connectBLE()" title="Kết nối Bluetooth ESP32-S3">
     <span class="deck-led" id="ledBle"></span>
     <svg class="deck-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M7 7l10 10-5 5V2l5 5L7 17"/>
@@ -1445,98 +1251,84 @@
       <path d="M20 12a9 9 0 0 0-3-6" stroke-dasharray="2 2"/>
     </svg>
     <span class="deck-lbl">BLE LINK</span>
-    <span class="deck-sub" id="bleStatusTxt">OFFLINE</span>
+    <span class="deck-sub" id="bleStatusTxt">KẾT NỐI</span>
   </button>
 
-  <!-- 2. Simulation Toggle -->
-  <button class="deck-btn active" id="btnDemo" onclick="toggleDemo()" title="Simulator Toggle">
-    <span class="deck-led active" id="ledDemo"></span>
+  <!-- 2. GPS Trip Recording Button -->
+  <button class="deck-btn" id="btnTrip" onclick="toggleTripRecord()" title="Ghi hành trình GPS">
+    <span class="deck-led" id="ledTrip"></span>
     <svg class="deck-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="9"/>
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>
+      <polygon points="3 11 22 2 13 21 11 13 3 11"/>
     </svg>
-    <span class="deck-lbl">SIMULATOR</span>
-    <span class="deck-sub" id="demoStatusTxt">AUTO RUN</span>
+    <span class="deck-lbl">GHI TRIP</span>
+    <span class="deck-sub" id="tripStatusTxt">GPS SẴN SÀNG</span>
   </button>
 
-  <!-- 3. HERO THROTTLE / LAUNCH TRIGGER -->
+  <!-- 3. CENTER HERO: ECU DIAGNOSTICS & DTC -->
   <div class="deck-throttle-wrapper">
-    <button class="deck-throttle-btn" id="btnGas" title="Hold to Throttle">
-      <svg class="throttle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    <button class="deck-throttle-btn" id="btnGas" onclick="openDiagnosticsPage()" title="Chẩn đoán ECU & Xóa lỗi">
+      <svg class="throttle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
       </svg>
-      <span class="throttle-title">BOOST THROTTLE</span>
-      <span class="throttle-sub">[ GIỮ ĐỂ VẶN GA ]</span>
+      <span class="throttle-title">CHẨN ĐOÁN ECU</span>
+      <span class="throttle-sub" id="diagSubTxt">[ 19 PID & XÓA LỖI ]</span>
     </button>
   </div>
 
-  <!-- 4. Audio Engine Synthesizer -->
-  <button class="deck-btn" id="btnAudio" onclick="toggleAudio()" title="Sound Synthesizer">
-    <span class="deck-led" id="ledAudio"></span>
+  <!-- 4. Live System & HEX Log Viewer -->
+  <button class="deck-btn" id="btnLogs" onclick="openLogsPage()" title="Nhật ký BLE / K-Line / HEX">
+    <span class="deck-led active" id="ledLogs"></span>
     <svg class="deck-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+      <polyline points="4 17 10 11 4 5"/>
+      <line x1="12" y1="19" x2="20" y2="19"/>
     </svg>
-    <span class="deck-lbl">EXHAUST FX</span>
-    <span class="deck-sub" id="audioStatusTxt">MUTED</span>
+    <span class="deck-lbl">XEM LOG</span>
+    <span class="deck-sub" id="logStatusTxt">LIVE HEX</span>
   </button>
 
-  <!-- 5. Fullscreen Viewport -->
-  <button class="deck-btn" id="btnFull" onclick="toggleFullScreen()" title="Fullscreen HUD">
-    <span class="deck-led" id="ledFull"></span>
+  <!-- 5. System & Audio Settings -->
+  <button class="deck-btn" id="btnSettings" onclick="openSettingsPage()" title="Cài đặt Hệ thống & Âm thanh">
+    <span class="deck-led active" id="ledSettings"></span>
     <svg class="deck-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="15 3 21 3 21 9"/>
-      <polyline points="9 21 3 21 3 15"/>
-      <line x1="21" y1="3" x2="14" y2="10"/>
-      <line x1="3" y1="21" x2="10" y2="14"/>
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
     </svg>
-    <span class="deck-lbl">FULL HUD</span>
-    <span class="deck-sub">EXPAND</span>
+    <span class="deck-lbl">CÀI ĐẶT</span>
+    <span class="deck-sub">HỆ THỐNG</span>
   </button>
 </div>
 
 <script>
-  // ================= STATE (REAL VEHICLE SCAN INITIAL VALUES) =================
+  // ================= REAL APP STATE (NO FAKE DEMO UNLESS ENABLED IN SETTINGS) =================
   let state = {
-    speed: 0,
-    rpm: 0,
-    ect: 38,
-    tps: 9.4,
-    volt: 12.35,
-    iat: 37,
-    o2: 0.00,
-    engineLoad: 0,
-    ignitionTiming: -20.0,
-    stft: 0.0,
-    ltft: 2.34,
-    runTime: 9,
+    hasReading: false,
+    bleConnected: false,
+    bleState: 'OFFLINE',
+    ecuConnected: false,
+    demoMode: false,
+    isTripRecording: false,
+    bleDeviceName: 'HONDA AB125 Lor',
+    unitSpeed: 'kmh',
+    unitTemp: 'c',
+    speed: null,
+    rpm: null,
+    ect: null,
+    tps: null,
+    volt: null,
+    iat: null,
+    o2: null,
+    engineLoad: null,
+    ignitionTiming: null,
+    injectorTi: null,
+    runTime: null,
     sideStandDown: false,
     idlingStopActive: false,
-    brakeActive: false,
-    turnLeft: false,
-    turnRight: false,
-    fuelEcoKmL: 52.4,
-    trip: 14.8,
-    odo: 12560,
-    bleConnected: false,
-    demoMode: true,
-    audioEnabled: false,
-    gasHeld: false
+    dtcPresent: false,
+    dtcCount: 0,
+    packetCount: 0,
+    packetHz: 0.0,
+    tripKm: 0.0
   };
-
-  // URL parameters support
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('stand') === 'down') {
-    state.sideStandDown = true;
-    state.demoMode = false;
-  }
-  if (urlParams.get('demo') === 'false') {
-    state.demoMode = false;
-  }
-  if (urlParams.has('speed')) state.speed = parseFloat(urlParams.get('speed'));
-  if (urlParams.has('rpm')) state.rpm = parseFloat(urlParams.get('rpm'));
 
   // ================= LIVE CLOCK =================
   function updateClock() {
@@ -1549,324 +1341,63 @@
   setInterval(updateClock, 1000);
   updateClock();
 
-  // ================= VIRAL M-PERFORMANCE FACE TACHOMETER LOGIC =================
-  const ticksGroup = document.getElementById('ticksGroup');
-  const needleGroup = document.getElementById('needleGroup');
-  const browL = document.getElementById('browL');
-  const browR = document.getElementById('browR');
-  const mouthGroup = document.getElementById('mouthGroup');
-  const foreheadWrinkles = document.getElementById('foreheadWrinkles');
-  const glabellaWrinkles = document.getElementById('glabellaWrinkles');
-  const cheekCreases = document.getElementById('cheekCreases');
-  const crowsFeet = document.getElementById('crowsFeet');
-  const sweatGroup = document.getElementById('sweatGroup');
-  const windLines = document.getElementById('windLines');
-  const eyeL = document.getElementById('eyeL');
-  const eyeR = document.getElementById('eyeR');
-  const mDialWrapper = document.getElementById('mDialWrapper');
-  const faceMoodTag = document.getElementById('faceMoodTag');
-  const clusterEctVal = document.getElementById('clusterEctVal');
-  const clusterVoltVal = document.getElementById('clusterVoltVal');
+  // ================= VECTOR TACHOMETER ARC (42 SEGMENTS) =================
+  const svgTachoGroup = document.getElementById('svgTachoGroup');
+  const tachoNeedle = document.getElementById('tachoNeedle');
+  const TOTAL_TACHO_TICKS = 42;
+  const tachoSegments = [];
 
-  const START_ANG = 140;
-  const SWEEP_ANG = 270;
-  const MAX_DIAL_RPM = 9000;
+  function initTachoArc() {
+    svgTachoGroup.innerHTML = '';
+    const cx = 190, cy = 162;
+    const rInner = 120, rOuter = 140;
+    const startAng = 145 * Math.PI / 180;
+    const endAng = 395 * Math.PI / 180;
+    const step = (endAng - startAng) / TOTAL_TACHO_TICKS;
 
-  function initMDialTicks() {
-    if (!ticksGroup) return;
-    ticksGroup.innerHTML = '';
-    for (let rpm = 0; rpm <= 9; rpm++) {
-      const angDeg = START_ANG + (rpm / 9) * SWEEP_ANG;
-      const angRad = (angDeg * Math.PI) / 180;
-      const cx = 190, cy = 190;
-      const rTickOuter = 160;
-      const rTickInner = 147;
-      const rNum = 132;
+    for (let i = 0; i < TOTAL_TACHO_TICKS; i++) {
+      const a1 = startAng + i * step + 0.012;
+      const a2 = startAng + (i + 1) * step - 0.012;
 
-      const x1 = cx + rTickOuter * Math.cos(angRad);
-      const y1 = cy + rTickOuter * Math.sin(angRad);
-      const x2 = cx + rTickInner * Math.cos(angRad);
-      const y2 = cy + rTickInner * Math.sin(angRad);
+      const p1x = cx + rInner * Math.cos(a1), p1y = cy + rInner * Math.sin(a1);
+      const p2x = cx + rOuter * Math.cos(a1), p2y = cy + rOuter * Math.sin(a1);
+      const p3x = cx + rOuter * Math.cos(a2), p3y = cy + rOuter * Math.sin(a2);
+      const p4x = cx + rInner * Math.cos(a2), p4y = cy + rInner * Math.sin(a2);
 
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', x1);
-      line.setAttribute('y1', y1);
-      line.setAttribute('x2', x2);
-      line.setAttribute('y2', y2);
-      line.setAttribute('stroke', rpm >= 7 ? '#ef4444' : (rpm >= 5.5 ? '#f59e0b' : '#0f172a'));
-      line.setAttribute('stroke-width', '3');
-      ticksGroup.appendChild(line);
+      const pathData = `M ${p1x} ${p1y} L ${p2x} ${p2y} L ${p3x} ${p3y} L ${p4x} ${p4y} Z`;
+      const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      pathEl.setAttribute('d', pathData);
+      pathEl.setAttribute('fill', 'rgba(255, 255, 255, 0.06)');
+      pathEl.setAttribute('stroke', 'rgba(255, 255, 255, 0.12)');
+      pathEl.setAttribute('stroke-width', '0.8');
+      svgTachoGroup.appendChild(pathEl);
 
-      if (rpm < 9) {
-        for (let sub = 1; sub <= 3; sub++) {
-          const subAngDeg = angDeg + (sub / 4) * (SWEEP_ANG / 9);
-          const subAngRad = (subAngDeg * Math.PI) / 180;
-          const sx1 = cx + rTickOuter * Math.cos(subAngRad);
-          const sy1 = cy + rTickOuter * Math.sin(subAngRad);
-          const sx2 = cx + (rTickOuter - 7) * Math.cos(subAngRad);
-          const sy2 = cy + (rTickOuter - 7) * Math.sin(subAngRad);
-          const sLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-          sLine.setAttribute('x1', sx1);
-          sLine.setAttribute('y1', sy1);
-          sLine.setAttribute('x2', sx2);
-          sLine.setAttribute('y2', sy2);
-          sLine.setAttribute('stroke', rpm >= 7 ? '#ef4444' : '#64748b');
-          sLine.setAttribute('stroke-width', '1.5');
-          ticksGroup.appendChild(sLine);
-        }
-      }
-
-      const nx = cx + rNum * Math.cos(angRad);
-      const ny = cy + rNum * Math.sin(angRad) + 5;
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      text.setAttribute('x', nx);
-      text.setAttribute('y', ny);
-      text.setAttribute('text-anchor', 'middle');
-      text.setAttribute('font-family', "'Orbitron', sans-serif");
-      text.setAttribute('font-size', '17');
-      text.setAttribute('font-weight', '900');
-      text.setAttribute('fill', rpm >= 7 ? '#ef4444' : '#0f172a');
-      text.textContent = rpm;
-      ticksGroup.appendChild(text);
+      tachoSegments.push({ el: pathEl, angle: (a1 + a2) / 2 });
     }
   }
-  initMDialTicks();
+  initTachoArc();
 
-  function updateFaceTachometer(speed, rpm, isLocked) {
-    if (!needleGroup) return;
-
-    // 1. Sweeping Needle Rotation
-    const rpmClamped = Math.min(Math.max(rpm, 0), MAX_DIAL_RPM);
-    const needleDeg = START_ANG + (rpmClamped / MAX_DIAL_RPM) * SWEEP_ANG;
-    needleGroup.setAttribute('transform', `rotate(${needleDeg}, 190, 190)`);
-
-    // 2. Chân Chống Gạt Xuống (Side Stand Down / Interlock Lock)
-    if (isLocked) {
-      if (faceMoodTag) {
-        faceMoodTag.innerText = 'LOCK // X_X DEADPAN';
-        faceMoodTag.style.color = '#ef4444';
-      }
-      if (browL) browL.setAttribute('d', 'M 154 184 Q 166 174 176 182');
-      if (browR) browR.setAttribute('d', 'M 226 184 Q 214 174 204 182');
-      if (eyeL) eyeL.innerHTML = '<line x1="161" y1="187" x2="171" y2="195" stroke="#18181b" stroke-width="2.6" stroke-linecap="round"/><line x1="171" y1="187" x2="161" y2="195" stroke="#18181b" stroke-width="2.6" stroke-linecap="round"/>';
-      if (eyeR) eyeR.innerHTML = '<line x1="209" y1="187" x2="219" y2="195" stroke="#18181b" stroke-width="2.6" stroke-linecap="round"/><line x1="219" y1="187" x2="209" y2="195" stroke="#18181b" stroke-width="2.6" stroke-linecap="round"/>';
-      if (mouthGroup) mouthGroup.innerHTML = '<path d="M 178 224 Q 190 216 202 224" fill="none" stroke="#18181b" stroke-width="2.6" stroke-linecap="round"/>';
-      if (foreheadWrinkles) foreheadWrinkles.setAttribute('opacity', '0');
-      if (glabellaWrinkles) glabellaWrinkles.setAttribute('opacity', '0');
-      if (cheekCreases) cheekCreases.setAttribute('opacity', '0');
-      if (crowsFeet) crowsFeet.setAttribute('opacity', '0');
-      if (sweatGroup) sweatGroup.setAttribute('opacity', '1');
-      if (windLines) windLines.setAttribute('opacity', '0');
-      if (mDialWrapper) mDialWrapper.className = 'm-face-dial-wrapper';
-      return;
-    }
-
-    // 3. Normal Progression by Speed ("tốc càng cao mặt càng nhăn")
-    const s = speed;
-
-    if (s < 20) {
-      // TIER 0 (<20 KM/H): Chill, relaxed, calm driving
-      if (faceMoodTag) {
-        faceMoodTag.innerText = 'TIER 0 // THƯ THÁI';
-        faceMoodTag.style.color = '#00f0ff';
-      }
-      if (browL) browL.setAttribute('d', 'M 155 180 Q 166 178 177 181');
-      if (browR) browR.setAttribute('d', 'M 225 180 Q 214 178 203 181');
-      if (eyeL) eyeL.innerHTML = '<circle cx="166" cy="191" r="3.6" fill="#18181b"/>';
-      if (eyeR) eyeR.innerHTML = '<circle cx="214" cy="191" r="3.6" fill="#18181b"/>';
-      if (mouthGroup) mouthGroup.innerHTML = '<path d="M 178 219 Q 190 223 202 219" fill="none" stroke="#18181b" stroke-width="2.6" stroke-linecap="round"/>';
-      if (foreheadWrinkles) foreheadWrinkles.setAttribute('opacity', '0');
-      if (glabellaWrinkles) glabellaWrinkles.setAttribute('opacity', '0');
-      if (cheekCreases) cheekCreases.setAttribute('opacity', '0');
-      if (crowsFeet) crowsFeet.setAttribute('opacity', '0');
-      if (sweatGroup) sweatGroup.setAttribute('opacity', '0');
-      if (windLines) windLines.setAttribute('opacity', '0');
-      if (mDialWrapper) mDialWrapper.className = 'm-face-dial-wrapper';
-
-    } else if (s < 50) {
-      // TIER 1 (20-50 KM/H): FOCUSED (EXACT PHOTO REPLICA!)
-      if (faceMoodTag) {
-        faceMoodTag.innerText = 'TIER 1 // TẬP TRUNG';
-        faceMoodTag.style.color = '#fbbf24';
-      }
-      if (browL) browL.setAttribute('d', 'M 155 178 Q 166 182 177 186');
-      if (browR) browR.setAttribute('d', 'M 225 178 Q 214 182 203 186');
-      if (eyeL) eyeL.innerHTML = '<circle cx="166" cy="191" r="3.4" fill="#18181b"/>';
-      if (eyeR) eyeR.innerHTML = '<circle cx="214" cy="191" r="3.4" fill="#18181b"/>';
-      if (mouthGroup) mouthGroup.innerHTML = '<path d="M 176 220 Q 183 216 190 219 Q 197 216 204 220" fill="none" stroke="#18181b" stroke-width="2.6" stroke-linecap="round"/>';
-      if (foreheadWrinkles) foreheadWrinkles.setAttribute('opacity', '0');
-      if (glabellaWrinkles) glabellaWrinkles.setAttribute('opacity', '0.4');
-      if (cheekCreases) cheekCreases.setAttribute('opacity', '0');
-      if (crowsFeet) crowsFeet.setAttribute('opacity', '0');
-      if (sweatGroup) sweatGroup.setAttribute('opacity', '0');
-      if (windLines) windLines.setAttribute('opacity', '0');
-      if (mDialWrapper) mDialWrapper.className = 'm-face-dial-wrapper';
-
-    } else if (s < 75) {
-      // TIER 2 (50-75 KM/H): TENSE & SWEATING (Wrinkles deepening)
-      if (faceMoodTag) {
-        faceMoodTag.innerText = 'TIER 2 // CĂNG THẲNG';
-        faceMoodTag.style.color = '#f97316';
-      }
-      if (browL) browL.setAttribute('d', 'M 153 174 Q 166 183 179 189');
-      if (browR) browR.setAttribute('d', 'M 227 174 Q 214 183 201 189');
-      if (eyeL) eyeL.innerHTML = '<circle cx="166" cy="191" r="3.0" fill="#18181b"/><path d="M 160 195 Q 166 197 172 195" fill="none" stroke="#18181b" stroke-width="1.3"/>';
-      if (eyeR) eyeR.innerHTML = '<circle cx="214" cy="191" r="3.0" fill="#18181b"/><path d="M 208 195 Q 214 197 220 195" fill="none" stroke="#18181b" stroke-width="1.3"/>';
-      if (mouthGroup) mouthGroup.innerHTML = '<path d="M 174 222 Q 182 214 190 217 Q 198 214 206 222" fill="none" stroke="#18181b" stroke-width="2.8" stroke-linecap="round"/>';
-      if (foreheadWrinkles) foreheadWrinkles.setAttribute('opacity', '0.65');
-      if (glabellaWrinkles) glabellaWrinkles.setAttribute('opacity', '0.85');
-      if (cheekCreases) cheekCreases.setAttribute('opacity', '0.5');
-      if (crowsFeet) crowsFeet.setAttribute('opacity', '0.4');
-      if (sweatGroup) sweatGroup.setAttribute('opacity', '0.8');
-      if (windLines) windLines.setAttribute('opacity', '0.3');
-      if (mDialWrapper) mDialWrapper.className = 'm-face-dial-wrapper';
-
-    } else if (s < 95) {
-      // TIER 3 (75-95 KM/H): HARD PULL - GRITTED TEETH & DEEP WRINKLES!
-      if (faceMoodTag) {
-        faceMoodTag.innerText = 'TIER 3 // NGHIẾN RĂNG';
-        faceMoodTag.style.color = '#ef4444';
-      }
-      if (browL) browL.setAttribute('d', 'M 150 171 Q 165 185 180 192');
-      if (browR) browR.setAttribute('d', 'M 230 171 Q 215 185 200 192');
-      if (eyeL) eyeL.innerHTML = '<line x1="160" y1="191" x2="172" y2="191" stroke="#18181b" stroke-width="3.2" stroke-linecap="round"/><path d="M 160 195 Q 166 198 172 195" fill="none" stroke="#18181b" stroke-width="1.5"/>';
-      if (eyeR) eyeR.innerHTML = '<line x1="208" y1="191" x2="220" y2="191" stroke="#18181b" stroke-width="3.2" stroke-linecap="round"/><path d="M 208 195 Q 214 198 220 195" fill="none" stroke="#18181b" stroke-width="1.5"/>';
-      if (mouthGroup) mouthGroup.innerHTML = `
-        <rect x="174" y="215" width="32" height="9" rx="3" fill="#ffffff" stroke="#18181b" stroke-width="2.4"/>
-        <line x1="174" y1="219.5" x2="206" y2="219.5" stroke="#18181b" stroke-width="1.2"/>
-        <line x1="180" y1="215" x2="180" y2="224" stroke="#18181b" stroke-width="1.2"/>
-        <line x1="186" y1="215" x2="186" y2="224" stroke="#18181b" stroke-width="1.2"/>
-        <line x1="194" y1="215" x2="194" y2="224" stroke="#18181b" stroke-width="1.2"/>
-        <line x1="200" y1="215" x2="200" y2="224" stroke="#18181b" stroke-width="1.2"/>
-        <path d="M 170 216 Q 167 220 171 224" fill="none" stroke="#18181b" stroke-width="1.8" stroke-linecap="round"/>
-        <path d="M 210 216 Q 213 220 209 224" fill="none" stroke="#18181b" stroke-width="1.8" stroke-linecap="round"/>
-      `;
-      if (foreheadWrinkles) foreheadWrinkles.setAttribute('opacity', '1');
-      if (glabellaWrinkles) glabellaWrinkles.setAttribute('opacity', '1');
-      if (cheekCreases) cheekCreases.setAttribute('opacity', '1');
-      if (crowsFeet) crowsFeet.setAttribute('opacity', '1');
-      if (sweatGroup) sweatGroup.setAttribute('opacity', '1');
-      if (windLines) windLines.setAttribute('opacity', '0.7');
-      if (mDialWrapper) mDialWrapper.className = 'm-face-dial-wrapper rumble-light';
-
-    } else {
-      // TIER 4 (>=95 KM/H): HYPER-SPEED REDLINE SCREAMING MEME!
-      if (faceMoodTag) {
-        faceMoodTag.innerText = 'TIER 4 // GÀO THÉT (REDLINE)';
-        faceMoodTag.style.color = '#fca5a5';
-      }
-      if (browL) browL.setAttribute('d', 'M 148 168 Q 165 186 182 194');
-      if (browR) browR.setAttribute('d', 'M 232 168 Q 215 186 198 194');
-      if (eyeL) eyeL.innerHTML = '<circle cx="166" cy="189" r="5" fill="#18181b"/><circle cx="168" cy="187" r="1.8" fill="#ffffff"/><circle cx="164" cy="191" r="1" fill="#ffffff"/>';
-      if (eyeR) eyeR.innerHTML = '<circle cx="214" cy="189" r="5" fill="#18181b"/><circle cx="216" cy="187" r="1.8" fill="#ffffff"/><circle cx="212" cy="191" r="1" fill="#ffffff"/>';
-      if (mouthGroup) mouthGroup.innerHTML = `
-        <path d="M 172 214 Q 190 208 208 214 Q 206 233 190 234 Q 174 233 172 214 Z" fill="#991b1b" stroke="#18181b" stroke-width="2.6"/>
-        <path d="M 175 214 L 205 214 L 203 218 L 177 218 Z" fill="#ffffff"/>
-        <path d="M 178 230 L 202 230 L 200 226 L 180 226 Z" fill="#ffffff"/>
-        <path d="M 183 232 Q 190 225 197 232 Z" fill="#ef4444"/>
-      `;
-      if (foreheadWrinkles) foreheadWrinkles.setAttribute('opacity', '1');
-      if (glabellaWrinkles) glabellaWrinkles.setAttribute('opacity', '1');
-      if (cheekCreases) cheekCreases.setAttribute('opacity', '1');
-      if (crowsFeet) crowsFeet.setAttribute('opacity', '1');
-      if (sweatGroup) sweatGroup.setAttribute('opacity', '1');
-      if (windLines) windLines.setAttribute('opacity', '1');
-      if (mDialWrapper) mDialWrapper.className = 'm-face-dial-wrapper rumble-heavy';
-    }
-  }
-
-  // ================= WEB AUDIO SYNTHESIZER =================
-  let audioCtx = null;
-  let osc1 = null, osc2 = null, engineFilter = null, engineGain = null;
-
-  function initAudio() {
-    if (audioCtx) return;
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-
-      osc1 = audioCtx.createOscillator();
-      osc2 = audioCtx.createOscillator();
-      engineFilter = audioCtx.createBiquadFilter();
-      engineGain = audioCtx.createGain();
-
-      osc1.type = 'sawtooth';
-      osc2.type = 'triangle';
-
-      engineFilter.type = 'lowpass';
-      engineFilter.frequency.value = 400;
-      engineFilter.Q.value = 3.0;
-
-      engineGain.gain.value = 0.0;
-
-      osc1.connect(engineFilter);
-      osc2.connect(engineFilter);
-      engineFilter.connect(engineGain);
-      engineGain.connect(audioCtx.destination);
-
-      osc1.start();
-      osc2.start();
-    } catch (e) {
-      console.warn('Audio init error:', e);
-    }
-  }
-
-  function updateAudio(rpm, tps) {
-    if (!audioCtx || !state.audioEnabled || state.sideStandDown) {
-      if (engineGain) engineGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.05);
-      return;
-    }
-    const baseFreq = 30 + (rpm / 10000) * 130;
-    osc1.frequency.setTargetAtTime(baseFreq, audioCtx.currentTime, 0.05);
-    osc2.frequency.setTargetAtTime(baseFreq * 1.5, audioCtx.currentTime, 0.05);
-
-    const filterCutoff = 280 + (tps / 100) * 1600 + (rpm / 10000) * 1000;
-    engineFilter.frequency.setTargetAtTime(filterCutoff, audioCtx.currentTime, 0.05);
-
-    const gainVal = state.gasHeld ? 0.3 : (rpm > 1200 ? 0.14 : 0.07);
-    engineGain.gain.setTargetAtTime(gainVal, audioCtx.currentTime, 0.05);
-  }
-
-  function toggleAudio() {
-    initAudio();
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-    state.audioEnabled = !state.audioEnabled;
-    const btn = document.getElementById('btnAudio');
-    if (state.audioEnabled) {
-      btn.classList.add('active');
-      ledAudio.classList.add('active');
-      audioStatusTxt.innerText = 'ACTIVE';
-    } else {
-      btn.classList.remove('active');
-      ledAudio.classList.remove('active');
-      audioStatusTxt.innerText = 'MUTED';
-    }
-  }
-
-  // ================= UI RENDER LOOP =================
+  // ================= UI RENDERING FROM REAL STATE =================
+  const ecmDot = document.getElementById('ecmDot');
+  const ecmTitle = document.getElementById('ecmTitle');
+  const headerVolt = document.getElementById('headerVolt');
   const kickstandBanner = document.getElementById('kickstandBanner');
   const standDesc = document.getElementById('standDesc');
   const standBadge = document.getElementById('standBadge');
   const standBadgeText = document.getElementById('standBadgeText');
   const heroSpeed = document.getElementById('heroSpeed');
+  const heroSpeedUnit = document.getElementById('heroSpeedUnit');
   const heroGear = document.getElementById('heroGear');
   const heroRpm = document.getElementById('heroRpm');
   const holoScooterImg = document.getElementById('holoScooterImg');
   const holoKickstandBeam = document.getElementById('holoKickstandBeam');
-  const ledBle = document.getElementById('ledBle');
-  const bleStatusTxt = document.getElementById('bleStatusTxt');
-  const ledDemo = document.getElementById('ledDemo');
-  const demoStatusTxt = document.getElementById('demoStatusTxt');
-  const ledAudio = document.getElementById('ledAudio');
-  const audioStatusTxt = document.getElementById('audioStatusTxt');
+  const holoStatusTag = document.getElementById('holoStatusTag');
+  const klineBaudStatus = document.getElementById('klineBaudStatus');
 
-  // Matrix cards
   const valEct = document.getElementById('valEct');
+  const unitEct = document.getElementById('unitEct');
   const barEct = document.getElementById('barEct');
   const valVolt = document.getElementById('valVolt');
-  const headerVolt = document.getElementById('headerVolt');
   const barVolt = document.getElementById('barVolt');
   const valTps = document.getElementById('valTps');
   const barTps = document.getElementById('barTps');
@@ -1875,23 +1406,92 @@
   const valTiming = document.getElementById('valTiming');
   const barTiming = document.getElementById('barTiming');
   const valIat = document.getElementById('valIat');
+  const unitIat = document.getElementById('unitIat');
   const barIat = document.getElementById('barIat');
   const valO2 = document.getElementById('valO2');
   const barO2 = document.getElementById('barO2');
   const valTrims = document.getElementById('valTrims');
   const barTrims = document.getElementById('barTrims');
 
-  // Ribbon
   const valFuelEco = document.getElementById('valFuelEco');
   const valRunTime = document.getElementById('valRunTime');
   const valTrip = document.getElementById('valTrip');
   const valOdo = document.getElementById('valOdo');
 
-  const btnGas = document.getElementById("btnGas");
+  const btnBle = document.getElementById('btnBle');
+  const ledBle = document.getElementById('ledBle');
+  const bleStatusTxt = document.getElementById('bleStatusTxt');
+  const btnTrip = document.getElementById('btnTrip');
+  const ledTrip = document.getElementById('ledTrip');
+  const tripStatusTxt = document.getElementById('tripStatusTxt');
+  const btnGas = document.getElementById('btnGas');
+  const logStatusTxt = document.getElementById('logStatusTxt');
+
+  function formatTemp(celsius) {
+    if (celsius === null || celsius === undefined) return '--';
+    if (state.unitTemp === 'f') {
+      return Math.round((celsius * 9) / 5 + 32);
+    }
+    return Math.round(celsius);
+  }
 
   function renderUI() {
-    // 1. Kickstand Banner & Safety Lock
-    if (state.sideStandDown) {
+    const activeData = state.hasReading || state.ecuConnected || state.demoMode;
+    const rpmVal = activeData && state.rpm !== null ? state.rpm : 0;
+    const rawSpeed = activeData && state.speed !== null ? state.speed : 0;
+    const displaySpeed = state.unitSpeed === 'mph' ? Math.round(rawSpeed * 0.621371) : Math.round(rawSpeed);
+
+    // 1. Header Connection Status
+    if (state.bleConnected) {
+      btnBle.classList.add('active');
+      ledBle.classList.add('active');
+      bleStatusTxt.innerText = state.ecuConnected ? 'ONLINE' : 'CHỜ K-LINE';
+      if (state.ecuConnected) {
+        ecmDot.style.background = '#00f0ff';
+        ecmDot.style.boxShadow = '0 0 10px #00f0ff';
+        ecmTitle.innerText = 'ONLINE // ECM 0104';
+      } else {
+        ecmDot.style.background = '#ffaa00';
+        ecmDot.style.boxShadow = '0 0 8px #ffaa00';
+        ecmTitle.innerText = 'BLE OK // CHỜ KHÓA XE';
+      }
+    } else if (state.bleState === 'SCANNING' || state.bleState === 'CONNECTING') {
+      btnBle.classList.remove('active');
+      ledBle.classList.remove('active');
+      bleStatusTxt.innerText = 'ĐANG QUÉT...';
+      ecmDot.style.background = '#ffaa00';
+      ecmDot.style.boxShadow = '0 0 8px #ffaa00';
+      ecmTitle.innerText = 'ĐANG TÌM ' + (state.bleDeviceName || 'ESP32') + '...';
+    } else if (state.demoMode) {
+      btnBle.classList.remove('active');
+      ledBle.classList.remove('active');
+      bleStatusTxt.innerText = 'CHẾ ĐỘ DEMO';
+      ecmDot.style.background = '#ffaa00';
+      ecmDot.style.boxShadow = '0 0 8px #ffaa00';
+      ecmTitle.innerText = 'DEMO MODE // GIẢ LẬP';
+    } else {
+      btnBle.classList.remove('active');
+      ledBle.classList.remove('active');
+      bleStatusTxt.innerText = 'CHạm KẾT NỐI';
+      ecmDot.style.background = '#738496';
+      ecmDot.style.boxShadow = 'none';
+      ecmTitle.innerText = 'CHƯA KẾT NỐI BLE';
+    }
+
+    // 2. Kickstand Banner & Safety Interlock
+    if (!activeData) {
+      kickstandBanner.className = 'kickstand-switch up';
+      standDesc.innerText = 'CHỜ TÍN HIỆU ECU K-LINE (10.4K BAUD)';
+      standBadge.className = 'ks-rocker ok';
+      standBadgeText.innerText = 'CHỜ ECU';
+      heroGear.className = 'hero-gear-pill';
+      heroGear.innerText = 'CHỜ KẾT NỐI';
+      btnGas.classList.remove('locked');
+      holoScooterImg.classList.remove('stand-down');
+      holoKickstandBeam.style.display = 'none';
+      holoStatusTag.innerText = 'K-LINE // STANDBY';
+      holoStatusTag.style.color = 'var(--text-muted)';
+    } else if (state.sideStandDown) {
       kickstandBanner.className = 'kickstand-switch down';
       standDesc.innerText = '⚠️ CHÂN CHỐNG HẠ // ĐỘNG CƠ BỊ KHÓA';
       standBadge.className = 'ks-rocker danger';
@@ -1901,249 +1501,242 @@
       btnGas.classList.add('locked');
       holoScooterImg.classList.add('stand-down');
       holoKickstandBeam.style.display = 'block';
+      holoStatusTag.innerText = 'LOCK // SIDE STAND';
+      holoStatusTag.style.color = '#ff1e2d';
     } else {
       kickstandBanner.className = 'kickstand-switch up';
-      standDesc.innerText = 'SENSOR ARMED // READY TO START';
+      standDesc.innerText = state.idlingStopActive
+        ? '🟢 IDLING STOP // ĐANG TẠM NGẮT MÁY ĐÈN ĐỎ'
+        : 'CẢM BIẾN AN TOÀN // SẴN SÀNG VẬN HÀNH';
       standBadge.className = 'ks-rocker ok';
-      standBadgeText.innerText = 'SẴN SÀNG';
+      standBadgeText.innerText = state.idlingStopActive ? 'IDLING STOP' : 'SẴN SÀNG';
       heroGear.className = 'hero-gear-pill';
-      heroGear.innerText = 'CVT DRIVE';
+      const isEco = rpmVal >= 2200 && rpmVal <= 6200 && rawSpeed >= 15 && rawSpeed <= 65;
+      heroGear.innerText = isEco ? '● ECO DRIVE ●' : (rpmVal > 500 ? 'CVT DRIVE' : 'ENGINE IDLE');
       btnGas.classList.remove('locked');
       holoScooterImg.classList.remove('stand-down');
       holoKickstandBeam.style.display = 'none';
+      holoStatusTag.innerText = state.demoMode ? 'DEMO // SIMULATED' : 'K-LINE // 10.4K LIVE';
+      holoStatusTag.style.color = '#00f0ff';
     }
 
-    // 2. Speedometer
-    const roundedSpeed = Math.round(state.speed);
-    heroSpeed.innerText = roundedSpeed;
-    if (state.speed > 80 && !state.sideStandDown) {
+    // 3. Speed & Tachometer Arch
+    heroSpeed.innerText = displaySpeed;
+    heroSpeedUnit.innerText = state.unitSpeed === 'mph' ? 'MPH' : 'KM/H';
+    if (rawSpeed >= 80 && !state.sideStandDown) {
       heroSpeed.classList.add('rumble');
     } else {
       heroSpeed.classList.remove('rumble');
     }
 
-    // 3. Viral M-Performance Face Tachometer & Wrinkle Expression Update
-    updateFaceTachometer(state.speed, state.rpm, state.sideStandDown);
+    const MAX_RPM = 11000;
+    const rpmRatio = Math.min(Math.max(rpmVal / MAX_RPM, 0), 1);
+    const activeSegCount = Math.round(rpmRatio * TOTAL_TACHO_TICKS);
 
-    // Digital RPM Readout
-    heroRpm.innerText = Math.round(state.rpm).toLocaleString('en-US');
+    tachoSegments.forEach((seg, idx) => {
+      if (idx < activeSegCount) {
+        if (state.sideStandDown) {
+          seg.el.setAttribute('fill', '#ff1e2d');
+          seg.el.setAttribute('stroke', '#ff1e2d');
+          seg.el.style.filter = 'drop-shadow(0 0 5px #ff1e2d)';
+        } else if (idx >= TOTAL_TACHO_TICKS * 0.82) {
+          seg.el.setAttribute('fill', '#ff1e2d');
+          seg.el.setAttribute('stroke', '#ff1e2d');
+          seg.el.style.filter = 'drop-shadow(0 0 6px #ff1e2d)';
+        } else {
+          seg.el.setAttribute('fill', '#00f0ff');
+          seg.el.setAttribute('stroke', '#00f0ff');
+          seg.el.style.filter = 'drop-shadow(0 0 5px #00f0ff)';
+        }
+      } else {
+        seg.el.setAttribute('fill', 'rgba(255, 255, 255, 0.06)');
+        seg.el.setAttribute('stroke', 'rgba(255, 255, 255, 0.12)');
+        seg.el.style.filter = 'none';
+      }
+    });
 
-    // Update Cluster Plate Telemetry (ECT & Volt)
-    if (clusterEctVal) clusterEctVal.innerText = Math.round(state.ect) + '°C';
-    if (clusterVoltVal) clusterVoltVal.innerText = state.batteryVolt.toFixed(2) + 'V';
+    const startAng = 145 * Math.PI / 180;
+    const endAng = 395 * Math.PI / 180;
+    const needleAng = startAng + rpmRatio * (endAng - startAng);
+    const cx = 190, cy = 162, nR = 142;
+    const nX = cx + nR * Math.cos(needleAng);
+    const nY = cy + nR * Math.sin(needleAng);
+    const rotDeg = (needleAng * 180 / Math.PI) + 90;
+    tachoNeedle.setAttribute('transform', `translate(${nX - 190}, ${nY - 8}) rotate(${rotDeg}, 190, 8)`);
+    tachoNeedle.setAttribute('fill', state.sideStandDown ? '#ff1e2d' : (rpmRatio >= 0.82 ? '#ff1e2d' : '#00f0ff'));
 
-    // 4. ECU Telemetry Matrix Cards
-    valEct.innerText = Math.round(state.ect);
-    barEct.style.width = Math.min(Math.max(((state.ect - 20) / 100) * 100, 0), 100) + '%';
+    heroRpm.innerText = Math.round(rpmVal).toLocaleString('en-US');
 
-    const voltStr = state.volt.toFixed(2);
-    valVolt.innerText = voltStr;
-    headerVolt.innerText = voltStr + 'V';
-    barVolt.style.width = Math.min(Math.max(((state.volt - 10) / 5) * 100, 0), 100) + '%';
+    // 4. 8 ECU Telemetry Matrix Cards
+    const tempUnitLabel = state.unitTemp === 'f' ? '°F' : '°C';
+    unitEct.innerText = tempUnitLabel;
+    unitIat.innerText = tempUnitLabel;
 
-    valTps.innerText = state.tps.toFixed(1);
-    barTps.style.width = Math.min(Math.max(state.tps, 0), 100) + '%';
+    if (activeData && state.ect !== null) {
+      valEct.innerText = formatTemp(state.ect);
+      barEct.style.width = Math.min(Math.max(((state.ect - 20) / 100) * 100, 0), 100) + '%';
+    } else {
+      valEct.innerText = '--';
+      barEct.style.width = '0%';
+    }
 
-    valLoad.innerText = Math.round(state.engineLoad);
-    barLoad.style.width = Math.min(Math.max(state.engineLoad, 0), 100) + '%';
+    if (activeData && state.volt !== null) {
+      const vStr = Number(state.volt).toFixed(2);
+      valVolt.innerText = vStr;
+      headerVolt.innerText = vStr + 'V';
+      barVolt.style.width = Math.min(Math.max(((state.volt - 10) / 5) * 100, 0), 100) + '%';
+    } else {
+      valVolt.innerText = '--';
+      headerVolt.innerText = '--.-V';
+      barVolt.style.width = '0%';
+    }
 
-    valTiming.innerText = (state.ignitionTiming > 0 ? '+' : '') + state.ignitionTiming.toFixed(1);
-    barTiming.style.width = Math.min(Math.max(((state.ignitionTiming + 30) / 60) * 100, 0), 100) + '%';
+    if (activeData && state.tps !== null) {
+      valTps.innerText = Math.round(state.tps);
+      barTps.style.width = Math.min(Math.max(state.tps, 0), 100) + '%';
+    } else {
+      valTps.innerText = '--';
+      barTps.style.width = '0%';
+    }
 
-    valIat.innerText = Math.round(state.iat);
-    barIat.style.width = Math.min(Math.max(((state.iat - 15) / 50) * 100, 0), 100) + '%';
+    if (activeData && state.engineLoad !== null) {
+      valLoad.innerText = Math.round(state.engineLoad);
+      barLoad.style.width = Math.min(Math.max(state.engineLoad, 0), 100) + '%';
+    } else {
+      valLoad.innerText = '--';
+      barLoad.style.width = '0%';
+    }
 
-    valO2.innerText = state.o2.toFixed(2);
-    barO2.style.width = Math.min(Math.max((state.o2 / 1.0) * 100, 0), 100) + '%';
+    if (activeData && state.ignitionTiming !== null) {
+      const tim = Number(state.ignitionTiming);
+      valTiming.innerText = (tim > 0 ? '+' : '') + tim.toFixed(0);
+      barTiming.style.width = Math.min(Math.max(((tim + 30) / 60) * 100, 0), 100) + '%';
+    } else {
+      valTiming.innerText = '--';
+      barTiming.style.width = '0%';
+    }
 
-    const stftStr = (state.stft >= 0 ? '+' : '') + state.stft.toFixed(1) + '%';
-    const ltftStr = (state.ltft >= 0 ? '+' : '') + state.ltft.toFixed(1) + '%';
-    valTrims.innerText = `${stftStr} / ${ltftStr}`;
+    if (activeData && state.iat !== null) {
+      valIat.innerText = formatTemp(state.iat);
+      barIat.style.width = Math.min(Math.max(((state.iat - 15) / 50) * 100, 0), 100) + '%';
+    } else {
+      valIat.innerText = '--';
+      barIat.style.width = '0%';
+    }
 
-    // 5. Trip Ribbon
-    valFuelEco.innerText = state.fuelEcoKmL.toFixed(1) + ' km/L';
+    if (activeData && state.o2 !== null) {
+      valO2.innerText = Number(state.o2).toFixed(2);
+      barO2.style.width = Math.min(Math.max((state.o2 / 1.0) * 100, 0), 100) + '%';
+    } else {
+      valO2.innerText = '--';
+      barO2.style.width = '0%';
+    }
 
-    const rHours = String(Math.floor(state.runTime / 3600)).padStart(2, '0');
-    const rMins = String(Math.floor((state.runTime % 3600) / 60)).padStart(2, '0');
-    const rSecs = String(state.runTime % 60).padStart(2, '0');
+    if (activeData && state.injectorTi !== null) {
+      const tiMs = Number(state.injectorTi) / 1000.0;
+      valTrims.innerText = tiMs.toFixed(2);
+      barTrims.style.width = Math.min(Math.max((tiMs / 8.0) * 100, 0), 100) + '%';
+    } else {
+      valTrims.innerText = '--';
+      barTrims.style.width = '0%';
+    }
+
+    // 5. Trip & Fuel Ribbon
+    if (activeData && rawSpeed > 5 && state.injectorTi && state.injectorTi > 0 && rpmVal > 500) {
+      const flowLh = (rpmVal / 2.0) * (state.injectorTi / 1000000.0) * (110.0 / 60000.0) * 60.0;
+      if (flowLh > 0.05) {
+        const kmL = Math.min(Math.max(rawSpeed / flowLh, 15.0), 85.0);
+        valFuelEco.innerText = kmL.toFixed(1) + ' km/L';
+      } else {
+        valFuelEco.innerText = '-- km/L';
+      }
+    } else {
+      valFuelEco.innerText = '-- km/L';
+    }
+
+    const rtSec = activeData && state.runTime !== null ? Math.max(0, Math.floor(state.runTime)) : 0;
+    const rHours = String(Math.floor(rtSec / 3600)).padStart(2, '0');
+    const rMins = String(Math.floor((rtSec % 3600) / 60)).padStart(2, '0');
+    const rSecs = String(rtSec % 60).padStart(2, '0');
     valRunTime.innerText = `${rHours}:${rMins}:${rSecs}`;
 
-    valTrip.innerText = state.trip.toFixed(1) + ' KM';
-    valOdo.innerText = Math.round(state.odo).toLocaleString('en-US') + ' KM';
+    valTrip.innerText = Number(state.tripKm || 0).toFixed(1) + ' KM';
 
-    // 6. Indicators & Sound
-    const indiIdlingEl = document.getElementById('indiIdling');
-    const indiMilEl = document.getElementById('indiMil');
-    const holoStatusTag = document.getElementById('holoStatusTag');
-    if (indiIdlingEl) {
-      indiIdlingEl.classList.toggle('active-idling', Boolean(state.idlingStopActive || state.ect >= 55));
+    if (!activeData) {
+      valOdo.innerText = 'CHỜ ECU';
+      valOdo.style.color = 'var(--text-muted)';
+    } else if (state.dtcPresent || state.dtcCount > 0) {
+      valOdo.innerText = `⚠️ ${state.dtcCount || 1} LỖI DTC`;
+      valOdo.style.color = '#ff1e2d';
+    } else {
+      valOdo.innerText = '0 LỖI DTC ✓';
+      valOdo.style.color = 'var(--cyan)';
     }
-    if (indiMilEl) {
-      indiMilEl.classList.toggle('active-mil', Boolean(state.dtcPresent));
+
+    // 6. Indicators & Bottom Deck Status
+    document.getElementById('indiBeam').classList.toggle('active-beam', Boolean(state.ecuConnected));
+    document.getElementById('indiKey').classList.toggle('active-key', Boolean(state.bleConnected || state.ecuConnected));
+    document.getElementById('indiIdling').classList.toggle('active-idling', Boolean(activeData && (state.idlingStopActive || (state.ect !== null && state.ect >= 55))));
+    document.getElementById('indiMil').classList.toggle('active-mil', Boolean(state.dtcPresent || state.dtcCount > 0));
+
+    if (state.isTripRecording) {
+      btnTrip.classList.add('active');
+      ledTrip.classList.add('active');
+      tripStatusTxt.innerText = '● ĐANG GHI';
+    } else {
+      btnTrip.classList.remove('active');
+      ledTrip.classList.remove('active');
+      tripStatusTxt.innerText = 'BẮT ĐẦU';
     }
-    if (holoStatusTag) {
-      if (state.sideStandDown) {
-        holoStatusTag.innerText = 'LOCK // SIDE STAND';
-        holoStatusTag.style.color = '#ff1e2d';
-        holoStatusTag.style.borderColor = 'rgba(255,30,45,0.5)';
-      } else if (state.bleConnected && state.ecuConnected) {
-        holoStatusTag.innerText = 'K-LINE // 10.4K LIVE';
-        holoStatusTag.style.color = '#00f0ff';
-        holoStatusTag.style.borderColor = 'rgba(0,240,255,0.3)';
-      } else {
-        holoStatusTag.innerText = 'KWP // 10.4K';
-        holoStatusTag.style.color = '#00f0ff';
-        holoStatusTag.style.borderColor = 'rgba(0,240,255,0.2)';
-      }
+
+    if (state.packetCount > 0) {
+      logStatusTxt.innerText = `${state.packetCount} GÓI`;
+      klineBaudStatus.innerText = state.packetHz > 0 ? `${state.packetHz.toFixed(1)} HZ · 10.4K` : '10.4K KWP2000';
+    } else {
+      logStatusTxt.innerText = 'LIVE HEX';
+      klineBaudStatus.innerText = '10.4K KWP2000';
     }
-    updateAudio(state.rpm, state.tps);
   }
 
-  // ================= SIMULATION LOOP =================
-  let simTime = 0;
-  function updateSimulation() {
-    if (!state.demoMode || state.bleConnected) return;
-    simTime += 0.016;
+  // Initial render
+  renderUI();
 
-    if (state.sideStandDown) {
-      state.speed = Math.max(state.speed - 2.5, 0);
-      state.rpm = Math.max(state.rpm - 150, 0);
-      state.engineLoad = 0;
-      state.ignitionTiming = -20.0;
-      return;
-    }
+  // ================= NATIVE BRIDGE RECEIVE (60FPS FROM APP VIEWMODEL) =================
+  window.updateFromNative = function(payload) {
+    if (!payload) return;
+    state.bleConnected = Boolean(payload.bleConnected);
+    state.bleState = payload.bleState || 'OFFLINE';
+    state.ecuConnected = Boolean(payload.ecuConnected);
+    state.hasReading = Boolean(payload.hasReading);
+    state.demoMode = Boolean(payload.demoMode);
+    state.isTripRecording = Boolean(payload.isTripRecording);
+    if (payload.bleDeviceName) state.bleDeviceName = payload.bleDeviceName;
+    if (payload.unitSpeed) state.unitSpeed = payload.unitSpeed;
+    if (payload.unitTemp) state.unitTemp = payload.unitTemp;
 
-    if (state.gasHeld) {
-      state.tps = Math.min(state.tps + 2.4, 92);
-      state.engineLoad = Math.min(state.engineLoad + 2.0, 88);
-      state.rpm = Math.min(state.rpm + 110, 8400);
-      state.speed = Math.min(state.speed + 0.65, 108);
-      state.ignitionTiming = Math.min(state.ignitionTiming + 0.6, 28.5);
-      state.o2 = 0.65 + Math.sin(simTime * 8) * 0.22;
-      state.fuelEcoKmL = Math.max(state.fuelEcoKmL - 0.4, 38.2);
-    } else {
-      if (state.speed > 5) {
-        state.speed = Math.max(state.speed - 0.35, 0);
-        state.tps = Math.max(state.tps - 1.8, 9.4);
-        state.engineLoad = Math.max(state.engineLoad - 1.2, 18);
-        state.rpm = Math.max(state.rpm - 65, 1750);
-        state.ignitionTiming = Math.max(state.ignitionTiming - 0.4, 10.5);
-      } else {
-        const idleWave = Math.sin(simTime * 2.2);
-        state.rpm = 1750 + idleWave * 60;
-        state.tps = 9.4;
-        state.speed = 0;
-        state.engineLoad = 0;
-        state.ignitionTiming = -20.0 + idleWave * 1.5;
-        state.o2 = Math.max(0.0, Math.sin(simTime * 3) * 0.7);
-        state.fuelEcoKmL = 52.4 + idleWave * 2.0;
-      }
-    }
+    state.rpm = (typeof payload.rpm === 'number') ? payload.rpm : null;
+    state.speed = (typeof payload.speed === 'number') ? payload.speed : null;
+    state.ect = (typeof payload.ect === 'number') ? payload.ect : null;
+    state.tps = (typeof payload.tps === 'number') ? payload.tps : null;
+    state.volt = (typeof payload.volt === 'number') ? payload.volt : null;
+    state.iat = (typeof payload.iat === 'number') ? payload.iat : null;
+    state.o2 = (typeof payload.o2 === 'number') ? payload.o2 : null;
+    state.engineLoad = (typeof payload.engineLoad === 'number') ? payload.engineLoad : null;
+    state.ignitionTiming = (typeof payload.ignitionTiming === 'number') ? payload.ignitionTiming : null;
+    state.injectorTi = (typeof payload.injectorTi === 'number') ? payload.injectorTi : null;
+    state.runTime = (typeof payload.runTime === 'number') ? payload.runTime : null;
+    state.tripKm = (typeof payload.tripKm === 'number') ? payload.tripKm : 0.0;
+    state.sideStandDown = Boolean(payload.sideStandDown);
+    state.idlingStopActive = Boolean(payload.idlingStopActive);
+    state.dtcPresent = Boolean(payload.dtcPresent);
+    state.dtcCount = (typeof payload.dtcCount === 'number') ? payload.dtcCount : 0;
+    state.packetCount = (typeof payload.packetCount === 'number') ? payload.packetCount : 0;
+    state.packetHz = (typeof payload.packetHz === 'number') ? payload.packetHz : 0.0;
 
-    state.ect = Math.min(38 + simTime * 0.08, 86);
-    state.volt = 12.35 + Math.sin(simTime * 0.6) * 0.2 + (state.rpm > 3000 ? 1.6 : 0);
-    state.trip += (state.speed / 3600) * 0.016;
-    state.odo += (state.speed / 3600) * 0.016;
-  }
-
-  setInterval(() => {
-    if (!state.sideStandDown && state.rpm > 500 && state.demoMode && !state.bleConnected) {
-      state.runTime++;
-    }
-  }, 1000);
-
-  setInterval(() => {
-    if (!state.demoMode || state.bleConnected) return;
-    const cycle = Math.floor(Date.now() / 6000) % 3;
-    const turnLeftEl = document.getElementById('indiTurnLeft');
-    const turnRightEl = document.getElementById('indiTurnRight');
-    if (cycle === 1) {
-      turnLeftEl.classList.add('active-turn');
-      turnRightEl.classList.remove('active-turn');
-    } else if (cycle === 2) {
-      turnLeftEl.classList.remove('active-turn');
-      turnRightEl.classList.add('active-turn');
-    } else {
-      turnLeftEl.classList.remove('active-turn');
-      turnRightEl.classList.remove('active-turn');
-    }
-  }, 300);
-
-  function masterLoop() {
-    updateSimulation();
     renderUI();
-    requestAnimationFrame(masterLoop);
-  }
-  requestAnimationFrame(masterLoop);
+  };
 
-  // ================= KICKSTAND TOGGLE =================
-  function toggleKickstand() {
-    state.sideStandDown = !state.sideStandDown;
-    initAudio();
-  }
-
-  // ================= GAS BUTTON TOUCH & HOLD =================
-  function startGas(e) {
-    if (e) e.preventDefault();
-    if (state.sideStandDown) return;
-    state.gasHeld = true;
-    btnGas.classList.add('held');
-    initAudio();
-  }
-  function stopGas(e) {
-    if (e) e.preventDefault();
-    state.gasHeld = false;
-    btnGas.classList.remove('held');
-  }
-
-  btnGas.addEventListener('mousedown', startGas);
-  btnGas.addEventListener('mouseup', stopGas);
-  btnGas.addEventListener('mouseleave', stopGas);
-  btnGas.addEventListener('touchstart', startGas, { passive: false });
-  btnGas.addEventListener('touchend', stopGas, { passive: false });
-  btnGas.addEventListener('touchcancel', stopGas, { passive: false });
-
-  window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' || e.code === 'ArrowUp') startGas();
-    if (e.code === 'KeyS') toggleKickstand();
-  });
-  window.addEventListener('keyup', (e) => {
-    if (e.code === 'Space' || e.code === 'ArrowUp') stopGas();
-  });
-
-  function setDemoVisual(enabled) {
-    state.demoMode = enabled;
-    const btn = document.getElementById('btnDemo');
-    if (state.demoMode) {
-      btn.classList.add('active');
-      ledDemo.classList.add('active');
-      demoStatusTxt.innerText = 'AUTO RUN';
-    } else {
-      btn.classList.remove('active');
-      ledDemo.classList.remove('active');
-      demoStatusTxt.innerText = 'PAUSED';
-    }
-  }
-
-  function toggleDemo() {
-    setDemoVisual(!state.demoMode);
-    if (window.AndroidDash && window.AndroidDash.setDemoMode) {
-      window.AndroidDash.setDemoMode(state.demoMode);
-    }
-  }
-
-  function toggleFullScreen() {
-    if (window.AndroidDash && window.AndroidDash.openSettings) {
-      window.AndroidDash.openSettings();
-      return;
-    }
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    } else {
-      document.exitFullscreen().catch(() => {});
-    }
-  }
-
+  // ================= NATIVE / CAPACITOR / WEB ACTIONS =================
   function openSettingsPage() {
     if (window.AndroidDash && window.AndroidDash.openSettings) {
       window.AndroidDash.openSettings();
@@ -2168,70 +1761,25 @@
     }
   }
 
-  // ================= NATIVE ANDROID / CAPACITOR / WEB BLE BRIDGE =================
-  const BLE_SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
-  const BLE_CHAR_UUID    = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
-
-  function setBleUiStatus(connected, ecuOnline, statusLabel) {
-    const btn = document.getElementById('btnBle');
-    const ecmDot = document.getElementById('ecmDot');
-    const ecmTitle = document.getElementById('ecmTitle');
-    state.bleConnected = connected;
-    state.ecuConnected = ecuOnline;
-    if (connected) {
-      btn.classList.add('active');
-      ledBle.classList.add('active');
-      bleStatusTxt.innerText = 'ONLINE';
-      ecmDot.style.background = ecuOnline ? '#00f0ff' : '#ffaa00';
-      ecmDot.style.boxShadow = ecuOnline ? '0 0 10px #00f0ff' : '0 0 8px #ffaa00';
-      ecmTitle.innerText = statusLabel || (ecuOnline ? 'ONLINE // ECM 0104' : 'BLE OK // WAIT K-LINE');
+  function openTripHistoryPage() {
+    if (window.AndroidDash && window.AndroidDash.openTripHistory) {
+      window.AndroidDash.openTripHistory();
     } else {
-      btn.classList.remove('active');
-      ledBle.classList.remove('active');
-      bleStatusTxt.innerText = statusLabel || 'OFFLINE';
-      ecmDot.style.background = '#00f0ff';
-      ecmDot.style.boxShadow = '0 0 8px #00f0ff';
-      ecmTitle.innerText = 'ECM 0104 [AB125]';
+      window.location.href = 'trip_history.html';
     }
   }
 
-  // Called at 60fps from MotoDashKotlin Native WebView bridge
-  window.updateFromNative = function(payload) {
-    if (!payload) return;
-    if (typeof payload.demoMode === 'boolean') {
-      setDemoVisual(payload.demoMode);
-    }
-    if (payload.bleConnected) {
-      setBleUiStatus(true, Boolean(payload.ecuConnected), payload.ecuConnected ? 'ONLINE // ECM 0104' : 'BLE OK // WAIT K-LINE');
-    } else if (payload.bleState === 'SCANNING' || payload.bleState === 'CONNECTING') {
-      setBleUiStatus(false, false, payload.bleState);
+  function toggleTripRecord() {
+    if (window.AndroidDash && window.AndroidDash.toggleTrip) {
+      window.AndroidDash.toggleTrip();
     } else {
-      setBleUiStatus(false, false, 'OFFLINE');
+      openTripHistoryPage();
     }
+  }
 
-    // Apply telemetry when BLE connected or Native Demo Mode is feeding values
-    if (payload.bleConnected || payload.hasReading) {
-      if (typeof payload.rpm === 'number') state.rpm = payload.rpm;
-      if (typeof payload.speed === 'number') state.speed = payload.speed;
-      if (typeof payload.ect === 'number') state.ect = payload.ect;
-      if (typeof payload.tps === 'number') state.tps = payload.tps;
-      if (typeof payload.volt === 'number') state.volt = payload.volt;
-      if (typeof payload.iat === 'number') state.iat = payload.iat;
-      if (typeof payload.o2 === 'number') state.o2 = payload.o2;
-      if (typeof payload.engineLoad === 'number') state.engineLoad = payload.engineLoad;
-      if (typeof payload.ignitionTiming === 'number') state.ignitionTiming = payload.ignitionTiming;
-      if (typeof payload.injectorTi === 'number') state.injectorTi = payload.injectorTi;
-      if (typeof payload.runTime === 'number') state.runTime = payload.runTime;
-      if (typeof payload.tripKm === 'number') state.trip = payload.tripKm;
-      if (typeof payload.sideStandDown === 'boolean') state.sideStandDown = payload.sideStandDown;
-      if (typeof payload.idlingStopActive === 'boolean') state.idlingStopActive = payload.idlingStopActive;
-      if (typeof payload.dtcPresent === 'boolean') state.dtcPresent = payload.dtcPresent;
-      if (state.speed > 5 && state.injectorTi > 0) {
-        const flowLh = (state.rpm / 2.0) * (state.injectorTi / 1000000.0) * (110.0 / 60000.0) * 60.0;
-        if (flowLh > 0.05) state.fuelEcoKmL = Math.min(Math.max(state.speed / flowLh, 15.0), 85.0);
-      }
-    }
-  };
+  // Standalone Web / Capacitor BLE fallback when opened outside Native wrapper
+  const BLE_SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+  const BLE_CHAR_UUID    = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
 
   function hexToDataView(hex) {
     if (typeof hex !== 'string' || hex.length === 0) return new DataView(new ArrayBuffer(0));
@@ -2243,19 +1791,15 @@
   }
 
   async function connectBLE() {
-    initAudio();
-
-    // 1. Native Android (MotoDashKotlin) Bridge
     if (window.AndroidDash && window.AndroidDash.connectBle) {
-      bleStatusTxt.innerText = 'SCANNING...';
       window.AndroidDash.connectBle();
       return;
     }
 
-    // 2. Capacitor BluetoothLe Plugin (app_moto)
     if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BluetoothLe) {
       try {
-        bleStatusTxt.innerText = 'SCANNING...';
+        state.bleState = 'SCANNING';
+        renderUI();
         const ble = Capacitor.Plugins.BluetoothLe;
         await ble.initialize();
         const device = await ble.requestDevice({ services: [BLE_SERVICE_UUID] });
@@ -2267,23 +1811,25 @@
           if (event && event.value) parseBlePacket(hexToDataView(event.value));
         });
         await ble.startNotifications({ deviceId, service: BLE_SERVICE_UUID, characteristic: BLE_CHAR_UUID });
-        setDemoVisual(false);
-        setBleUiStatus(true, true, 'ONLINE // ECM 0104');
+        state.bleConnected = true;
+        state.bleState = 'ONLINE';
+        renderUI();
       } catch (err) {
-        console.warn('Capacitor BLE error:', err);
-        setBleUiStatus(false, false, 'OFFLINE');
+        state.bleConnected = false;
+        state.bleState = 'OFFLINE';
+        renderUI();
       }
       return;
     }
 
-    // 3. Chrome Web Bluetooth API
     if (!navigator.bluetooth) {
       openSettingsPage();
       return;
     }
 
     try {
-      bleStatusTxt.innerText = 'SEARCHING...';
+      state.bleState = 'SCANNING';
+      renderUI();
       const device = await navigator.bluetooth.requestDevice({
         filters: [
           { services: [BLE_SERVICE_UUID] },
@@ -2295,7 +1841,11 @@
       });
 
       device.addEventListener('gattserverdisconnected', () => {
-        setBleUiStatus(false, false, 'OFFLINE');
+        state.bleConnected = false;
+        state.ecuConnected = false;
+        state.hasReading = false;
+        state.bleState = 'OFFLINE';
+        renderUI();
       });
 
       const server = await device.gatt.connect();
@@ -2307,21 +1857,26 @@
         parseBlePacket(e.target.value);
       });
 
-      setDemoVisual(false);
-      setBleUiStatus(true, true, 'ONLINE // ECM 0104');
+      state.bleConnected = true;
+      state.bleState = 'ONLINE';
+      renderUI();
     } catch (err) {
-      console.warn('BLE Connect Cancelled/Failed:', err);
-      setBleUiStatus(false, false, 'OFFLINE');
+      state.bleConnected = false;
+      state.bleState = 'OFFLINE';
+      renderUI();
     }
   }
 
   function parseBlePacket(dv) {
     if (!dv || dv.byteLength < 12) return;
+    state.hasReading = true;
+    state.bleConnected = true;
+    state.packetCount = (state.packetCount || 0) + 1;
 
     state.rpm = dv.getUint16(0, false);
     state.speed = dv.getUint8(2);
     state.ect = dv.getInt8(3);
-    state.tps = dv.getUint8(4); // Direct 0..100% from AirBlade_Dashboard.ino
+    state.tps = dv.getUint8(4);
     state.volt = dv.getUint16(5, false) / 100.0;
     state.iat = dv.getInt8(7);
     state.o2 = dv.getUint16(8, false) / 100.0;
@@ -2336,20 +1891,12 @@
 
       const sw = dv.getUint8(15);
       state.sideStandDown = Boolean(sw & 0x01);
-      state.brakeActive = Boolean(sw & 0x02);
       state.idlingStopActive = Boolean(sw & 0x10);
 
       state.runTime = dv.getUint16(16, false);
       state.engineLoad = dv.getUint8(18);
-
-      if (state.speed > 5 && state.injectorTi > 0) {
-        const flowLh = (state.rpm / 2.0) * (state.injectorTi / 1000000.0) * (110.0 / 60000.0) * 60.0;
-        if (flowLh > 0.05) {
-          state.fuelEcoKmL = Math.min(Math.max(state.speed / flowLh, 15.0), 85.0);
-        }
-      }
     }
-    setBleUiStatus(true, state.ecuConnected);
+    renderUI();
   }
 </script>
 </body>

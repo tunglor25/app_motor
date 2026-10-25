@@ -7,6 +7,9 @@ struct StealthPortraitDashboardScreen: View {
     let onGearClick: () -> Void
     var onLogsClick: () -> Void = {}
     var onDiagnosticsClick: () -> Void = {}
+    var onTripHistoryClick: () -> Void = {}
+    var onTripShortClick: () -> Void = {}
+    var onTripLongPress: () -> Void = {}
     var onSetDemoMode: (Bool) -> Void = { _ in }
     let onTripSaved: (String) -> Void
 
@@ -21,6 +24,9 @@ struct StealthPortraitDashboardScreen: View {
                 onGearClick: onGearClick,
                 onLogsClick: onLogsClick,
                 onDiagnosticsClick: onDiagnosticsClick,
+                onTripHistoryClick: onTripHistoryClick,
+                onTripShortClick: onTripShortClick,
+                onTripLongPress: onTripLongPress,
                 onSetDemoMode: onSetDemoMode
             )
             .ignoresSafeArea()
@@ -41,6 +47,9 @@ private struct StealthPortraitWebView: UIViewRepresentable {
     let onGearClick: () -> Void
     let onLogsClick: () -> Void
     let onDiagnosticsClick: () -> Void
+    let onTripHistoryClick: () -> Void
+    let onTripShortClick: () -> Void
+    let onTripLongPress: () -> Void
     let onSetDemoMode: (Bool) -> Void
 
     func makeCoordinator() -> Coordinator {
@@ -65,6 +74,12 @@ private struct StealthPortraitWebView: UIViewRepresentable {
           },
           openDiagnostics: function() {
             window.webkit.messageHandlers.iosDash.postMessage({ action: 'openDiagnostics' });
+          },
+          openTripHistory: function() {
+            window.webkit.messageHandlers.iosDash.postMessage({ action: 'openTripHistory' });
+          },
+          toggleTrip: function() {
+            window.webkit.messageHandlers.iosDash.postMessage({ action: 'toggleTrip' });
           },
           setDemoMode: function(enabled) {
             window.webkit.messageHandlers.iosDash.postMessage({ action: 'setDemoMode', value: Boolean(enabled) });
@@ -123,6 +138,14 @@ private struct StealthPortraitWebView: UIViewRepresentable {
                     self.parent.onLogsClick()
                 case "openDiagnostics":
                     self.parent.onDiagnosticsClick()
+                case "openTripHistory":
+                    self.parent.onTripHistoryClick()
+                case "toggleTrip":
+                    if self.parent.state.isTripRecording {
+                        self.parent.onTripLongPress()
+                    } else {
+                        self.parent.onTripShortClick()
+                    }
                 case "setDemoMode":
                     if let val = dict["value"] as? Bool {
                         self.parent.onSetDemoMode(val)
@@ -146,27 +169,35 @@ private struct StealthPortraitWebView: UIViewRepresentable {
             }()
             let hasReading = r.rpm != nil || r.speed != nil || r.battery != nil || r.ect != nil
 
-            var payload: [String: Any] = [
+            let payload: [String: Any] = [
                 "bleConnected": bleConnected,
                 "bleState": bleStateStr,
                 "ecuConnected": r.ecuConnected,
                 "hasReading": hasReading,
+                "demoMode": state.settings.demoMode,
+                "isTripRecording": state.isTripRecording,
+                "bleDeviceName": state.settings.bleDeviceName,
+                "unitSpeed": state.settings.unitSpeed,
+                "unitTemp": state.settings.unitTemp,
                 "tripKm": state.tripKm,
                 "sideStandDown": r.sideStandDown,
                 "idlingStopActive": (r.switches & 0x10) != 0,
-                "dtcPresent": !r.dtcCodes.isEmpty
+                "dtcPresent": !r.dtcCodes.isEmpty,
+                "dtcCount": r.dtcCodes.count,
+                "packetCount": r.packetCount,
+                "packetHz": r.packetHz,
+                "rpm": r.rpm ?? NSNull(),
+                "speed": r.speed ?? NSNull(),
+                "ect": r.ect ?? NSNull(),
+                "tps": r.tps ?? NSNull(),
+                "volt": r.battery ?? NSNull(),
+                "iat": r.iat ?? NSNull(),
+                "o2": r.o2Voltage ?? NSNull(),
+                "engineLoad": r.engineLoad ?? NSNull(),
+                "ignitionTiming": r.ignitionTiming ?? NSNull(),
+                "injectorTi": r.injectorTi ?? NSNull(),
+                "runTime": r.runTimeSec ?? NSNull()
             ]
-            if let rpm = r.rpm { payload["rpm"] = rpm }
-            if let speed = r.speed { payload["speed"] = speed }
-            if let ect = r.ect { payload["ect"] = ect }
-            if let tps = r.tps { payload["tps"] = tps }
-            if let volt = r.battery { payload["volt"] = volt }
-            if let iat = r.iat { payload["iat"] = iat }
-            if let o2 = r.o2Voltage { payload["o2"] = o2 }
-            if let load = r.engineLoad { payload["engineLoad"] = load }
-            if let timing = r.ignitionTiming { payload["ignitionTiming"] = timing }
-            if let ti = r.injectorTi { payload["injectorTi"] = ti }
-            if let rt = r.runTimeSec { payload["runTime"] = rt }
 
             guard let data = try? JSONSerialization.data(withJSONObject: payload, options: []),
                   let jsonStr = String(data: data, encoding: .utf8) else { return }

@@ -19,6 +19,7 @@ struct ContentView: View {
                 onGearClick: { path.append(.settings) },
                 onLogsClick: { path.append(.logs) },
                 onDiagnosticsClick: { path.append(.diagnostics) },
+                onTripHistoryClick: { path.append(.tripHistory) },
                 onSetDemoMode: viewModel.setDemoMode,
                 onTripShortClick: viewModel.startTripRecording,
                 onTripLongPress: viewModel.stopTripRecordingAndSave,
@@ -148,6 +149,7 @@ private struct DashboardContainerView: View {
     let onGearClick: () -> Void
     var onLogsClick: () -> Void = {}
     var onDiagnosticsClick: () -> Void = {}
+    var onTripHistoryClick: () -> Void = {}
     var onSetDemoMode: (Bool) -> Void = { _ in }
     let onTripShortClick: () -> Void
     let onTripLongPress: () -> Void
@@ -165,6 +167,9 @@ private struct DashboardContainerView: View {
                     onGearClick: onGearClick,
                     onLogsClick: onLogsClick,
                     onDiagnosticsClick: onDiagnosticsClick,
+                    onTripHistoryClick: onTripHistoryClick,
+                    onTripShortClick: onTripShortClick,
+                    onTripLongPress: onTripLongPress,
                     onSetDemoMode: onSetDemoMode,
                     onTripSaved: onTripSaved
                 )
