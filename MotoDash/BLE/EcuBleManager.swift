@@ -247,6 +247,69 @@ final class EcuBleManager: NSObject, ObservableObject {
         return .success(())
     }
 
+    func toggleWifiOta(enable: Bool? = nil) {
+        let payload: Data
+        if let enable {
+            payload = Data([BleUuids.cmdWifiOta, enable ? 1 : 0])
+        } else {
+            payload = Data([BleUuids.cmdWifiOta])
+        }
+        addLog(.ble, "Gửi lệnh bật/tắt Wi-Fi Web OTA (0x59)", "SSID: HONDA_AB125_OTA -> http://192.168.4.1")
+        writeControlPayload(payload)
+    }
+
+    func uploadOtaFirmware(data: Data, onProgress: @escaping (Float) -> Void) async -> Result<Void, Error> {
+        guard let peripheral = activePeripheral else {
+            return .failure(NSError(domain: "BLE", code: 1, userInfo: [NSLocalizedDescriptionKey: "Chưa kết nối Bluetooth với mạch ESP32"]))
+        }
+        guard let ctrlChar = controlCharacteristic else {
+            return .failure(NSError(domain: "BLE", code: 2, userInfo: [NSLocalizedDescriptionKey: "Không tìm thấy CONTROL characteristic"]))
+        }
+        guard let dataChar = audioDataCharacteristic else {
+            return .failure(NSError(domain: "BLE", code: 3, userInfo: [NSLocalizedDescriptionKey: "Không tìm thấy DATA characteristic"]))
+        }
+        guard data.count >= 65536, data.first == 0xE9 else {
+            return .failure(NSError(domain: "BLE", code: 7, userInfo: [NSLocalizedDescriptionKey: "File .bin không hợp lệ (Thiếu magic byte 0xE9 của ESP32)"]))
+        }
+
+        let total = data.count
+        let maxWriteLen = max(20, min(peripheral.maximumWriteValueLength(for: .withResponse), 500))
+        addLog(.ble, "Bắt đầu cập nhật Firmware BLE OTA", "Kích thước: \(total) bytes · Chunk: \(maxWriteLen)B")
+
+        let sizePayload = Data([
+            BleUuids.cmdOtaStart,
+            UInt8(total & 0xFF),
+            UInt8((total >> 8) & 0xFF),
+            UInt8((total >> 16) & 0xFF),
+            UInt8((total >> 24) & 0xFF)
+        ])
+        guard await writeAndAwait(peripheral: peripheral, characteristic: ctrlChar, payload: sizePayload) else {
+            addLog(.ble, "Lỗi gửi lệnh CMD_OTA_START (0x4F)", isError: true)
+            return .failure(NSError(domain: "BLE", code: 4, userInfo: [NSLocalizedDescriptionKey: "Mạch chưa hỗ trợ OTA không dây (Cần nạp bản v2.0 qua cáp USB 1 lần đầu)"]))
+        }
+        try? await Task.sleep(nanoseconds: 80_000_000)
+
+        var offset = 0
+        while offset < total {
+            let end = min(offset + maxWriteLen, total)
+            let chunk = data.subdata(in: offset..<end)
+            guard await writeAndAwait(peripheral: peripheral, characteristic: dataChar, payload: chunk) else {
+                writeControlPayload(Data([BleUuids.cmdOtaAbort]))
+                addLog(.ble, "Lỗi truyền Firmware BLE OTA", "Tại byte \(offset) / \(total)", isError: true)
+                return .failure(NSError(domain: "BLE", code: 5, userInfo: [NSLocalizedDescriptionKey: "Lỗi truyền dữ liệu tại \((offset * 100) / total)%"]))
+            }
+            offset = end
+            onProgress(Float(offset) / Float(total))
+        }
+
+        guard await writeAndAwait(peripheral: peripheral, characteristic: ctrlChar, payload: Data([BleUuids.cmdOtaEnd])) else {
+            addLog(.ble, "Lỗi gửi lệnh CMD_OTA_END (0x5A)", isError: true)
+            return .failure(NSError(domain: "BLE", code: 6, userInfo: [NSLocalizedDescriptionKey: "Không gửi được lệnh hoàn tất Flash"]))
+        }
+        addLog(.ble, "Cập nhật Firmware OTA hoàn tất 100% ✓", "ESP32-S3 đang ghi Flash và tự khởi động lại...")
+        return .success(())
+    }
+
     private func writeAndAwait(peripheral: CBPeripheral, characteristic: CBCharacteristic, payload: Data) async -> Bool {
         if writeContinuation != nil { return false }
         return await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
@@ -352,12 +415,14 @@ final class EcuBleManager: NSObject, ObservableObject {
         let o2Scaled = (Int(bytes[8]) << 8) | Int(bytes[9])
         let o2V = Float(o2Scaled) / 100.0
         let ecuConnected = (bytes[10] & 0x01) != 0
+        let wifiOtaActive = (bytes[10] & 0x04) != 0
 
         var ignTiming: Int?
         var injTi: Int?
         var switches = 0
         var runTimeSec: Int?
         var engineLoad: Int?
+        var fwVersion = 10
 
         if bytes.count >= 20 {
             var crc20: UInt8 = 0
@@ -368,6 +433,9 @@ final class EcuBleManager: NSObject, ObservableObject {
                 switches = Int(bytes[15])
                 runTimeSec = (Int(bytes[16]) << 8) | Int(bytes[17])
                 engineLoad = Int(bytes[18])
+                if bytes.count >= 21, bytes[20] > 0 {
+                    fwVersion = Int(bytes[20])
+                }
             }
         }
 
@@ -428,6 +496,8 @@ final class EcuBleManager: NSObject, ObservableObject {
         reading.rawHex = hexStr
         reading.packetCount = packetCounter
         reading.packetHz = smoothedHz
+        reading.fwVersion = fwVersion
+        reading.wifiOtaActive = wifiOtaActive
         ecuReading = reading
     }
 

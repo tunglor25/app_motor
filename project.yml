@@ -50,6 +50,10 @@ targets:
         NSLocationWhenInUseUsageDescription: "MotoDash cần vị trí để ghi lại hành trình và tốc độ giới hạn."
         NSLocationAlwaysAndWhenInUseUsageDescription: "MotoDash cần vị trí để ghi lại hành trình khi chạy nền."
         NSAppleMusicUsageDescription: "MotoDash cần quyền truy cập thư viện nhạc để hiển thị bài hát đang phát từ ứng dụng Nhạc."
+        NSLocalNetworkUsageDescription: "MotoDash cần kết nối mạng nội bộ để cập nhật Firmware OTA siêu tốc cho mạch ESP32-S3."
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+          NSAllowsLocalNetworking: true
         UIBackgroundModes:
           - bluetooth-central
           - location

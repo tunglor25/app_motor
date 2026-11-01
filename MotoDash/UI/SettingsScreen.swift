@@ -31,6 +31,13 @@ struct SettingsScreen: View {
     var onSetSpeakerVolume: (Int, String) -> Void = { _, _ in }
     var onUploadBootMusic: (URL) -> Void = { _ in }
     var onUseDefaultBootMusic: () -> Void = {}
+    var espFwVersion: Int = 0
+    var wifiOtaActive: Bool = false
+    var otaUpdateState: OtaUpdateState = .idle
+    var onStartBundledBleOta: () -> Void = {}
+    var onUploadCustomOtaFirmware: (URL) -> Void = { _ in }
+    var onToggleWifiOta: (Bool?) -> Void = { _ in }
+    var onStartBundledWifiOta: () -> Void = {}
     let onDisconnect: () -> Void
     let onReconnect: () -> Void
     let onNavigateTripHistory: () -> Void
@@ -44,6 +51,7 @@ struct SettingsScreen: View {
     @State private var confirmClear = false
     @State private var tab = 0
     @State private var showFileImporter = false
+    @State private var showOtaFileImporter = false
 
     var body: some View {
         ScrollView {
@@ -75,6 +83,13 @@ struct SettingsScreen: View {
                         onSetFullscreen: onSetFullscreen,
                         onSetDemoMode: onSetDemoMode,
                         onTriggerC4Mode: onTriggerC4Mode,
+                        espFwVersion: espFwVersion,
+                        wifiOtaActive: wifiOtaActive,
+                        otaUpdateState: otaUpdateState,
+                        onStartBundledBleOta: onStartBundledBleOta,
+                        onPickCustomOtaFile: { showOtaFileImporter = true },
+                        onToggleWifiOta: onToggleWifiOta,
+                        onStartBundledWifiOta: onStartBundledWifiOta,
                         onDisconnect: onDisconnect,
                         onReconnect: onReconnect,
                         onNavigateDiagnostics: onNavigateDiagnostics,
@@ -139,6 +154,15 @@ struct SettingsScreen: View {
                 onUploadBootMusic(url)
             }
         }
+        .fileImporter(
+            isPresented: $showOtaFileImporter,
+            allowedContentTypes: [.data, .item],
+            allowsMultipleSelection: false
+        ) { result in
+            if case .success(let urls) = result, let url = urls.first {
+                onUploadCustomOtaFirmware(url)
+            }
+        }
     }
 }
 
@@ -200,6 +224,13 @@ private struct GeneralTab: View {
     let onSetFullscreen: (Bool) -> Void
     let onSetDemoMode: (Bool) -> Void
     let onTriggerC4Mode: () -> Void
+    var espFwVersion: Int = 0
+    var wifiOtaActive: Bool = false
+    var otaUpdateState: OtaUpdateState = .idle
+    var onStartBundledBleOta: () -> Void = {}
+    var onPickCustomOtaFile: () -> Void = {}
+    var onToggleWifiOta: (Bool?) -> Void = { _ in }
+    var onStartBundledWifiOta: () -> Void = {}
     let onDisconnect: () -> Void
     let onReconnect: () -> Void
     let onNavigateDiagnostics: () -> Void
@@ -269,6 +300,144 @@ private struct GeneralTab: View {
                         bleNameDraft = settings.bleDeviceName
                     }
                 }
+            }
+
+            let espVerText: String = {
+                guard connectionState == .connected else { return "Chưa kết nối" }
+                return espFwVersion > 0 ? "v\(espFwVersion / 10).\(espFwVersion % 10) (Build \(espFwVersion))" : "v1.0 (Bản cũ)"
+            }()
+            let bundledVerText = "v\(BleUuids.bundledFwVersion / 10).\(BleUuids.bundledFwVersion % 10) (Build \(BleUuids.bundledFwVersion))"
+            let needsUpdate = (connectionState == .connected && espFwVersion > 0 && espFwVersion < BleUuids.bundledFwVersion)
+            let isOtaBusy: Bool = {
+                if case .uploading = otaUpdateState { return true }
+                return false
+            }()
+
+            SectionTitle("⚡ CẬP NHẬT FIRMWARE ESP32-S3 (OTA KHÔNG DÂY)")
+            GroupCard {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Text("Phiên bản mạch ESP32:")
+                            .foregroundColor(.dashTextSecondary)
+                            .font(DashFont.shareTechMono(12))
+                        Spacer()
+                        Text(needsUpdate ? "\(espVerText) (CẦN UPDATE)" : espVerText)
+                            .foregroundColor(needsUpdate ? .dashAmber : .dashGreen)
+                            .font(DashFont.shareTechMono(12))
+                            .fontWeight(.bold)
+                    }
+                    HStack {
+                        Text("Firmware có sẵn trong App:")
+                            .foregroundColor(.dashTextSecondary)
+                            .font(DashFont.shareTechMono(12))
+                        Spacer()
+                        Text(bundledVerText)
+                            .foregroundColor(.dashCyan)
+                            .font(DashFont.shareTechMono(12))
+                            .fontWeight(.bold)
+                    }
+                    HStack {
+                        Text("Wi-Fi Web OTA (192.168.4.1):")
+                            .foregroundColor(.dashTextSecondary)
+                            .font(DashFont.shareTechMono(12))
+                        Spacer()
+                        Text(wifiOtaActive ? "ĐANG BẬT (HONDA_AB125_OTA)" : "ĐANG TẮT")
+                            .foregroundColor(wifiOtaActive ? .dashGreen : .dashTextSecondary)
+                            .font(DashFont.shareTechMono(12))
+                            .fontWeight(.bold)
+                    }
+
+                    switch otaUpdateState {
+                    case .uploading(let progress, let method):
+                        let pct = Int(min(max(progress * 100, 0), 100))
+                        VStack(alignment: .leading, spacing: 6) {
+                            GeometryReader { geo in
+                                ZStack(alignment: .leading) {
+                                    RoundedRectangle(cornerRadius: 99)
+                                        .fill(Color.white.opacity(0.08))
+                                    RoundedRectangle(cornerRadius: 99)
+                                        .fill(Color.dashCyan)
+                                        .frame(width: max(8, geo.size.width * CGFloat(min(max(progress, 0.02), 1.0))))
+                                }
+                            }
+                            .frame(height: 10)
+                            Text("⏳ Đang nạp Firmware qua \(method)... \(pct)% (Không tắt khóa xe)")
+                                .foregroundColor(.dashCyan)
+                                .font(DashFont.shareTechMono(12))
+                                .fontWeight(.bold)
+                        }
+                    case .success:
+                        Text("✅ CẬP NHẬT THÀNH CÔNG 100%! Mạch ESP32-S3 đang tự khởi động lại...")
+                            .foregroundColor(.dashGreen)
+                            .font(DashFont.shareTechMono(12))
+                            .fontWeight(.bold)
+                    case .error(let msg):
+                        Text("⚠️ \(msg)")
+                            .foregroundColor(.dashRed)
+                            .font(DashFont.shareTechMono(11))
+                    case .idle:
+                        EmptyView()
+                    }
+
+                    Button(action: { if !isOtaBusy { onStartBundledBleOta() } }) {
+                        Text("📲 NẠP BẢN \(bundledVerText) TRONG APP QUA BLUETOOTH")
+                            .foregroundColor(needsUpdate ? .dashAmber : .dashCyan)
+                            .font(DashFont.shareTechMono(12))
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background((needsUpdate ? Color.dashAmber : Color.dashCyan).opacity(0.18))
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(needsUpdate ? Color.dashAmber : Color.dashCyan, lineWidth: 1))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+
+                    HStack(spacing: 8) {
+                        Button(action: { if !isOtaBusy { onPickCustomOtaFile() } }) {
+                            Text("📂 CHỌN FILE .BIN")
+                                .foregroundColor(.white)
+                                .font(DashFont.shareTechMono(11))
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(Color.white.opacity(0.06))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dashCardBorder, lineWidth: 1))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: { if !isOtaBusy { onToggleWifiOta(nil) } }) {
+                            Text(wifiOtaActive ? "🌐 TẮT WI-FI OTA" : "🌐 BẬT WI-FI OTA")
+                                .foregroundColor(wifiOtaActive ? .dashGreen : .dashAmber)
+                                .font(DashFont.shareTechMono(11))
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background((wifiOtaActive ? Color.dashGreen : Color.dashAmber).opacity(0.16))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(wifiOtaActive ? Color.dashGreen : Color.dashAmber, lineWidth: 1))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    Button(action: { if !isOtaBusy { onStartBundledWifiOta() } }) {
+                        Text("🚀 NẠP SIÊU TỐC 5 GIÂY QUA WI-FI (HONDA_AB125_OTA)")
+                            .foregroundColor(.dashGreen)
+                            .font(DashFont.shareTechMono(11))
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 11)
+                            .background(Color.dashGreen.opacity(0.15))
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dashGreen, lineWidth: 1))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+
+                    Text("• Cách 1 (Tự động): Bấm Nạp qua Bluetooth, không cần đổi Wi-Fi (~35 giây).\n• Cách 2 (Siêu tốc 5s): Bấm Bật Wi-Fi OTA -> Kết nối Wi-Fi 'HONDA_AB125_OTA' -> Bấm Nạp Siêu Tốc 5 Giây hoặc mở Safari vào http://192.168.4.1")
+                        .foregroundColor(.dashTextSecondary)
+                        .font(DashFont.shareTechMono(10))
+                }
+                .padding(14)
             }
 
             SectionTitle("GIAO DIỆN ĐỒNG HỒ (9 THEMES)")
@@ -1112,6 +1281,124 @@ private struct SimButtonIOS: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .contentShape(Rectangle())
         .onTapGesture(perform: onClick)
+    }
+}
+
+struct AutoOtaPromptOverlay: View {
+    let espFwVersion: Int
+    let otaUpdateState: OtaUpdateState
+    let onStartBundledBleOta: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        let curVer = "v\(espFwVersion / 10).\(espFwVersion % 10)"
+        let newVer = "v\(BleUuids.bundledFwVersion / 10).\(BleUuids.bundledFwVersion % 10)"
+        VStack {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("⚡ CẬP NHẬT MẠCH ESP32-S3 (\(curVer) → \(newVer))")
+                        .foregroundColor(.dashCyan)
+                        .font(DashFont.shareTechMono(13))
+                        .fontWeight(.bold)
+                    Spacer()
+                    Button(action: onDismiss) {
+                        Text("✕")
+                            .foregroundColor(.dashTextSecondary)
+                            .font(DashFont.shareTechMono(14))
+                            .padding(4)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                switch otaUpdateState {
+                case .uploading(let progress, _):
+                    let pct = Int(min(max(progress * 100, 0), 100))
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 99)
+                                .fill(Color.white.opacity(0.1))
+                            RoundedRectangle(cornerRadius: 99)
+                                .fill(Color.dashGreen)
+                                .frame(width: max(8, geo.size.width * CGFloat(min(max(progress, 0.02), 1.0))))
+                        }
+                    }
+                    .frame(height: 10)
+                    Text("⏳ Đang tự động nạp Firmware \(newVer)... \(pct)% (Không tắt khóa xe)")
+                        .foregroundColor(.dashGreen)
+                        .font(DashFont.shareTechMono(12))
+                        .fontWeight(.bold)
+                case .success:
+                    Text("🎉 CẬP NHẬT THÀNH CÔNG 100%! Mạch ESP32-S3 đang khởi động lại...")
+                        .foregroundColor(.dashGreen)
+                        .font(DashFont.shareTechMono(12))
+                        .fontWeight(.bold)
+                case .error(let msg):
+                    Text("⚠️ \(msg)")
+                        .foregroundColor(.dashRed)
+                        .font(DashFont.shareTechMono(11))
+                    HStack(spacing: 8) {
+                        Button(action: onStartBundledBleOta) {
+                            Text("THỬ LẠI")
+                                .foregroundColor(.dashCyan)
+                                .font(DashFont.shareTechMono(12))
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(Color.dashCyan.opacity(0.2))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dashCyan, lineWidth: 1))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+                        Button(action: onDismiss) {
+                            Text("ĐÓNG")
+                                .foregroundColor(.dashTextSecondary)
+                                .font(DashFont.shareTechMono(12))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(Color.white.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                case .idle:
+                    Text("Phát hiện mạch ESP32 trên xe đang chạy bản \(curVer). Trong App đã có sẵn bản \(newVer) mới nhất — bấm Cập Nhật Ngay để nạp tự động qua Bluetooth!")
+                        .foregroundColor(.white)
+                        .font(DashFont.shareTechMono(11))
+                    HStack(spacing: 8) {
+                        Button(action: onStartBundledBleOta) {
+                            Text("📲 CẬP NHẬT NGAY")
+                                .foregroundColor(.dashGreen)
+                                .font(DashFont.shareTechMono(12))
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(Color.dashGreen.opacity(0.22))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dashGreen, lineWidth: 1))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+                        Button(action: onDismiss) {
+                            Text("ĐỂ SAU")
+                                .foregroundColor(.dashTextSecondary)
+                                .font(DashFont.shareTechMono(11))
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 10)
+                                .background(Color.white.opacity(0.06))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dashCardBorder, lineWidth: 1))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(16)
+            .background(Color(argb: 0xF510131C))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.dashCyan, lineWidth: 1.5))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .padding(.horizontal, 14)
+            .padding(.top, 12)
+            Spacer()
+        }
     }
 }
 

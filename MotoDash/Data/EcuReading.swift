@@ -27,6 +27,10 @@ struct EcuReading: Equatable {
     var packetCount: Int64 = 0
     /// Tan so cap nhat (Hz)
     var packetHz: Float = 0.0
+    /// Phien ban Firmware ESP32-S3 (byte 20, VD: 20 = v2.0, 10 = v1.0 cu)
+    var fwVersion: Int = 0
+    /// Trang thai Wi-Fi Web OTA AP (HONDA_AB125_OTA)
+    var wifiOtaActive: Bool = false
 
     var sideStandDown: Bool { (switches & 0x01) != 0 }
 }

@@ -5,6 +5,8 @@ import Foundation
 final class DashboardViewModel: ObservableObject {
     @Published private(set) var state = DashboardUiState()
     @Published private(set) var uploadState: AudioUploadState = .idle
+    @Published private(set) var otaUpdateState: OtaUpdateState = .idle
+    @Published private(set) var otaPromptDismissed: Bool = false
     @Published private(set) var logs: [AppLogEntry] = []
     @Published private(set) var logRawPackets: Bool = false
 
@@ -39,6 +41,8 @@ final class DashboardViewModel: ObservableObject {
                 self.refreshConnectionAndReading()
                 if case .connected = connState, !self.state.settings.demoMode {
                     self.bleManager.syncSoundSettings(settings: self.state.settings)
+                } else {
+                    self.otaPromptDismissed = false
                 }
             }
             .store(in: &cancellables)
@@ -211,6 +215,101 @@ final class DashboardViewModel: ObservableObject {
         }
     }
 
+    func dismissOtaPrompt() {
+        otaPromptDismissed = true
+    }
+
+    func consumeOtaUpdateState() {
+        otaUpdateState = .idle
+    }
+
+    func toggleWifiOta(enable: Bool? = nil) {
+        bleManager.toggleWifiOta(enable: enable)
+    }
+
+    func startBundledBleOta() {
+        if case .uploading = otaUpdateState { return }
+        Task { @MainActor in
+            guard let url = Bundle.main.url(forResource: "firmware", withExtension: "bin"),
+                  let fwBytes = try? Data(contentsOf: url) else {
+                otaUpdateState = .error("Không tìm thấy firmware.bin trong gói ứng dụng")
+                return
+            }
+            otaUpdateState = .uploading(0, "BLE")
+            let result = await bleManager.uploadOtaFirmware(data: fwBytes) { [weak self] pct in
+                Task { @MainActor in self?.otaUpdateState = .uploading(pct, "BLE") }
+            }
+            switch result {
+            case .success:
+                otaPromptDismissed = true
+                otaUpdateState = .success
+            case .failure(let err):
+                otaUpdateState = .error(err.localizedDescription)
+            }
+        }
+    }
+
+    func uploadCustomOtaFirmwareFromUrl(_ url: URL) {
+        if case .uploading = otaUpdateState { return }
+        Task { @MainActor in
+            let accessed = url.startAccessingSecurityScopedResource()
+            defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+            guard let fwBytes = try? Data(contentsOf: url) else {
+                otaUpdateState = .error("Không đọc được file .bin đã chọn")
+                return
+            }
+            otaUpdateState = .uploading(0, "BLE")
+            let result = await bleManager.uploadOtaFirmware(data: fwBytes) { [weak self] pct in
+                Task { @MainActor in self?.otaUpdateState = .uploading(pct, "BLE") }
+            }
+            switch result {
+            case .success:
+                otaPromptDismissed = true
+                otaUpdateState = .success
+            case .failure(let err):
+                otaUpdateState = .error(err.localizedDescription)
+            }
+        }
+    }
+
+    func startBundledWifiOta() {
+        if case .uploading = otaUpdateState { return }
+        Task { @MainActor in
+            guard let url = Bundle.main.url(forResource: "firmware", withExtension: "bin"),
+                  let fwBytes = try? Data(contentsOf: url) else {
+                otaUpdateState = .error("Không tìm thấy firmware.bin trong gói ứng dụng")
+                return
+            }
+            otaUpdateState = .uploading(0.1, "WIFI")
+            let boundary = "----MotoDashOtaBoundary\(Int(Date().timeIntervalSince1970))"
+            guard let reqUrl = URL(string: "http://192.168.4.1/update") else { return }
+            var request = URLRequest(url: reqUrl)
+            request.httpMethod = "POST"
+            request.timeoutInterval = 25
+            request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+            var body = Data()
+            body.append("--\(boundary)\r\nContent-Disposition: form-data; name=\"update\"; filename=\"firmware.bin\"\r\nContent-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+            body.append(fwBytes)
+            body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+            request.httpBody = body
+
+            do {
+                otaUpdateState = .uploading(0.5, "WIFI")
+                let (_, response) = try await URLSession.shared.data(for: request)
+                if let http = response as? HTTPURLResponse, http.statusCode == 200 {
+                    otaPromptDismissed = true
+                    bleManager.addLog(.ble, "Cập nhật Wi-Fi OTA siêu tốc hoàn tất ✓", "Đã nạp firmware.bin qua 192.168.4.1")
+                    otaUpdateState = .success
+                } else {
+                    otaUpdateState = .error("Phản hồi lỗi từ mạch ESP32")
+                }
+            } catch {
+                otaUpdateState = .error("Hãy kết nối iPhone vào Wi-Fi 'HONDA_AB125_OTA' trước (\(error.localizedDescription))")
+            }
+        }
+    }
+
     func setTheme(_ theme: String) { settingsRepository.setTheme(theme) }
     func setBrandLogo(_ value: String) { settingsRepository.setBrandLogo(value) }
     func setBleDeviceName(_ value: String) {
@@ -260,5 +359,12 @@ enum AudioUploadState: Equatable {
     case idle
     case uploading(Float)
     case done
+    case error(String)
+}
+
+enum OtaUpdateState: Equatable {
+    case idle
+    case uploading(Float, String)
+    case success
     case error(String)
 }

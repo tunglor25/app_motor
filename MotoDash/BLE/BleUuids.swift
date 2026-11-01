@@ -36,4 +36,11 @@ enum BleUuids {
     static let cmdSetVolume: UInt8 = 0x56
     /// 'N' -- doi ten Bluetooth cua mach ESP32-S3 (luu NVS).
     static let cmdSetBleName: UInt8 = 0x4E
+
+    // --- OTA Firmware Update ---
+    static let bundledFwVersion: Int = 20 // v2.0 OTA Pro nhung san trong App
+    static let cmdOtaStart: UInt8 = 0x4F
+    static let cmdOtaEnd: UInt8 = 0x5A
+    static let cmdOtaAbort: UInt8 = 0x41
+    static let cmdWifiOta: UInt8 = 0x59
 }

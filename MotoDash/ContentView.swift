@@ -10,35 +10,54 @@ struct ContentView: View {
     @State private var notificationAccessGranted = false
 
     var body: some View {
-        NavigationStack(path: $path) {
-            DashboardContainerView(
-                state: viewModel.state,
-                mediaSessionReader: mediaSessionReader,
-                onSelClick: viewModel.toggleLapTimer,
-                onConnectClick: startConnectFlow,
-                onGearClick: { path.append(.settings) },
-                onLogsClick: { path.append(.logs) },
-                onDiagnosticsClick: { path.append(.diagnostics) },
-                onTripHistoryClick: { path.append(.tripHistory) },
-                onDragClick: { path.append(.drag) },
-                onSetDemoMode: viewModel.setDemoMode,
-                onClearDtc: viewModel.clearDtc,
-                onTriggerC4: viewModel.triggerC4Mode,
-                onSetUnitSpeed: viewModel.setUnitSpeed,
-                onSetUnitTemp: viewModel.setUnitTemp,
-                onTripShortClick: viewModel.startTripRecording,
-                onTripLongPress: viewModel.stopTripRecordingAndSave,
-                onSetShortClick: viewModel.toggleLapTimer,
-                onSetLongPress: viewModel.resetAll,
-                onTripSaved: { id in
-                    viewModel.consumeSavedTripId()
-                    path.append(.tripResult(id))
+        ZStack(alignment: .top) {
+            NavigationStack(path: $path) {
+                DashboardContainerView(
+                    state: viewModel.state,
+                    mediaSessionReader: mediaSessionReader,
+                    onSelClick: viewModel.toggleLapTimer,
+                    onConnectClick: startConnectFlow,
+                    onGearClick: { path.append(.settings) },
+                    onLogsClick: { path.append(.logs) },
+                    onDiagnosticsClick: { path.append(.diagnostics) },
+                    onTripHistoryClick: { path.append(.tripHistory) },
+                    onDragClick: { path.append(.drag) },
+                    onSetDemoMode: viewModel.setDemoMode,
+                    onClearDtc: viewModel.clearDtc,
+                    onTriggerC4: viewModel.triggerC4Mode,
+                    onSetUnitSpeed: viewModel.setUnitSpeed,
+                    onSetUnitTemp: viewModel.setUnitTemp,
+                    onTripShortClick: viewModel.startTripRecording,
+                    onTripLongPress: viewModel.stopTripRecordingAndSave,
+                    onSetShortClick: viewModel.toggleLapTimer,
+                    onSetLongPress: viewModel.resetAll,
+                    onTripSaved: { id in
+                        viewModel.consumeSavedTripId()
+                        path.append(.tripResult(id))
+                    }
+                )
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationDestination(for: Route.self) { route in
+                    destinationView(for: route)
+                        .toolbar(.hidden, for: .navigationBar)
                 }
-            )
-            .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(for: Route.self) { route in
-                destinationView(for: route)
-                    .toolbar(.hidden, for: .navigationBar)
+            }
+
+            let showAutoOtaBanner = !viewModel.state.settings.demoMode &&
+                viewModel.state.connectionState == .connected &&
+                viewModel.state.reading.fwVersion > 0 &&
+                viewModel.state.reading.fwVersion < BleUuids.bundledFwVersion &&
+                !viewModel.otaPromptDismissed
+            if showAutoOtaBanner || viewModel.otaUpdateState != .idle {
+                AutoOtaPromptOverlay(
+                    espFwVersion: viewModel.state.reading.fwVersion > 0 ? viewModel.state.reading.fwVersion : 10,
+                    otaUpdateState: viewModel.otaUpdateState,
+                    onStartBundledBleOta: viewModel.startBundledBleOta,
+                    onDismiss: {
+                        viewModel.dismissOtaPrompt()
+                        viewModel.consumeOtaUpdateState()
+                    }
+                )
             }
         }
         .onAppear {
@@ -89,6 +108,13 @@ struct ContentView: View {
                 onSetSpeakerVolume: viewModel.setSpeakerVolume,
                 onUploadBootMusic: viewModel.uploadBootMusicFromUrl,
                 onUseDefaultBootMusic: viewModel.useDefaultBootMusic,
+                espFwVersion: viewModel.state.reading.fwVersion,
+                wifiOtaActive: viewModel.state.reading.wifiOtaActive,
+                otaUpdateState: viewModel.otaUpdateState,
+                onStartBundledBleOta: viewModel.startBundledBleOta,
+                onUploadCustomOtaFirmware: viewModel.uploadCustomOtaFirmwareFromUrl,
+                onToggleWifiOta: viewModel.toggleWifiOta,
+                onStartBundledWifiOta: viewModel.startBundledWifiOta,
                 onDisconnect: viewModel.disconnectBle,
                 onReconnect: startConnectFlow,
                 onNavigateTripHistory: { path.append(.tripHistory) },
