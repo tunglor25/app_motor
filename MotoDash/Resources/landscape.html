@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -85,7 +85,7 @@
     100% { opacity: 0.9; }
   }
 
-  /* ================= 1. TOP HEADER BAR & DYNAMIC ISLAND HUD ================= */
+  /* ================= 1. TOP HEADER BAR ================= */
   .top-header {
     position: relative;
     z-index: 30;
@@ -95,116 +95,6 @@
     gap: 8px;
     padding: calc(env(safe-area-inset-top, 0px) + 8px) max(env(safe-area-inset-right, 14px), 14px) 8px max(env(safe-area-inset-left, 14px), 14px);
     flex-shrink: 0;
-  }
-
-  /* Dynamic Island / Notch Cyber Capsule HUD */
-  .dynamic-island-pill {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: linear-gradient(180deg, #05070b 0%, #0d111a 100%);
-    border: 1px solid rgba(34, 197, 94, 0.45);
-    border-radius: 999px;
-    padding: 4px 10px;
-    cursor: pointer;
-    box-shadow: 0 0 14px rgba(34, 197, 94, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-    max-width: 215px;
-    flex-shrink: 1;
-  }
-  .dynamic-island-pill:active {
-    transform: scale(0.95);
-  }
-  .dynamic-island-pill.recording {
-    border-color: rgba(255, 37, 58, 0.8);
-    box-shadow: 0 0 16px rgba(255, 37, 58, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.16);
-    background: linear-gradient(180deg, rgba(40, 8, 14, 0.96) 0%, rgba(16, 6, 10, 0.98) 100%);
-  }
-  .island-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #22c55e;
-    box-shadow: 0 0 8px #22c55e;
-    flex-shrink: 0;
-    animation: ecuPulse 1.6s infinite ease-in-out;
-  }
-  .dynamic-island-pill.recording .island-dot {
-    background: #ff253a;
-    box-shadow: 0 0 10px #ff253a;
-    animation: shiftBlink 0.55s infinite alternate;
-  }
-  .island-text {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 9.5px;
-    font-weight: 700;
-    color: #e2e8f0;
-    letter-spacing: 0.4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .island-stop-chip {
-    display: none;
-    align-items: center;
-    gap: 3px;
-    background: #ff253a;
-    color: #ffffff;
-    font-family: 'Be Vietnam Pro', sans-serif;
-    font-size: 9px;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 999px;
-    border: none;
-    cursor: pointer;
-    flex-shrink: 0;
-    box-shadow: 0 0 8px rgba(255, 37, 58, 0.7);
-  }
-  .dynamic-island-pill.recording .island-stop-chip {
-    display: inline-flex;
-  }
-
-  /* Expanded Dynamic Island Card */
-  .island-expanded-hud {
-    position: absolute;
-    top: calc(env(safe-area-inset-top, 0px) + 52px);
-    left: max(env(safe-area-inset-left, 12px), 12px);
-    right: max(env(safe-area-inset-right, 12px), 12px);
-    z-index: 80;
-    background: linear-gradient(160deg, rgba(10, 14, 22, 0.98) 0%, rgba(5, 7, 12, 0.99) 100%);
-    border: 1.5px solid rgba(0, 180, 216, 0.55);
-    border-radius: 18px;
-    padding: 12px 14px;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.85), 0 0 22px rgba(0, 180, 216, 0.25);
-    display: none;
-    flex-direction: column;
-    gap: 9px;
-    backdrop-filter: blur(16px);
-  }
-  .island-expanded-hud.open {
-    display: flex;
-    animation: panelFadeIn 0.18s ease;
-  }
-  .island-exp-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .island-exp-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 10.5px;
-    font-weight: 800;
-    color: #22c55e;
-    letter-spacing: 0.8px;
-  }
-  .island-exp-desc {
-    font-size: 10.5px;
-    color: #94a3b8;
-    line-height: 1.35;
   }
 
   /* Overview Trip Action Strip (Tab 1) */
@@ -228,8 +118,10 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-variant-numeric: tabular-nums;
     font-size: 11px;
+    font-weight: 700;
     color: #e2e8f0;
   }
   .trip-strip-btns {
@@ -389,7 +281,7 @@
     height: 26px;
   }
 
-  /* ================= 2. MAIN COCKPIT STAGE (TAB 1: TỔNG QUAN) ================= */
+  /* ================= 2. MAIN COCKPIT STAGE (TAB 1: Tá»”NG QUAN) ================= */
   .cockpit-main {
     position: relative;
     z-index: 10;
@@ -842,7 +734,7 @@
     box-shadow: 0 0 12px var(--red-bright);
   }
 
-  /* ================= 5. SPA TAB PANELS (Thông số / Chẩn đoán / Cài đặt) ================= */
+  /* ================= 5. SPA TAB PANELS (ThÃ´ng sá»‘ / Cháº©n Ä‘oÃ¡n / CÃ i Ä‘áº·t) ================= */
   .spa-tab-panel {
     position: absolute;
     inset: calc(env(safe-area-inset-top, 0px) + 52px) 0 calc(env(safe-area-inset-bottom, 0px) + 54px) 0;
@@ -1052,7 +944,7 @@
   }
 
   /* =====================================================================
-     LANDSCAPE LAYOUT (MÀN NGANG - ZERO CLIPPING, FITS ALL PHONE HEIGHTS!)
+     LANDSCAPE LAYOUT (MÃ€N NGANG - ZERO CLIPPING, FITS ALL PHONE HEIGHTS!)
      ===================================================================== */
   body.is-landscape .top-header {
     padding: max(env(safe-area-inset-top, 4px), 4px) max(env(safe-area-inset-right, 18px), 18px) 6px max(env(safe-area-inset-left, 18px), 18px);
@@ -1292,14 +1184,14 @@
 </style>
 </head>
 
-<body class="is-landscape">
+<body>
 <div id="app-shell">
   <!-- Shift Light Overlay -->
   <div id="shiftFlashOverlay"></div>
 
   <!-- ================= 1. TOP HEADER BAR ================= -->
   <header class="top-header">
-    <div class="brand-block" onclick="toggleAudio()" title="Chạm để Bật/Tắt Âm thanh Pô">
+    <div class="brand-block" onclick="toggleAudio()" title="Cháº¡m Ä‘á»ƒ Báº­t/Táº¯t Ã‚m thanh PÃ´">
       <div class="brand-title">AIR BLADE</div>
       <div class="brand-sub">
         <span class="brand-125">125</span>
@@ -1307,16 +1199,9 @@
       </div>
     </div>
 
-    <!-- Dynamic Island / Notch Background Guardian Capsule -->
-    <div class="dynamic-island-pill" id="dynamicIslandPill" onclick="toggleIslandHud(event)" title="Trạng thái chạy ngầm & Hành trình trực tiếp">
-      <span class="island-dot" id="islandDot"></span>
-      <span class="island-text" id="islandText">🛡️ CHẠY NGẦM: BẬT</span>
-      <button class="island-stop-chip" id="islandStopBtn" onclick="stopNativeTrip(event)">⏹ DỪNG</button>
-    </div>
-
     <div class="header-right">
       <!-- ECU Connected Status Capsule -->
-      <div class="ecu-status-box" id="ecuStatusBox" onclick="connectBLE()" title="Kết nối Bluetooth ECU K-Line">
+      <div class="ecu-status-box" id="ecuStatusBox" onclick="connectBLE()" title="Káº¿t ná»‘i Bluetooth ECU K-Line">
         <span class="ecu-dot" id="ecuDot"></span>
         <div class="ecu-text-col">
           <span class="ecu-status-title" id="ecuStatusTitle">ECU STANDBY</span>
@@ -1325,7 +1210,7 @@
       </div>
 
       <!-- Authentic Honda Wing Logo (Tap to switch Portrait / Landscape) -->
-      <div class="honda-wing-box" onclick="cycleOrientationMode()" title="Chạm để chuyển Màn Dọc / Màn Ngang">
+      <div class="honda-wing-box" onclick="cycleOrientationMode()" title="Cháº¡m Ä‘á»ƒ chuyá»ƒn MÃ n Dá»c / MÃ n Ngang">
         <svg viewBox="0 0 64 48" fill="none">
           <path d="M8 14 C18 13, 30 10, 48 4 C45 10, 39 14, 26 17 C36 16, 44 13, 55 9 C51 15, 43 19, 28 22 C37 21, 45 19, 53 16 C49 21, 41 24, 28 26 C35 26, 43 24, 49 22 C45 27, 37 29, 24 31 L16 31 C13 25, 10 19, 8 14 Z" fill="#e2e8f0"/>
           <text x="32" y="42" text-anchor="middle" font-family="'Orbitron', sans-serif" font-size="8.5" font-weight="900" fill="#e2e8f0" letter-spacing="1.2">HONDA</text>
@@ -1339,31 +1224,14 @@
     </svg>
   </header>
 
-  <!-- Expanded Dynamic Island Background Guardian + Trip Control Popup -->
-  <div class="island-expanded-hud" id="islandExpandedHud">
-    <div class="island-exp-top">
-      <span class="island-exp-badge" id="islandExpTitle">⚡ MOTODASH ĐANG BẢO VỆ NGẦM (DYNAMIC ISLAND)</span>
-      <button class="trip-pill-btn" onclick="toggleIslandHud(event)" style="padding:3px 8px; font-size:9.5px;">ĐÓNG ✕</button>
-    </div>
-    <div class="island-exp-desc" id="islandExpDesc">
-      • Tự động giữ kết nối BLE ECU + Chống báo nhầm quên tắt khóa 5 lớp kể cả khi tắt màn hình hoặc thoát ra màn hình chính.<br>
-      • Ghi hành trình GPS + tốc độ ECU ngầm liên tục, thông báo trực tiếp lên Dynamic Island &amp; Màn hình khóa.
-    </div>
-    <div class="sim-btn-row" style="margin-top:2px;">
-      <button class="action-btn" id="btnIslandStartTrip" onclick="startNativeTrip(event)">▶ BẮT ĐẦU HÀNH TRÌNH</button>
-      <button class="action-btn red" id="btnIslandStopTrip" onclick="stopNativeTrip(event)" style="display:none;">⏹ DỪNG &amp; LƯU HÀNH TRÌNH</button>
-      <button class="action-btn" onclick="openNativeTripHistory()">🗺️ LỊCH SỬ TRIP</button>
-    </div>
-  </div>
-
-  <!-- ================= 2. MAIN COCKPIT STAGE (TAB 1: TỔNG QUAN) ================= -->
+  <!-- ================= 2. MAIN COCKPIT STAGE (TAB 1: Tá»”NG QUAN) ================= -->
   <main class="cockpit-main" id="mainOverviewStage">
 
     <!-- -------- HERO GAUGE AREA (Dial + Side Bars + Landscape Speed/Trip) -------- -->
     <section class="gauge-cluster-area">
       <!-- Left Column: Fuel / TPS Bar (F - E) + Landscape TRIP A -->
       <div class="left-fuel-column">
-        <div class="side-bar-gauge" id="tpsSideBar" title="Mức nhiên liệu / Bướm ga TPS">
+        <div class="side-bar-gauge" id="tpsSideBar" title="Má»©c nhiÃªn liá»‡u / BÆ°á»›m ga TPS">
           <span class="side-bar-lbl">F</span>
           <div class="side-bar-track">
             <div class="side-bar-fill-tps" id="tpsVertBarFill" style="height: 62%;"></div>
@@ -1379,8 +1247,8 @@
           <span class="side-bar-lbl red">E</span>
         </div>
 
-        <div class="landscape-trip-left" onclick="toggleNativeTrip()" title="Chạm để Bắt đầu / Dừng & Lưu Hành trình GPS" style="cursor:pointer;">
-          <span class="trip-odo-lbl" id="lblTripLandscape">▶ BẮT ĐẦU TRIP</span>
+        <div class="landscape-trip-left" onclick="toggleNativeTrip()" title="Cháº¡m Ä‘á»ƒ Báº¯t Ä‘áº§u / Dá»«ng & LÆ°u HÃ nh trÃ¬nh GPS" style="cursor:pointer;">
+          <span class="trip-odo-lbl" id="lblTripLandscape">â–¶ Báº®T Äáº¦U TRIP</span>
           <span class="trip-odo-val"><span id="valTripLandscape">0.0</span><small>km</small></span>
         </div>
       </div>
@@ -1594,7 +1462,7 @@
       </div>
 
       <!-- Right Vertical Bar in Portrait: Engine Temp (H - C) -->
-      <div class="side-bar-gauge" id="tempSideBar" title="Nhiệt độ nước mát ECT thực tế từ ECU">
+      <div class="side-bar-gauge" id="tempSideBar" title="Nhiá»‡t Ä‘á»™ nÆ°á»›c mÃ¡t ECT thá»±c táº¿ tá»« ECU">
         <span class="side-bar-lbl">H</span>
         <div class="side-bar-track">
           <div class="side-bar-fill-temp" id="tempVertBarFill" style="height: 52%;"></div>
@@ -1621,7 +1489,7 @@
 
     <!-- -------- PORTRAIT SPEED POD (Overlapping bottom of dial in Portrait) -------- -->
     <div class="portrait-speed-wings">
-      <div class="portrait-speed-pod" id="portraitSpeedPod" title="Chạm giữ hoặc vuốt đồng hồ để vặn ga thử / Chạm đúp bật Demo">
+      <div class="portrait-speed-pod" id="portraitSpeedPod" title="Cháº¡m giá»¯ hoáº·c vuá»‘t Ä‘á»“ng há»“ Ä‘á»ƒ váº·n ga thá»­ / Cháº¡m Ä‘Ãºp báº­t Demo">
         <span class="speed-digits" id="speedValPortrait">0</span>
         <span class="speed-unit" id="unitSpeedPortrait">km/h</span>
         <span class="sport-mode-lbl" id="sportLblPortrait">SPORT</span>
@@ -1637,12 +1505,12 @@
     <!-- -------- LIVE TRIP CONTROL BAR ON OVERVIEW TAB -------- -->
     <div class="overview-trip-strip" id="overviewTripBar">
       <div class="trip-strip-info">
-        <span id="overviewTripStatusDot" style="color:#38bdf8;">●</span>
-        <span id="overviewTripStatusText">HÀNH TRÌNH: 0.00 km · SẴN SÀNG</span>
+        <span id="overviewTripStatusDot" style="color:#38bdf8;">â—</span>
+        <span id="overviewTripStatusText">HÃ€NH TRÃŒNH: 0.00 km Â· Sáº´N SÃ€NG</span>
       </div>
       <div class="trip-strip-btns">
-        <button class="trip-pill-btn" id="btnOverviewStartTrip" onclick="startNativeTrip(event)">▶ BẮT ĐẦU TRIP</button>
-        <button class="trip-pill-btn stop" id="btnOverviewStopTrip" onclick="stopNativeTrip(event)" style="display:none;">⏹ DỪNG &amp; LƯU</button>
+        <button class="trip-pill-btn" id="btnOverviewStartTrip" onclick="startNativeTrip(event)">â–¶ Báº®T Äáº¦U TRIP</button>
+        <button class="trip-pill-btn stop" id="btnOverviewStopTrip" onclick="stopNativeTrip(event)" style="display:none;">â¹ Dá»ªNG &amp; LÆ¯U</button>
       </div>
     </div>
 
@@ -1821,117 +1689,117 @@
 
   <!-- ================= 4. SPA TAB PANELS ================= -->
 
-  <!-- TAB 2: HÀNH TRÌNH GPS, DRAG & THÔNG SỐ MỞ RỘNG CỦA APP -->
+  <!-- TAB 2: HÃ€NH TRÃŒNH GPS, DRAG & THÃ”NG Sá» Má»ž Rá»˜NG Cá»¦A APP -->
   <section class="spa-tab-panel" id="panelParams">
     <div class="panel-header">
-      <span class="panel-title">HÀNH TRÌNH &amp; THÔNG SỐ ECU THỰC TẾ</span>
-      <span class="panel-badge" id="moodBadgeParams">THƯ THÁI</span>
+      <span class="panel-title">HÃ€NH TRÃŒNH &amp; THÃ”NG Sá» ECU THá»°C Táº¾</span>
+      <span class="panel-badge" id="moodBadgeParams">THÆ¯ THÃI</span>
     </div>
 
     <div class="detail-grid">
       <div class="detail-item">
-        <div class="detail-lbl">QUÃNG ĐƯỜNG TRIP GPS</div>
+        <div class="detail-lbl">QUÃƒNG ÄÆ¯á»œNG TRIP GPS</div>
         <div class="detail-val" id="extTripA">0.0 km</div>
       </div>
       <div class="detail-item">
-        <div class="detail-lbl">TRẠNG THÁI GHI TRIP</div>
-        <div class="detail-val" id="extOdo" style="font-size:13px; color:#94a3b8;">ĐANG DỪNG</div>
+        <div class="detail-lbl">TRáº NG THÃI GHI TRIP</div>
+        <div class="detail-val" id="extOdo" style="font-size:13px; color:#94a3b8;">ÄANG Dá»ªNG</div>
       </div>
       <div class="detail-item">
-        <div class="detail-lbl">THỜI GIAN PHUN (INJ Ti)</div>
+        <div class="detail-lbl">THá»œI GIAN PHUN (INJ Ti)</div>
         <div class="detail-val" id="extInjTi">-- ms</div>
       </div>
       <div class="detail-item">
-        <div class="detail-lbl">ƯỚC TÍNH TIÊU HAO (TỪ Ti)</div>
+        <div class="detail-lbl">Æ¯á»šC TÃNH TIÃŠU HAO (Tá»ª Ti)</div>
         <div class="detail-val" id="extFuelEco">-- km/L</div>
       </div>
       <div class="detail-item">
-        <div class="detail-lbl">CHÂN CHỐNG / AN TOÀN</div>
-        <div class="detail-val" id="extFuelTrim" style="font-size:13px;">CHỜ K-LINE</div>
+        <div class="detail-lbl">CHÃ‚N CHá»NG / AN TOÃ€N</div>
+        <div class="detail-val" id="extFuelTrim" style="font-size:13px;">CHá»œ K-LINE</div>
       </div>
       <div class="detail-item">
-        <div class="detail-lbl">THỜI GIAN NỔ MÁY (ECU)</div>
+        <div class="detail-lbl">THá»œI GIAN Ná»” MÃY (ECU)</div>
         <div class="detail-val" id="extRunTime">00:00:00</div>
       </div>
       <div class="detail-item">
-        <div class="detail-lbl">ĐỈNH TỐC ĐỘ (PEAK)</div>
+        <div class="detail-lbl">Äá»ˆNH Tá»C Äá»˜ (PEAK)</div>
         <div class="detail-val" id="extPeakSpeed">0 km/h</div>
       </div>
       <div class="detail-item">
-        <div class="detail-lbl">ĐỈNH VÒNG TUA (PEAK)</div>
+        <div class="detail-lbl">Äá»ˆNH VÃ’NG TUA (PEAK)</div>
         <div class="detail-val" id="extPeakRpm">0 RPM</div>
       </div>
     </div>
 
     <div class="sim-btn-row" style="margin-top:4px;">
-      <button class="action-btn" id="btnTripRecParams" onclick="startNativeTrip(event)">▶ BẮT ĐẦU HÀNH TRÌNH GPS</button>
-      <button class="action-btn red" id="btnTripStopParams" onclick="stopNativeTrip(event)" style="display:none;">⏹ DỪNG &amp; LƯU HÀNH TRÌNH</button>
-      <button class="action-btn" onclick="openNativeTripHistory()">🗺️ LỊCH SỬ TRIP GPS</button>
+      <button class="action-btn" id="btnTripRecParams" onclick="startNativeTrip(event)">â–¶ Báº®T Äáº¦U HÃ€NH TRÃŒNH GPS</button>
+      <button class="action-btn red" id="btnTripStopParams" onclick="stopNativeTrip(event)" style="display:none;">â¹ Dá»ªNG &amp; LÆ¯U HÃ€NH TRÃŒNH</button>
+      <button class="action-btn" onclick="openNativeTripHistory()">ðŸ—ºï¸ Lá»ŠCH Sá»¬ TRIP GPS</button>
     </div>
 
     <div class="sim-btn-row">
-      <button class="action-btn" onclick="openNativeDrag()">ĐO GIA TỐC DRAG 0-100</button>
-      <button class="action-btn" onclick="openNativeLogs()">NHẬT KÝ LOG BLE TRỰC TIẾP</button>
+      <button class="action-btn" onclick="openNativeDrag()">ÄO GIA Tá»C DRAG 0-100</button>
+      <button class="action-btn" onclick="openNativeLogs()">NHáº¬T KÃ LOG BLE TRá»°C TIáº¾P</button>
     </div>
 
     <div class="sim-btn-row">
-      <button class="action-btn" onclick="openNativeDiagnostics()">MỞ CHẨN ĐOÁN ECU K-LINE</button>
-      <button class="action-btn red" onclick="openNativeSettingsIfAvailable()">MỞ CÀI ĐẶT HỆ THỐNG APP</button>
+      <button class="action-btn" onclick="openNativeDiagnostics()">Má»ž CHáº¨N ÄOÃN ECU K-LINE</button>
+      <button class="action-btn red" onclick="openNativeSettingsIfAvailable()">Má»ž CÃ€I Äáº¶T Há»† THá»NG APP</button>
     </div>
   </section>
 
-  <!-- TAB 3: CHẨN ĐOÁN ECU & K-LINE MONITOR -->
+  <!-- TAB 3: CHáº¨N ÄOÃN ECU & K-LINE MONITOR -->
   <section class="spa-tab-panel" id="panelDiag">
     <div class="panel-header">
-      <span class="panel-title">CHẨN ĐOÁN ECU // HONDA K-LINE KWP2000</span>
+      <span class="panel-title">CHáº¨N ÄOÃN ECU // HONDA K-LINE KWP2000</span>
       <span class="panel-badge" id="diagBaudBadge">10,400 BAUD</span>
     </div>
 
     <div class="sim-control-card" style="text-align:center; padding:14px;">
-      <div style="font-size:11px; color:#94a3b8; letter-spacing:1px;">BỘ NHỚ LỖI ĐỘNG CƠ PGM-FI (MODE 0x03)</div>
+      <div style="font-size:11px; color:#94a3b8; letter-spacing:1px;">Bá»˜ NHá»š Lá»–I Äá»˜NG CÆ  PGM-FI (MODE 0x03)</div>
       <div id="diagDtcStatus" style="font-family:'Orbitron'; font-size:14.5px; font-weight:800; color:#f59e0b; margin-top:6px;">
-        CHƯA KẾT NỐI ECU — HÃY BẤM KẾT NỐI BLE ĐỂ QUÉT LỖI
+        CHÆ¯A Káº¾T Ná»I ECU â€” HÃƒY Báº¤M Káº¾T Ná»I BLE Äá»‚ QUÃ‰T Lá»–I
       </div>
-      <div id="diagSubInfo" style="font-size:10.5px; color:#64748b; margin-top:4px;">ECM ID: 0104-AB125-2025 // Đọc trực tiếp ECT, IAT, TPS, O2, BAT, RPM, LOAD, IGN, Ti từ K-Line</div>
+      <div id="diagSubInfo" style="font-size:10.5px; color:#64748b; margin-top:4px;">ECM ID: 0104-AB125-2025 // Äá»c trá»±c tiáº¿p ECT, IAT, TPS, O2, BAT, RPM, LOAD, IGN, Ti tá»« K-Line</div>
     </div>
 
     <div class="sim-btn-row">
-      <button class="action-btn red" onclick="sendClearDtcCommand()">XÓA MÃ LỖI ECU (MODE 0x04)</button>
-      <button class="action-btn" onclick="connectBLE()">QUÉT &amp; KẾT NỐI BLE</button>
-      <button class="action-btn" onclick="openNativeDiagnostics()">CHẨN ĐOÁN CHI TIẾT</button>
-      <button class="action-btn" onclick="openNativeLogs()">NHẬT KÝ LOG BLE</button>
+      <button class="action-btn red" onclick="sendClearDtcCommand()">XÃ“A MÃƒ Lá»–I ECU (MODE 0x04)</button>
+      <button class="action-btn" onclick="connectBLE()">QUÃ‰T &amp; Káº¾T Ná»I BLE</button>
+      <button class="action-btn" onclick="openNativeDiagnostics()">CHáº¨N ÄOÃN CHI TIáº¾T</button>
+      <button class="action-btn" onclick="openNativeLogs()">NHáº¬T KÃ LOG BLE</button>
     </div>
 
-    <div class="detail-lbl" style="margin-top:4px;">NHẬT KÝ KHUNG TRUYỀN K-LINE / BLE TELEMETRY TRỰC TIẾP:</div>
+    <div class="detail-lbl" style="margin-top:4px;">NHáº¬T KÃ KHUNG TRUYá»€N K-LINE / BLE TELEMETRY TRá»°C TIáº¾P:</div>
     <div class="kline-terminal" id="klineTerminal">
-      <div>[SYSTEM] Sẵn sàng. Chờ kết nối Bluetooth BLE với mạch ESP32-S3...</div>
+      <div>[SYSTEM] Sáºµn sÃ ng. Chá» káº¿t ná»‘i Bluetooth BLE vá»›i máº¡ch ESP32-S3...</div>
     </div>
   </section>
 
-  <!-- TAB 4: CÀI ĐẶT HỆ THỐNG -->
+  <!-- TAB 4: CÃ€I Äáº¶T Há»† THá»NG -->
   <section class="spa-tab-panel" id="panelSettings">
     <div class="panel-header">
-      <span class="panel-title">CÀI ĐẶT HỆ THỐNG // AIR BLADE 2025</span>
+      <span class="panel-title">CÃ€I Äáº¶T Há»† THá»NG // AIR BLADE 2025</span>
       <span class="panel-badge">REAL ECU v2.6</span>
     </div>
 
     <div class="settings-group">
       <div class="setting-row">
         <div>
-          <div class="setting-name">Bố cục Màn hình (Dọc / Ngang)</div>
-          <div class="setting-desc">Tự động xoay theo điện thoại hoặc khóa cố định</div>
+          <div class="setting-name">Bá»‘ cá»¥c MÃ n hÃ¬nh (Dá»c / Ngang)</div>
+          <div class="setting-desc">Tá»± Ä‘á»™ng xoay theo Ä‘iá»‡n thoáº¡i hoáº·c khÃ³a cá»‘ Ä‘á»‹nh</div>
         </div>
         <div class="seg-group" id="segOrient">
-          <button class="seg-btn active" data-val="auto" onclick="setOrientPreference('auto')">TỰ ĐỘNG</button>
-          <button class="seg-btn" data-val="portrait" onclick="setOrientPreference('portrait')">MÀN DỌC</button>
-          <button class="seg-btn" data-val="landscape" onclick="setOrientPreference('landscape')">MÀN NGANG</button>
+          <button class="seg-btn active" data-val="auto" onclick="setOrientPreference('auto')">Tá»° Äá»˜NG</button>
+          <button class="seg-btn" data-val="portrait" onclick="setOrientPreference('portrait')">MÃ€N Dá»ŒC</button>
+          <button class="seg-btn" data-val="landscape" onclick="setOrientPreference('landscape')">MÃ€N NGANG</button>
         </div>
       </div>
 
       <div class="setting-row">
         <div>
-          <div class="setting-name">Đơn vị Tốc độ</div>
-          <div class="setting-desc">Chuyển đổi giữa km/h và mph</div>
+          <div class="setting-name">ÄÆ¡n vá»‹ Tá»‘c Ä‘á»™</div>
+          <div class="setting-desc">Chuyá»ƒn Ä‘á»•i giá»¯a km/h vÃ  mph</div>
         </div>
         <div class="seg-group" id="segUnitSpeed">
           <button class="seg-btn active" data-val="kmh" onclick="setUnitSpeed('kmh')">KM/H</button>
@@ -1941,8 +1809,8 @@
 
       <div class="setting-row">
         <div>
-          <div class="setting-name">Đơn vị Nhiệt độ</div>
-          <div class="setting-desc">Chuyển đổi giữa &deg;C và &deg;F</div>
+          <div class="setting-name">ÄÆ¡n vá»‹ Nhiá»‡t Ä‘á»™</div>
+          <div class="setting-desc">Chuyá»ƒn Ä‘á»•i giá»¯a &deg;C vÃ  &deg;F</div>
         </div>
         <div class="seg-group" id="segUnitTemp">
           <button class="seg-btn active" data-val="c" onclick="setUnitTemp('c')">&deg;C</button>
@@ -1952,37 +1820,37 @@
 
       <div class="setting-row">
         <div>
-          <div class="setting-name">Chế độ Mô phỏng (Demo Mode)</div>
-          <div class="setting-desc">Bật/tắt dữ liệu giả lập khi chưa cắm mạch lên xe</div>
+          <div class="setting-name">Cháº¿ Ä‘á»™ MÃ´ phá»ng (Demo Mode)</div>
+          <div class="setting-desc">Báº­t/táº¯t dá»¯ liá»‡u giáº£ láº­p khi chÆ°a cáº¯m máº¡ch lÃªn xe</div>
         </div>
-        <button class="action-btn" style="flex:0 0 auto;" id="btnDemoSetting" onclick="toggleAutoSweep()">ĐANG TẮT (THẬT)</button>
+        <button class="action-btn" style="flex:0 0 auto;" id="btnDemoSetting" onclick="toggleAutoSweep()">ÄANG Táº®T (THáº¬T)</button>
       </div>
 
       <div class="setting-row">
         <div>
-          <div class="setting-name">Âm thanh Pô Synthesizer &amp; Loa ESP32</div>
-          <div class="setting-desc">Tạo tiếng pô theo tua máy hoặc phát loa I2S trên mạch</div>
+          <div class="setting-name">Ã‚m thanh PÃ´ Synthesizer &amp; Loa ESP32</div>
+          <div class="setting-desc">Táº¡o tiáº¿ng pÃ´ theo tua mÃ¡y hoáº·c phÃ¡t loa I2S trÃªn máº¡ch</div>
         </div>
         <div style="display:flex; gap:6px;">
-          <button class="action-btn" style="flex:0 0 auto;" id="btnAudioSetting" onclick="toggleAudio()">BẬT TIẾNG PÔ</button>
+          <button class="action-btn" style="flex:0 0 auto;" id="btnAudioSetting" onclick="toggleAudio()">Báº¬T TIáº¾NG PÃ”</button>
           <button class="action-btn red" style="flex:0 0 auto;" onclick="sendC4AudioCommand()">LOA ESP32</button>
         </div>
       </div>
 
       <div class="setting-row">
         <div>
-          <div class="setting-name">Test Khóa Chân chống nghiêng</div>
-          <div class="setting-desc">Kiểm tra giao diện khóa máy khi hạ chân chống</div>
+          <div class="setting-name">Test KhÃ³a ChÃ¢n chá»‘ng nghiÃªng</div>
+          <div class="setting-desc">Kiá»ƒm tra giao diá»‡n khÃ³a mÃ¡y khi háº¡ chÃ¢n chá»‘ng</div>
         </div>
-        <button class="action-btn" style="flex:0 0 auto;" id="btnStandSetting" onclick="toggleSideStand()">ĐANG GẠT LÊN</button>
+        <button class="action-btn" style="flex:0 0 auto;" id="btnStandSetting" onclick="toggleSideStand()">ÄANG Gáº T LÃŠN</button>
       </div>
     </div>
 
     <div class="sim-btn-row">
-      <button class="action-btn" onclick="openNativeTripHistory()">LỊCH SỬ TRIP GPS</button>
-      <button class="action-btn" onclick="openNativeDrag()">ĐO DRAG 0-100</button>
+      <button class="action-btn" onclick="openNativeTripHistory()">Lá»ŠCH Sá»¬ TRIP GPS</button>
+      <button class="action-btn" onclick="openNativeDrag()">ÄO DRAG 0-100</button>
       <button class="action-btn" onclick="openNativeLogs()">XEM LOG BLE</button>
-      <button class="action-btn red" onclick="openNativeSettingsIfAvailable()">CÀI ĐẶT HỆ THỐNG APP</button>
+      <button class="action-btn red" onclick="openNativeSettingsIfAvailable()">CÃ€I Äáº¶T Há»† THá»NG APP</button>
     </div>
   </section>
 
@@ -2031,7 +1899,7 @@
 <script src="js/gps_manager.js"></script>
 <script src="js/ble_manager.js"></script>
 <script>
-  // ================= INITIAL DASHBOARD STATE (100% REAL APP DATA — NO POLLUTED LOCALSTORAGE) =================
+  // ================= INITIAL DASHBOARD STATE (100% REAL APP DATA â€” NO POLLUTED LOCALSTORAGE) =================
   try {
     localStorage.removeItem('ab_trip_a');
     localStorage.removeItem('tripA');
@@ -2078,7 +1946,7 @@
     audioEnabled: false,
     unitSpeed: localStorage.getItem('unit_speed') || 'kmh',
     unitTemp: localStorage.getItem('unit_temp') || 'c',
-    orientMode: 'landscape'
+    orientMode: 'portrait'
   };
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -2127,7 +1995,7 @@
     }
   });
 
-  // ================= ORIENTATION HANDLER (Màn Dọc & Màn Ngang) =================
+  // ================= ORIENTATION HANDLER (MÃ n Dá»c & MÃ n Ngang) =================
   function applyOrientationClasses() {
     const isWindowLandscape = window.innerWidth > window.innerHeight;
     const useLandscape = state.orientMode === 'landscape' || (state.orientMode === 'auto' && isWindowLandscape);
@@ -2176,7 +2044,7 @@
     state.unitTemp = u;
     localStorage.setItem('unit_temp', u);
     document.querySelectorAll('#segUnitTemp .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.val === u));
-    const lbl = u === 'f' ? '°F' : '°C';
+    const lbl = u === 'f' ? 'Â°F' : 'Â°C';
     const elEct = document.getElementById('unitTempEct');
     const elIat = document.getElementById('unitTempIat');
     if (elEct) elEct.innerText = lbl;
@@ -2266,7 +2134,7 @@
   }
   initTachDial();
 
-  // ================= DYNAMIC WRINKLED FACE ENGINE ("Tốc càng cao mặt càng nhăn") =================
+  // ================= DYNAMIC WRINKLED FACE ENGINE ("Tá»‘c cÃ ng cao máº·t cÃ ng nhÄƒn") =================
   const tachNeedleGroup = document.getElementById('tachNeedleGroup');
   const dialWrapper = document.getElementById('dialWrapper');
   const charBrowL = document.getElementById('charBrowL');
@@ -2298,7 +2166,7 @@
     }
 
     if (isLocked) {
-      if (moodBadgeParams) moodBadgeParams.innerText = 'KHÓA CHÂN CHỐNG';
+      if (moodBadgeParams) moodBadgeParams.innerText = 'KHÃ“A CHÃ‚N CHá»NG';
       if (charBrowL) charBrowL.setAttribute('d', 'M 140 178 Q 158 172 174 180');
       if (charBrowR) charBrowR.setAttribute('d', 'M 240 178 Q 222 172 206 180');
       if (charEyeL) charEyeL.innerHTML = '<line x1="152" y1="183" x2="164" y2="193" stroke="#111318" stroke-width="3" stroke-linecap="round"/><line x1="164" y1="183" x2="152" y2="193" stroke="#111318" stroke-width="3" stroke-linecap="round"/>';
@@ -2316,7 +2184,7 @@
     const effectiveIntensity = Math.max(speed / 118, (rpm - 1200) / 7200, 0);
     const t = Math.min(effectiveIntensity, 1.15);
 
-    // Base state (t=0) ALREADY has the signature "cau mặt" (angry/scowling) look,
+    // Base state (t=0) ALREADY has the signature "cau máº·t" (angry/scowling) look,
     // and gets even steeper/more wrinkled as speed & RPM increase!
     const browOuterY = lerp(172.5, 166.5, t);
     const browMidY   = lerp(176.0, 174.5, t);
@@ -2374,18 +2242,18 @@
     if (faceFlushL)      faceFlushL.setAttribute('opacity', opFlush.toFixed(2));
     if (faceFlushR)      faceFlushR.setAttribute('opacity', opFlush.toFixed(2));
 
-    let moodTxt = 'CAU MẶT (IDLE)';
+    let moodTxt = 'CAU Máº¶T (IDLE)';
     if (eqSpd >= 110) {
-      moodTxt = 'NHĂN CỰC ĐỘ (MAX)';
+      moodTxt = 'NHÄ‚N Cá»°C Äá»˜ (MAX)';
       if (dialWrapper) dialWrapper.className = 'dial-center-wrap rumble-heavy';
     } else if (eqSpd >= 80) {
-      moodTxt = 'MẶT NHĂN GẮT';
+      moodTxt = 'Máº¶T NHÄ‚N Gáº®T';
       if (dialWrapper) dialWrapper.className = 'dial-center-wrap rumble-light';
     } else if (eqSpd >= 45) {
-      moodTxt = 'MẶT CĂNG THẲNG';
+      moodTxt = 'Máº¶T CÄ‚NG THáº²NG';
       if (dialWrapper) dialWrapper.className = 'dial-center-wrap';
     } else if (eqSpd >= 15) {
-      moodTxt = 'NHÍU MÀY GẮT';
+      moodTxt = 'NHÃU MÃ€Y Gáº®T';
       if (dialWrapper) dialWrapper.className = 'dial-center-wrap';
     } else {
       if (dialWrapper) dialWrapper.className = 'dial-center-wrap';
@@ -2444,7 +2312,7 @@
     if (btnAuto) btnAuto.classList.remove('active');
     const btnDemo = document.getElementById('btnDemoSetting');
     if (btnDemo) {
-      btnDemo.innerText = 'ĐANG TẮT (THẬT)';
+      btnDemo.innerText = 'ÄANG Táº®T (THáº¬T)';
       btnDemo.classList.remove('active');
     }
     if (window.AndroidDash && window.AndroidDash.setDemoMode) {
@@ -2497,7 +2365,7 @@
     if (btnAuto) btnAuto.classList.toggle('active', state.autoSweep);
     const btnDemo = document.getElementById('btnDemoSetting');
     if (btnDemo) {
-      btnDemo.innerText = state.autoSweep ? 'ĐANG BẬT DEMO' : 'ĐANG TẮT (THẬT)';
+      btnDemo.innerText = state.autoSweep ? 'ÄANG Báº¬T DEMO' : 'ÄANG Táº®T (THáº¬T)';
       btnDemo.classList.toggle('active', state.autoSweep);
     }
     if (!state.autoSweep && !state.demoMode) {
@@ -2516,7 +2384,7 @@
     state.sideStandDown = !state.sideStandDown;
     const btn = document.getElementById('btnStandSetting');
     if (btn) {
-      btn.innerText = state.sideStandDown ? 'ĐANG HẠ (KHÓA MÁY)' : 'ĐANG GẠT LÊN';
+      btn.innerText = state.sideStandDown ? 'ÄANG Háº  (KHÃ“A MÃY)' : 'ÄANG Gáº T LÃŠN';
       btn.classList.toggle('red', state.sideStandDown);
     }
   }
@@ -2548,11 +2416,11 @@
     if (pill) pill.classList.toggle('recording', rec);
     if (islandTxt) {
       if (rec) {
-        islandTxt.innerText = `REC ${dist.toFixed(2)}km · ${timeStr}`;
+        islandTxt.innerText = `REC ${dist.toFixed(2)}km Â· ${timeStr}`;
       } else if (state.bleConnected) {
-        islandTxt.innerText = state.ecuConnected ? '🛡️ NGẦM: K-LINE ON' : '🛡️ NGẦM: BLE LOCK';
+        islandTxt.innerText = state.ecuConnected ? 'ðŸ›¡ï¸ NGáº¦M: K-LINE ON' : 'ðŸ›¡ï¸ NGáº¦M: BLE LOCK';
       } else {
-        islandTxt.innerText = '🛡️ CHẠY NGẦM: BẬT';
+        islandTxt.innerText = 'ðŸ›¡ï¸ CHáº Y NGáº¦M: Báº¬T';
       }
     }
 
@@ -2572,8 +2440,8 @@
     if (ovDot) ovDot.style.color = rec ? '#ff253a' : '#22c55e';
     if (ovTxt) {
       ovTxt.innerText = rec
-        ? `ĐANG GHI TRIP: ${dist.toFixed(2)} km · ${timeStr}`
-        : `HÀNH TRÌNH: ${dist.toFixed(2)} km · SẴN SÀNG`;
+        ? `ÄANG GHI TRIP: ${dist.toFixed(2)} km Â· ${timeStr}`
+        : `HÃ€NH TRÃŒNH: ${dist.toFixed(2)} km Â· Sáº´N SÃ€NG`;
     }
     if (btnOvStart) btnOvStart.style.display = rec ? 'none' : 'inline-block';
     if (btnOvStop) btnOvStop.style.display = rec ? 'inline-block' : 'none';
@@ -2586,7 +2454,7 @@
     }
     if (btnTripStop) {
       btnTripStop.style.display = rec ? 'inline-block' : 'none';
-      btnTripStop.innerText = `⏹ DỪNG & LƯU TRIP (${dist.toFixed(2)} km · ${timeStr})`;
+      btnTripStop.innerText = `â¹ Dá»ªNG & LÆ¯U TRIP (${dist.toFixed(2)} km Â· ${timeStr})`;
     }
   }
 
@@ -2737,7 +2605,7 @@
     state.audioEnabled = !state.audioEnabled;
     const btn = document.getElementById('btnAudioSetting');
     if (btn) {
-      btn.innerText = state.audioEnabled ? 'ĐANG BẬT PÔ' : 'BẬT TIẾNG PÔ';
+      btn.innerText = state.audioEnabled ? 'ÄANG Báº¬T PÃ”' : 'Báº¬T TIáº¾NG PÃ”';
       btn.classList.toggle('active', state.audioEnabled);
     }
   }
@@ -2930,14 +2798,14 @@
     if (valLoad) {
       valLoad.innerText = (hasLive && typeof state.engineLoad === 'number') ? Math.round(state.engineLoad) : '0';
     }
-    const ignTxt = (hasLive && typeof state.ignitionTiming === 'number') ? `${Math.round(state.ignitionTiming)}°` : '0°';
+    const ignTxt = (hasLive && typeof state.ignitionTiming === 'number') ? `${Math.round(state.ignitionTiming)}Â°` : '0Â°';
     if (valIgn) valIgn.innerText = ignTxt;
     if (valIgnInline) valIgnInline.innerText = ignTxt;
 
     if (valTripLandscape) valTripLandscape.innerText = state.trip.toFixed(1);
     const lblTripL = document.getElementById('lblTripLandscape');
     if (lblTripL) {
-      lblTripL.innerText = state.isTripRecording ? '⏹ DỪNG & LƯU TRIP' : '▶ BẮT ĐẦU TRIP';
+      lblTripL.innerText = state.isTripRecording ? 'â¹ Dá»ªNG & LÆ¯U TRIP' : 'â–¶ Báº®T Äáº¦U TRIP';
       lblTripL.style.color = state.isTripRecording ? '#ff253a' : '';
     }
     const pTripSub = document.getElementById('portraitTripSub');
@@ -2977,7 +2845,7 @@
 
     if (extTripA) extTripA.innerText = `${state.trip.toFixed(1)} km`;
     if (extOdo) {
-      extOdo.innerText = state.isTripRecording ? '● ĐANG GHI GPS' : 'ĐANG DỪNG';
+      extOdo.innerText = state.isTripRecording ? 'â— ÄANG GHI GPS' : 'ÄANG Dá»ªNG';
       extOdo.style.color = state.isTripRecording ? '#22c55e' : '#94a3b8';
     }
 
@@ -3003,16 +2871,16 @@
 
     if (extFuelTrim) {
       if (!hasLive) {
-        extFuelTrim.innerText = 'CHỜ K-LINE';
+        extFuelTrim.innerText = 'CHá»œ K-LINE';
         extFuelTrim.style.color = '#94a3b8';
       } else if (state.sideStandDown) {
-        extFuelTrim.innerText = 'HẠ CHỐNG (KHÓA)';
+        extFuelTrim.innerText = 'Háº  CHá»NG (KHÃ“A)';
         extFuelTrim.style.color = '#ef4444';
       } else if (state.idlingStopActive) {
         extFuelTrim.innerText = 'IDLING STOP';
         extFuelTrim.style.color = '#22c55e';
       } else {
-        extFuelTrim.innerText = 'GẠT LÊN (OK)';
+        extFuelTrim.innerText = 'Gáº T LÃŠN (OK)';
         extFuelTrim.style.color = '#22c55e';
       }
     }
@@ -3093,14 +2961,14 @@
     const dtcEl = document.getElementById('diagDtcStatus');
     if (!dtcEl) return;
     if (!state.bleConnected && !state.demoMode) {
-      dtcEl.innerText = 'CHƯA KẾT NỐI ECU — HÃY BẤM KẾT NỐI BLE ĐỂ QUÉT LỖI';
+      dtcEl.innerText = 'CHÆ¯A Káº¾T Ná»I ECU â€” HÃƒY Báº¤M Káº¾T Ná»I BLE Äá»‚ QUÃ‰T Lá»–I';
       dtcEl.style.color = '#f59e0b';
     } else if (state.dtcPresent) {
       const cntTxt = state.dtcCount > 0 ? `${state.dtcCount} ` : '';
-      dtcEl.innerText = `⚠ PHÁT HIỆN ${cntTxt}MÃ LỖI ĐỘNG CƠ (DTC ACTIVE)`;
+      dtcEl.innerText = `âš  PHÃT HIá»†N ${cntTxt}MÃƒ Lá»–I Äá»˜NG CÆ  (DTC ACTIVE)`;
       dtcEl.style.color = '#ef4444';
     } else {
-      dtcEl.innerText = '✓ HỆ THỐNG HOẠT ĐỘNG TỐT — 0 MÃ LỖI (0 DTC)';
+      dtcEl.innerText = 'âœ“ Há»† THá»NG HOáº T Äá»˜NG Tá»T â€” 0 MÃƒ Lá»–I (0 DTC)';
       dtcEl.style.color = '#22c55e';
     }
   }
@@ -3177,7 +3045,7 @@
 
     const btnDemo = document.getElementById('btnDemoSetting');
     if (btnDemo) {
-      btnDemo.innerText = state.demoMode ? 'ĐANG BẬT DEMO' : 'ĐANG TẮT (THẬT)';
+      btnDemo.innerText = state.demoMode ? 'ÄANG Báº¬T DEMO' : 'ÄANG Táº®T (THáº¬T)';
       btnDemo.classList.toggle('active', state.demoMode);
     }
 
@@ -3314,7 +3182,7 @@
   function sendClearDtcCommand() {
     if (window.AndroidDash && window.AndroidDash.clearDtc) {
       window.AndroidDash.clearDtc();
-      appendKlineLog('[TX CTRL] Đã gửi lệnh xóa lỗi DTC (Mode 0x04) qua App Native');
+      appendKlineLog('[TX CTRL] ÄÃ£ gá»­i lá»‡nh xÃ³a lá»—i DTC (Mode 0x04) qua App Native');
     } else {
       sendEsp32ControlByte(0x44);
     }
@@ -3326,7 +3194,7 @@
   function sendC4AudioCommand() {
     if (window.AndroidDash && window.AndroidDash.triggerC4) {
       window.AndroidDash.triggerC4();
-      appendKlineLog('[TX CTRL] Đã kích hoạt phát loa ESP32-S3');
+      appendKlineLog('[TX CTRL] ÄÃ£ kÃ­ch hoáº¡t phÃ¡t loa ESP32-S3');
     } else {
       sendEsp32ControlByte(0x43);
     }

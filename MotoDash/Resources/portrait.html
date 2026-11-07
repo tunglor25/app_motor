@@ -85,7 +85,7 @@
     100% { opacity: 0.9; }
   }
 
-  /* ================= 1. TOP HEADER BAR & DYNAMIC ISLAND HUD ================= */
+  /* ================= 1. TOP HEADER BAR ================= */
   .top-header {
     position: relative;
     z-index: 30;
@@ -95,116 +95,6 @@
     gap: 8px;
     padding: calc(env(safe-area-inset-top, 0px) + 8px) max(env(safe-area-inset-right, 14px), 14px) 8px max(env(safe-area-inset-left, 14px), 14px);
     flex-shrink: 0;
-  }
-
-  /* Dynamic Island / Notch Cyber Capsule HUD */
-  .dynamic-island-pill {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: linear-gradient(180deg, #05070b 0%, #0d111a 100%);
-    border: 1px solid rgba(34, 197, 94, 0.45);
-    border-radius: 999px;
-    padding: 4px 10px;
-    cursor: pointer;
-    box-shadow: 0 0 14px rgba(34, 197, 94, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-    max-width: 215px;
-    flex-shrink: 1;
-  }
-  .dynamic-island-pill:active {
-    transform: scale(0.95);
-  }
-  .dynamic-island-pill.recording {
-    border-color: rgba(255, 37, 58, 0.8);
-    box-shadow: 0 0 16px rgba(255, 37, 58, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.16);
-    background: linear-gradient(180deg, rgba(40, 8, 14, 0.96) 0%, rgba(16, 6, 10, 0.98) 100%);
-  }
-  .island-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #22c55e;
-    box-shadow: 0 0 8px #22c55e;
-    flex-shrink: 0;
-    animation: ecuPulse 1.6s infinite ease-in-out;
-  }
-  .dynamic-island-pill.recording .island-dot {
-    background: #ff253a;
-    box-shadow: 0 0 10px #ff253a;
-    animation: shiftBlink 0.55s infinite alternate;
-  }
-  .island-text {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 9.5px;
-    font-weight: 700;
-    color: #e2e8f0;
-    letter-spacing: 0.4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .island-stop-chip {
-    display: none;
-    align-items: center;
-    gap: 3px;
-    background: #ff253a;
-    color: #ffffff;
-    font-family: 'Be Vietnam Pro', sans-serif;
-    font-size: 9px;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 999px;
-    border: none;
-    cursor: pointer;
-    flex-shrink: 0;
-    box-shadow: 0 0 8px rgba(255, 37, 58, 0.7);
-  }
-  .dynamic-island-pill.recording .island-stop-chip {
-    display: inline-flex;
-  }
-
-  /* Expanded Dynamic Island Card */
-  .island-expanded-hud {
-    position: absolute;
-    top: calc(env(safe-area-inset-top, 0px) + 52px);
-    left: max(env(safe-area-inset-left, 12px), 12px);
-    right: max(env(safe-area-inset-right, 12px), 12px);
-    z-index: 80;
-    background: linear-gradient(160deg, rgba(10, 14, 22, 0.98) 0%, rgba(5, 7, 12, 0.99) 100%);
-    border: 1.5px solid rgba(0, 180, 216, 0.55);
-    border-radius: 18px;
-    padding: 12px 14px;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.85), 0 0 22px rgba(0, 180, 216, 0.25);
-    display: none;
-    flex-direction: column;
-    gap: 9px;
-    backdrop-filter: blur(16px);
-  }
-  .island-expanded-hud.open {
-    display: flex;
-    animation: panelFadeIn 0.18s ease;
-  }
-  .island-exp-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .island-exp-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 10.5px;
-    font-weight: 800;
-    color: #22c55e;
-    letter-spacing: 0.8px;
-  }
-  .island-exp-desc {
-    font-size: 10.5px;
-    color: #94a3b8;
-    line-height: 1.35;
   }
 
   /* Overview Trip Action Strip (Tab 1) */
@@ -228,8 +118,10 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-variant-numeric: tabular-nums;
     font-size: 11px;
+    font-weight: 700;
     color: #e2e8f0;
   }
   .trip-strip-btns {
@@ -1307,13 +1199,6 @@
       </div>
     </div>
 
-    <!-- Dynamic Island / Notch Background Guardian Capsule -->
-    <div class="dynamic-island-pill" id="dynamicIslandPill" onclick="toggleIslandHud(event)" title="Trạng thái chạy ngầm & Hành trình trực tiếp">
-      <span class="island-dot" id="islandDot"></span>
-      <span class="island-text" id="islandText">🛡️ CHẠY NGẦM: BẬT</span>
-      <button class="island-stop-chip" id="islandStopBtn" onclick="stopNativeTrip(event)">⏹ DỪNG</button>
-    </div>
-
     <div class="header-right">
       <!-- ECU Connected Status Capsule -->
       <div class="ecu-status-box" id="ecuStatusBox" onclick="connectBLE()" title="Kết nối Bluetooth ECU K-Line">
@@ -1338,23 +1223,6 @@
       <path d="M 0 2 L 135 2 L 145 7 L 265 7 L 275 2 L 400 2" fill="none" stroke="rgba(230, 25, 46, 0.55)" stroke-width="1.5"/>
     </svg>
   </header>
-
-  <!-- Expanded Dynamic Island Background Guardian + Trip Control Popup -->
-  <div class="island-expanded-hud" id="islandExpandedHud">
-    <div class="island-exp-top">
-      <span class="island-exp-badge" id="islandExpTitle">⚡ MOTODASH ĐANG BẢO VỆ NGẦM (DYNAMIC ISLAND)</span>
-      <button class="trip-pill-btn" onclick="toggleIslandHud(event)" style="padding:3px 8px; font-size:9.5px;">ĐÓNG ✕</button>
-    </div>
-    <div class="island-exp-desc" id="islandExpDesc">
-      • Tự động giữ kết nối BLE ECU + Chống báo nhầm quên tắt khóa 5 lớp kể cả khi tắt màn hình hoặc thoát ra màn hình chính.<br>
-      • Ghi hành trình GPS + tốc độ ECU ngầm liên tục, thông báo trực tiếp lên Dynamic Island &amp; Màn hình khóa.
-    </div>
-    <div class="sim-btn-row" style="margin-top:2px;">
-      <button class="action-btn" id="btnIslandStartTrip" onclick="startNativeTrip(event)">▶ BẮT ĐẦU HÀNH TRÌNH</button>
-      <button class="action-btn red" id="btnIslandStopTrip" onclick="stopNativeTrip(event)" style="display:none;">⏹ DỪNG &amp; LƯU HÀNH TRÌNH</button>
-      <button class="action-btn" onclick="openNativeTripHistory()">🗺️ LỊCH SỬ TRIP</button>
-    </div>
-  </div>
 
   <!-- ================= 2. MAIN COCKPIT STAGE (TAB 1: TỔNG QUAN) ================= -->
   <main class="cockpit-main" id="mainOverviewStage">

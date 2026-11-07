@@ -10,7 +10,8 @@ struct TachometerGauge: View {
     private let viewH: CGFloat = 90
     private let gap: CGFloat = 1.0
     private let slant: CGFloat = 3.0
-    private let unlitColor = Color(argb: 0xFF1E1E24)
+    private let unlitColor = Color(argb: 0xFF232C3D)
+    private let unlitRedlineColor = Color(argb: 0xFF3B1A22)
     private let labelSteps = [0, 2, 4, 6, 8, 10, 12, 14]
 
     @State private var bootProgress: Double = 0
@@ -84,7 +85,8 @@ struct TachometerGauge: View {
             path.closeSubpath()
 
             let isLit = i < litCount
-            let color = isLit ? segmentColor(Double(i) / Double(segments - 1)) : unlitColor
+            let baseUnlit = i >= 44 ? unlitRedlineColor : unlitColor
+            let color = isLit ? segmentColor(Double(i) / Double(segments - 1)) : baseUnlit
 
             if isLit {
                 context.drawLayer { layerContext in
@@ -99,9 +101,9 @@ struct TachometerGauge: View {
         for stepValue in labelSteps {
             let x = 16 + (CGFloat(stepValue) * 1000 / CGFloat(maxRpm)) * 368
             let y = curveY(x) - 12
-            let labelColor: Color = stepValue >= 12 ? .dashRed : Color(argb: 0xFF888888)
+            let labelColor: Color = stepValue >= 12 ? .dashRed : Color(argb: 0xFF94A3B8)
             let text = Text("\(stepValue)")
-                .font(.system(size: max(9, 9 * scaleY)))
+                .font(.system(size: max(10, 10 * scaleY), weight: .bold, design: .rounded))
                 .foregroundColor(labelColor)
             context.draw(text, at: CGPoint(x: x * scaleX, y: y * scaleY), anchor: .center)
         }

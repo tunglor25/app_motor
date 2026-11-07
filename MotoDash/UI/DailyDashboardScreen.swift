@@ -64,9 +64,9 @@ struct DailyDashboardScreen: View {
                     SemicircularArcGauge(ratio: rpmRatio)
                         .frame(maxWidth: 280, maxHeight: 170)
                     VStack(spacing: 2) {
-                        Text(UnitConversions.speedText(state.reading.speed, unitSpeed: state.settings.unitSpeed))
+                        Text(UnitConversions.speedText(state.reading.speed ?? 0, unitSpeed: state.settings.unitSpeed))
                             .foregroundColor(.white)
-                            .font(DashFont.rajdhani(54, weight: .semibold))
+                            .font(DashFont.rajdhani(64, weight: .bold))
                             .minimumScaleFactor(0.6)
                         Text(UnitConversions.speedUnitLabel(state.settings.unitSpeed))
                             .foregroundColor(.dashDim)

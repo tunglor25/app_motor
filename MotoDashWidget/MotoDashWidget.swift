@@ -101,7 +101,7 @@ struct MotoDashWidgetEntryView: View {
                                 .foregroundColor(neonCyan)
                         }
                         Text(entry.snapshot.isTripRecording ? "🔴 ĐANG GHI HÀNH TRÌNH" : "🛡️ CHẠY NGẦM BẢO VỆ: BẬT")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.system(size: 10, weight: .bold, design: .rounded).monospacedDigit())
                             .foregroundColor(entry.snapshot.isTripRecording ? neonRed : neonGreen)
                     }
                     Spacer()
@@ -196,7 +196,7 @@ struct MotoDashLiveActivityWidget: Widget {
                             .fill(context.state.isTripRecording ? neonRed : neonGreen)
                             .frame(width: 8, height: 8)
                         Text(context.state.isTripRecording ? "MOTODASH · ĐANG GHI HÀNH TRÌNH" : "MOTODASH · ĐANG CHẠY NGẦM BẢO VỆ XE")
-                            .font(.system(size: 10.5, weight: .heavy, design: .monospaced))
+                            .font(.system(size: 10.5, weight: .heavy, design: .rounded).monospacedDigit())
                             .foregroundColor(context.state.isTripRecording ? neonRed : neonGreen)
                     }
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
@@ -204,11 +204,11 @@ struct MotoDashLiveActivityWidget: Widget {
                             .font(.system(size: 24, weight: .black, design: .rounded))
                             .foregroundColor(.white)
                         Text("· \(context.state.rpm) RPM")
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
+                            .font(.system(size: 13, weight: .bold, design: .rounded).monospacedDigit())
                             .foregroundColor(neonCyan)
                     }
                     Text(String(format: "TRIP: %.2f km · ECT: %d°C · BATT: %.1fV · 5 Lớp Khóa: ON", context.state.tripDistanceKm, context.state.ectCelsius, context.state.batteryVolts))
-                        .font(.system(size: 10.5, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 10.5, weight: .semibold, design: .rounded).monospacedDigit())
                         .foregroundColor(.gray)
                 }
                 Spacer()
@@ -224,7 +224,7 @@ struct MotoDashLiveActivityWidget: Widget {
                             Image(systemName: context.state.isTripRecording ? "record.circle.fill" : "bolt.shield.fill")
                                 .foregroundColor(context.state.isTripRecording ? neonRed : neonGreen)
                             Text("AB125 PRO")
-                                .font(.system(size: 10, weight: .heavy, design: .monospaced))
+                                .font(.system(size: 10, weight: .heavy, design: .rounded).monospacedDigit())
                                 .foregroundColor(.white)
                         }
                         Text("\(context.state.speedKmh) km/h")
@@ -235,10 +235,10 @@ struct MotoDashLiveActivityWidget: Widget {
                 DynamicIslandExpandedRegion(.trailing) {
                     VStack(alignment: .trailing, spacing: 2) {
                         Text(context.state.isTripRecording ? "🔴 REC TRIP" : "🛡️ NGẦM BẬT")
-                            .font(.system(size: 10, weight: .heavy, design: .monospaced))
+                            .font(.system(size: 10, weight: .heavy, design: .rounded).monospacedDigit())
                             .foregroundColor(context.state.isTripRecording ? neonRed : neonGreen)
                         Text(String(format: "%.2f km", context.state.tripDistanceKm))
-                            .font(.system(size: 17, weight: .black, design: .monospaced))
+                            .font(.system(size: 17, weight: .black, design: .rounded).monospacedDigit())
                             .foregroundColor(.white)
                     }
                 }
@@ -253,7 +253,7 @@ struct MotoDashLiveActivityWidget: Widget {
                         Text("5 LỚP KHÓA ✓")
                             .foregroundColor(neonGreen)
                     }
-                    .font(.system(size: 10.5, weight: .bold, design: .monospaced))
+                    .font(.system(size: 10.5, weight: .bold, design: .rounded).monospacedDigit())
                     .foregroundColor(.white.opacity(0.85))
                     .padding(.top, 4)
                 }

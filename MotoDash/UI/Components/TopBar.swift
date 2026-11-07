@@ -8,44 +8,54 @@ struct TopBar: View {
     let onGearClick: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             HStack(spacing: 6) {
                 Image("logo_\(brandLogo)")
                     .resizable()
                     .scaledToFit()
-                    .frame(height: 26)
+                    .frame(height: 24)
                 Text(brandLogo.uppercased())
                     .foregroundColor(.dashCyan)
                     .font(DashFont.shareTechMono(12))
                     .fontWeight(.bold)
-                    .tracking(1.5)
+                    .tracking(1)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
                     .textGlow(.dashCyan, radius: 6)
             }
-            .padding(.trailing, 4)
 
-            HStack(spacing: 14) {
+            Spacer(minLength: 4)
+
+            HStack(spacing: 10) {
                 InfoLine(label: "LAP", value: lapText)
-                InfoLine(label: "TRIP", value: String(format: "%.1f km", tripKm))
+                InfoLine(label: "TRIP", value: String(format: "%.1fkm", tripKm))
             }
-            Spacer()
+            .fixedSize(horizontal: true, vertical: false)
+
+            Spacer(minLength: 4)
+
             TimelineView(.periodic(from: .now, by: 1)) { context in
                 Text(Self.clockString(from: context.date))
                     .foregroundColor(.dashCyan)
-                    .font(DashFont.shareTechMono(15))
-                    .tracking(2)
+                    .font(DashFont.shareTechMono(14))
+                    .fontWeight(.bold)
+                    .fixedSize(horizontal: true, vertical: false)
                     .textGlow(.dashCyan, radius: 8)
             }
+
             Button(action: onGearClick) {
-                HStack(spacing: 5) {
+                HStack(spacing: 4) {
                     Image(systemName: "gearshape.fill")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 13, weight: .bold))
                     Text("CÀI ĐẶT")
-                        .font(DashFont.shareTechMono(12))
+                        .font(DashFont.shareTechMono(11.5))
                         .fontWeight(.bold)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
                 }
                 .foregroundColor(.dashCyan)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
                 .background(Color.dashCyan.opacity(0.14))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
@@ -56,7 +66,7 @@ struct TopBar: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 8)
         .padding(.vertical, 4)
     }
 

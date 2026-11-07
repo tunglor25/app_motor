@@ -1,7 +1,7 @@
 import Foundation
 
 private enum Keys {
-    static let theme = "theme"
+    static let theme = "theme_v2"
     static let unitSpeed = "unit_speed"
     static let unitTemp = "unit_temp"
     static let speedWarnEnabled = "speed_warn_enabled"

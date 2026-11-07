@@ -13,109 +13,126 @@ struct CrazyDashboardScreen: View {
     private let nitroLime = Color(argb: 0xFF39FF14)
 
     var body: some View {
-        let r = state.reading
-        let rpm = r.rpm ?? 0
-        let rpmRatio = min(max(Double(rpm) / 12000.0, 0), 1)
-        ZStack {
-            VStack(spacing: 6) {
+        GeometryReader { geo in
+            let isPortrait = geo.size.height > geo.size.width
+            let r = state.reading
+            let rpm = r.rpm ?? 0
+            let rpmRatio = min(max(Double(rpm) / 12000.0, 0), 1)
+
+            let gaugeSection = ZStack {
+                SemicircularArcGauge(ratio: rpmRatio)
+                    .frame(maxWidth: isPortrait ? 310 : 260, maxHeight: isPortrait ? 200 : 165)
+                VStack(spacing: 2) {
+                    Text(UnitConversions.speedText(r.speed ?? 0, unitSpeed: state.settings.unitSpeed))
+                        .foregroundColor(nitroLime)
+                        .font(DashFont.rajdhani(isPortrait ? 78 : 64, weight: .bold))
+                        .minimumScaleFactor(0.5)
+                        .textGlow(nitroLime, radius: 14)
+                    Text("\(rpm) RPM")
+                        .foregroundColor(nitroOrange)
+                        .font(DashFont.shareTechMono(14))
+                        .fontWeight(.bold)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            let barsSection = VStack(alignment: .leading, spacing: 10) {
+                NitroBar(label: "THROTTLE (TPS)", pct: Double(r.tps ?? 0) / 100.0, text: "\(r.tps ?? 0)%", color: nitroOrange)
+                NitroBar(label: "ENGINE LOAD", pct: Double(r.engineLoad ?? 0) / 100.0, text: "\(r.engineLoad ?? 0)%", color: nitroLime)
+                NitroBar(label: "COOLANT TEMP", pct: Double(r.ect ?? 0) / 120.0, text: "\(r.ect ?? 0)°C", color: .dashCyan)
                 HStack {
-                    Image("logo_\(state.settings.brandLogo)")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 22)
-                    Text("🔥 NITRO OVERDRIVE // STAGE 3")
+                    Text("BATT: \(r.battery.map { String(format: "%.1fV", $0) } ?? "--")")
+                        .foregroundColor(.white)
+                        .font(DashFont.shareTechMono(12))
+                    Spacer()
+                    Text("IGN: \(r.ignitionTiming.map { "\($0)°" } ?? "--")")
                         .foregroundColor(nitroOrange)
                         .font(DashFont.shareTechMono(12))
-                        .fontWeight(.bold)
-                        .tracking(2)
-                    Spacer()
-                    Button(action: {
-                        if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
-                    }) {
-                        Text(state.isTripRecording ? "⏹ DỪNG TRIP" : "▶ BẮT ĐẦU TRIP")
-                            .foregroundColor(state.isTripRecording ? .white : nitroOrange)
-                            .font(DashFont.shareTechMono(11))
-                            .fontWeight(.bold)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 7)
-                            .background(state.isTripRecording ? Color.dashRed : nitroOrange.opacity(0.16))
-                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(state.isTripRecording ? Color.dashRed : nitroOrange.opacity(0.6), lineWidth: 1))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                    .buttonStyle(.plain)
-                    Button(action: onGearClick) {
-                        HStack(spacing: 5) {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 13, weight: .bold))
-                            Text("CÀI ĐẶT")
-                                .font(DashFont.shareTechMono(12))
-                                .fontWeight(.bold)
-                        }
-                        .foregroundColor(nitroLime)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(nitroLime.opacity(0.14))
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(nitroLime.opacity(0.6), lineWidth: 1))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 12)
-                .padding(.top, 4)
-
-                if state.isTripRecording {
-                    TripRecordingBar(stats: state.liveTripStats, onStop: onTripLongPress)
-                }
-
-                HStack(spacing: 16) {
-                    ZStack {
-                        SemicircularArcGauge(ratio: rpmRatio)
-                            .frame(maxWidth: 260, maxHeight: 165)
-                        VStack(spacing: 2) {
-                            Text(UnitConversions.speedText(r.speed, unitSpeed: state.settings.unitSpeed))
-                                .foregroundColor(nitroLime)
-                                .font(DashFont.rajdhani(64, weight: .bold))
-                                .minimumScaleFactor(0.5)
-                                .textGlow(nitroLime, radius: 14)
-                            Text("\(rpm) RPM")
-                                .foregroundColor(nitroOrange)
-                                .font(DashFont.shareTechMono(14))
-                                .fontWeight(.bold)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        NitroBar(label: "THROTTLE (TPS)", pct: Double(r.tps ?? 0) / 100.0, text: "\(r.tps ?? 0)%", color: nitroOrange)
-                        NitroBar(label: "ENGINE LOAD", pct: Double(r.engineLoad ?? 0) / 100.0, text: "\(r.engineLoad ?? 0)%", color: nitroLime)
-                        NitroBar(label: "COOLANT TEMP", pct: Double(r.ect ?? 0) / 120.0, text: "\(r.ect ?? 0)°C", color: .dashCyan)
-                        HStack {
-                            Text("BATT: \(r.battery.map { String(format: "%.1fV", $0) } ?? "--")")
-                                .foregroundColor(.white)
-                                .font(DashFont.shareTechMono(12))
-                            Spacer()
-                            Text("IGN: \(r.ignitionTiming.map { "\($0)°" } ?? "--")")
-                                .foregroundColor(nitroOrange)
-                                .font(DashFont.shareTechMono(12))
-                        }
-                    }
-                    .frame(width: 190)
-                }
-                .padding(.horizontal, 12)
-                .padding(.bottom, 6)
             }
-            .padding(.vertical, 6)
-            .padding(.horizontal, 8)
 
-            ShiftFlashOverlay(rpm: r.rpm, threshold: state.settings.shiftRpmThreshold)
-        }
-        .background(
-            RadialGradient(colors: [Color(argb: 0xFF1F0800), Color(argb: 0xFF050200)], center: .center, startRadius: 0, endRadius: 500)
-                .ignoresSafeArea()
-        )
-        .onChange(of: state.savedTripId) { newValue in
-            if let id = newValue { onTripSaved(id) }
+            ZStack {
+                VStack(spacing: isPortrait ? 10 : 6) {
+                    HStack {
+                        Image("logo_\(state.settings.brandLogo)")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 22)
+                        Text(isPortrait ? "🔥 NITRO STAGE 3" : "🔥 NITRO OVERDRIVE // STAGE 3")
+                            .foregroundColor(nitroOrange)
+                            .font(DashFont.shareTechMono(11.5))
+                            .fontWeight(.bold)
+                            .tracking(1)
+                            .lineLimit(1)
+                        Spacer()
+                        Button(action: {
+                            if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
+                        }) {
+                            Text(state.isTripRecording ? "⏹ DỪNG" : "▶ TRIP")
+                                .foregroundColor(state.isTripRecording ? .white : nitroOrange)
+                                .font(DashFont.shareTechMono(11))
+                                .fontWeight(.bold)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(state.isTripRecording ? Color.dashRed : nitroOrange.opacity(0.16))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(state.isTripRecording ? Color.dashRed : nitroOrange.opacity(0.6), lineWidth: 1))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+                        Button(action: onGearClick) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "gearshape.fill")
+                                    .font(.system(size: 13, weight: .bold))
+                                Text("CÀI ĐẶT")
+                                    .font(DashFont.shareTechMono(11.5))
+                                    .fontWeight(.bold)
+                            }
+                            .foregroundColor(nitroLime)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(nitroLime.opacity(0.14))
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(nitroLime.opacity(0.6), lineWidth: 1))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.top, 4)
+
+                    if state.isTripRecording {
+                        TripRecordingBar(stats: state.liveTripStats, onStop: onTripLongPress)
+                    }
+
+                    if isPortrait {
+                        gaugeSection
+                        barsSection
+                            .padding(14)
+                            .background(Color.white.opacity(0.04))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .padding(.horizontal, 12)
+                            .padding(.bottom, 10)
+                    } else {
+                        HStack(spacing: 16) {
+                            gaugeSection
+                            barsSection.frame(width: 190)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.bottom, 6)
+                    }
+                }
+                .padding(.vertical, 6)
+                .padding(.horizontal, 8)
+
+                ShiftFlashOverlay(rpm: r.rpm, threshold: state.settings.shiftRpmThreshold)
+            }
+            .background(
+                RadialGradient(colors: [Color(argb: 0xFF1F0800), Color(argb: 0xFF050200)], center: .center, startRadius: 0, endRadius: 500)
+                    .ignoresSafeArea()
+            )
+            .onChange(of: state.savedTripId) { newValue in
+                if let id = newValue { onTripSaved(id) }
+            }
         }
     }
 }

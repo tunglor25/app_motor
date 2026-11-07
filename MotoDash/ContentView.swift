@@ -44,8 +44,7 @@ struct ContentView: View {
                 }
             }
 
-            let isHtmlTheme = (viewModel.state.settings.theme == "portrait" || viewModel.state.settings.theme == "landscape")
-            if path.isEmpty && (!isHtmlTheme || guardian.justReturnedFromBackground) {
+            if path.isEmpty {
                 DynamicIslandCapsuleOverlay(
                     state: viewModel.state,
                     guardian: guardian,
@@ -53,6 +52,7 @@ struct ContentView: View {
                     onStopTrip: viewModel.stopTripRecordingAndSave,
                     onOpenTripHistory: { path.append(.tripHistory) }
                 )
+                .ignoresSafeArea(.all, edges: .top)
                 .zIndex(50)
             }
 
