@@ -25,12 +25,13 @@ struct ClassicDashboardScreen: View {
                     Button(action: {
                         if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
                     }) {
-                        Text(state.isTripRecording ? "● REC TRIP" : "▶ TRIP")
-                            .foregroundColor(state.isTripRecording ? Color(argb: 0xFFC23B2C) : Color(argb: 0xFFC9B98C))
+                        Text(state.isTripRecording ? "⏹ DỪNG & LƯU TRIP" : "▶ BẮT ĐẦU TRIP")
+                            .foregroundColor(state.isTripRecording ? .white : Color(argb: 0xFFC9B98C))
                             .font(DashFont.shareTechMono(12))
+                            .fontWeight(.bold)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
-                            .background(Color.white.opacity(0.05))
+                            .background(state.isTripRecording ? Color(argb: 0xFFC23B2C) : Color.white.opacity(0.08))
                             .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
                     .buttonStyle(.plain)
@@ -59,7 +60,7 @@ struct ClassicDashboardScreen: View {
                 .padding(.top, 4)
 
                 if state.isTripRecording {
-                    TripRecordingBar(stats: state.liveTripStats)
+                    TripRecordingBar(stats: state.liveTripStats, onStop: onTripLongPress)
                 }
 
                 HStack(spacing: 16) {

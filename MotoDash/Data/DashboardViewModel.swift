@@ -76,10 +76,18 @@ final class DashboardViewModel: ObservableObject {
             .store(in: &cancellables)
 
         gpsTripRecorder.$isRecording
-            .sink { [weak self] value in self?.state.isTripRecording = value }
+            .sink { [weak self] value in
+                guard let self else { return }
+                self.state.isTripRecording = value
+                BackgroundGuardianManager.shared.syncState(self.state)
+            }
             .store(in: &cancellables)
         gpsTripRecorder.$liveStats
-            .sink { [weak self] value in self?.state.liveTripStats = value }
+            .sink { [weak self] value in
+                guard let self else { return }
+                self.state.liveTripStats = value
+                BackgroundGuardianManager.shared.syncState(self.state)
+            }
             .store(in: &cancellables)
 
         speedLimitTracker.$speedLimitKmh
@@ -102,6 +110,7 @@ final class DashboardViewModel: ObservableObject {
         }
         gpsTripRecorder.addEcuSample(speed: effectiveReading.speed, rpm: effectiveReading.rpm, ect: effectiveReading.ect)
         dragRecorder.onReading(effectiveReading)
+        BackgroundGuardianManager.shared.syncState(state)
     }
 
     func connect() {
@@ -154,6 +163,18 @@ final class DashboardViewModel: ObservableObject {
         Task { @MainActor in
             state.savedTripId = await gpsTripRecorder.stopAndSave()
         }
+    }
+
+    func toggleTripRecording() {
+        if state.isTripRecording {
+            stopTripRecordingAndSave()
+        } else {
+            startTripRecording()
+        }
+    }
+
+    func cancelTripRecording() {
+        gpsTripRecorder.cancel()
     }
 
     func consumeSavedTripId() {

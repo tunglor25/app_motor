@@ -40,6 +40,11 @@ struct SettingsScreen: View {
     var onStartBundledWifiOta: () -> Void = {}
     let onDisconnect: () -> Void
     let onReconnect: () -> Void
+    var isTripRecording: Bool = false
+    var liveTripStats: LiveTripStats = LiveTripStats()
+    var onStartTrip: () -> Void = {}
+    var onStopTrip: () -> Void = {}
+    var onCancelTrip: () -> Void = {}
     let onNavigateTripHistory: () -> Void
     let onNavigateDiagnostics: () -> Void
     var onNavigateLogs: () -> Void = {}
@@ -115,6 +120,11 @@ struct SettingsScreen: View {
                     )
                 case 2:
                     TripTab(
+                        isTripRecording: isTripRecording,
+                        liveTripStats: liveTripStats,
+                        onStartTrip: onStartTrip,
+                        onStopTrip: onStopTrip,
+                        onCancelTrip: onCancelTrip,
                         confirmClear: confirmClear,
                         onNavigateTripHistory: onNavigateTripHistory,
                         onClearAllTrips: {
@@ -846,12 +856,51 @@ private struct VolumeChip: View {
 }
 
 private struct TripTab: View {
+    let isTripRecording: Bool
+    let liveTripStats: LiveTripStats
+    let onStartTrip: () -> Void
+    let onStopTrip: () -> Void
+    let onCancelTrip: () -> Void
     let confirmClear: Bool
     let onNavigateTripHistory: () -> Void
     let onClearAllTrips: () -> Void
 
     var body: some View {
         VStack(alignment: .leading) {
+            SectionTitle("ĐIỀU KHIỂN GHI HÀNH TRÌNH TRỰC TIẾP")
+            GroupCard {
+                if isTripRecording {
+                    NavRow(
+                        emoji: "⏹",
+                        color: .dashRed,
+                        label: "DỪNG & LƯU HÀNH TRÌNH ĐANG GHI",
+                        desc: String(format: "Đang ghi: %.2f km · Max %d km/h — Chạm để dừng & lưu ngay", liveTripStats.distanceKm, Int(liveTripStats.maxSpeedGpsKmh)),
+                        labelColor: .dashRed,
+                        chevron: "⏹ DỪNG",
+                        onClick: onStopTrip
+                    )
+                    DashDivider()
+                    NavRow(
+                        emoji: "✕",
+                        color: .dashAmber,
+                        label: "Hủy hành trình hiện tại (Không lưu)",
+                        desc: "Dừng ghi GPS ngay lập tức mà không lưu vào lịch sử",
+                        chevron: "HỦY",
+                        onClick: onCancelTrip
+                    )
+                } else {
+                    NavRow(
+                        emoji: "▶",
+                        color: .dashGreen,
+                        label: "Bắt đầu ghi hành trình mới",
+                        desc: "Ghi quãng đường GPS + tốc độ/tua máy/nhiệt độ ECU",
+                        labelColor: .dashGreen,
+                        chevron: "▶ BẮT ĐẦU",
+                        onClick: onStartTrip
+                    )
+                }
+            }
+
             SectionTitle("HÀNH TRÌNH (TRIP TRACKER)")
             GroupCard {
                 NavRow(emoji: "🗺️", color: .dashCyan, label: "Xem lịch sử hành trình", desc: "Danh sách các chuyến đi đã lưu", onClick: onNavigateTripHistory)

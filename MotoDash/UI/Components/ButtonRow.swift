@@ -13,11 +13,17 @@ struct ButtonRow: View {
     var body: some View {
         HStack(spacing: 10) {
             DashButton(
-                label: isTripRecording ? "● REC" : "TRIP",
+                label: isTripRecording ? "⏹ DỪNG TRIP" : "▶ TRIP",
                 highlighted: isTripRecording,
                 highlightColor: .dashRed,
-                longPressSeconds: 1.5,
-                onShortClick: onTripShortClick,
+                longPressSeconds: 1.2,
+                onShortClick: {
+                    if isTripRecording {
+                        onTripLongPress()
+                    } else {
+                        onTripShortClick()
+                    }
+                },
                 onLongPress: onTripLongPress
             )
             Spacer()

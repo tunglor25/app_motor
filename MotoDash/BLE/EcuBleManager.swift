@@ -290,18 +290,27 @@ final class EcuBleManager: NSObject, ObservableObject {
         try? await Task.sleep(nanoseconds: 80_000_000)
 
         var offset = 0
+        var chunkIdx = 0
         while offset < total {
             let end = min(offset + maxWriteLen, total)
             let chunk = data.subdata(in: offset..<end)
-            guard await writeAndAwait(peripheral: peripheral, characteristic: dataChar, payload: chunk) else {
-                writeControlPayload(Data([BleUuids.cmdOtaAbort]))
-                addLog(.ble, "Lỗi truyền Firmware BLE OTA", "Tại byte \(offset) / \(total)", isError: true)
-                return .failure(NSError(domain: "BLE", code: 5, userInfo: [NSLocalizedDescriptionKey: "Lỗi truyền dữ liệu tại \((offset * 100) / total)%"]))
+            let isLastOrSync = (end == total) || (chunkIdx % 8 == 7)
+            if isLastOrSync {
+                guard await writeAndAwait(peripheral: peripheral, characteristic: dataChar, payload: chunk) else {
+                    writeControlPayload(Data([BleUuids.cmdOtaAbort]))
+                    addLog(.ble, "Lỗi truyền Firmware BLE OTA", "Tại byte \(offset) / \(total)", isError: true)
+                    return .failure(NSError(domain: "BLE", code: 5, userInfo: [NSLocalizedDescriptionKey: "Lỗi truyền dữ liệu tại \((offset * 100) / total)%"]))
+                }
+            } else {
+                peripheral.writeValue(chunk, for: dataChar, type: .withoutResponse)
+                try? await Task.sleep(nanoseconds: 5_000_000)
             }
             offset = end
+            chunkIdx += 1
             onProgress(Float(offset) / Float(total))
         }
 
+        try? await Task.sleep(nanoseconds: 40_000_000)
         guard await writeAndAwait(peripheral: peripheral, characteristic: ctrlChar, payload: Data([BleUuids.cmdOtaEnd])) else {
             addLog(.ble, "Lỗi gửi lệnh CMD_OTA_END (0x5A)", isError: true)
             return .failure(NSError(domain: "BLE", code: 6, userInfo: [NSLocalizedDescriptionKey: "Không gửi được lệnh hoàn tất Flash"]))
@@ -311,18 +320,26 @@ final class EcuBleManager: NSObject, ObservableObject {
     }
 
     private func writeAndAwait(peripheral: CBPeripheral, characteristic: CBCharacteristic, payload: Data) async -> Bool {
-        if writeContinuation != nil { return false }
-        return await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
-            self.writeContinuation = continuation
-            let work = DispatchWorkItem { [weak self] in
-                guard let self, let cont = self.writeContinuation else { return }
-                self.writeContinuation = nil
-                cont.resume(returning: false)
+        for attempt in 0..<4 {
+            if writeContinuation != nil {
+                try? await Task.sleep(nanoseconds: 50_000_000)
+                continue
             }
-            self.writeTimeoutWork = work
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0, execute: work)
-            peripheral.writeValue(payload, for: characteristic, type: .withResponse)
+            let ok = await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
+                self.writeContinuation = continuation
+                let work = DispatchWorkItem { [weak self] in
+                    guard let self, let cont = self.writeContinuation else { return }
+                    self.writeContinuation = nil
+                    cont.resume(returning: false)
+                }
+                self.writeTimeoutWork = work
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0, execute: work)
+                peripheral.writeValue(payload, for: characteristic, type: .withResponse)
+            }
+            if ok { return true }
+            try? await Task.sleep(nanoseconds: UInt64(50_000_000 * (attempt + 1)))
         }
+        return false
     }
 
     private func writeControlCommand(_ cmd: UInt8) {

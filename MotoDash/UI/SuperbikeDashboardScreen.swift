@@ -48,6 +48,10 @@ struct SuperbikeDashboardScreen: View {
                 .padding(.horizontal, 12)
                 .padding(.top, 4)
 
+                if state.isTripRecording {
+                    TripRecordingBar(stats: state.liveTripStats, onStop: onTripLongPress)
+                }
+
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 6) {
@@ -62,7 +66,26 @@ struct SuperbikeDashboardScreen: View {
                         }
                         SbRow(label: "RPM", value: "\(rpm)")
                         SbRow(label: "LAP", value: state.lapText)
-                        SbRow(label: "TRIP", value: String(format: "%.1f km", state.tripKm))
+                        Button(action: {
+                            if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
+                        }) {
+                            HStack {
+                                Text(state.isTripRecording ? "⏹ DỪNG TRIP" : "▶ BẮT ĐẦU TRIP")
+                                    .foregroundColor(.white)
+                                    .font(DashFont.shareTechMono(10))
+                                    .fontWeight(.bold)
+                                Spacer()
+                                Text(String(format: "%.2f km", state.isTripRecording ? state.liveTripStats.distanceKm : state.tripKm))
+                                    .foregroundColor(.white)
+                                    .font(DashFont.shareTechMono(11))
+                                    .fontWeight(.bold)
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(state.isTripRecording ? ducatiRed : trackAmber.opacity(0.25))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                        }
+                        .buttonStyle(.plain)
                         SbRow(label: "LOAD", value: r.engineLoad.map { "\($0)%" } ?? "--")
                     }
                     .padding(10)

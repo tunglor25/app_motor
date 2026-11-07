@@ -16,6 +16,7 @@ final class GpsTripRecorder: NSObject, ObservableObject, CLLocationManagerDelega
     private let locationManager = CLLocationManager()
     private let tripRepository: TripRepository
     private var session: TripRecorderSession?
+    private var tickTimer: Timer?
 
     @Published private(set) var isRecording = false
     @Published private(set) var liveStats = LiveTripStats()
@@ -37,24 +38,51 @@ final class GpsTripRecorder: NSObject, ObservableObject, CLLocationManagerDelega
         isRecording = true
         liveStats = LiveTripStats()
 
-        if locationManager.authorizationStatus == .notDetermined {
-            locationManager.requestWhenInUseAuthorization()
+        tickTimer?.invalidate()
+        tickTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.refreshLiveStats() }
         }
-        // Declared in UIBackgroundModes ("location") so the trip keeps recording
-        // while the app is backgrounded/screen is off.
-        locationManager.allowsBackgroundLocationUpdates = true
+
+        let auth = locationManager.authorizationStatus
+        if auth == .notDetermined {
+            locationManager.requestAlwaysAuthorization()
+        }
+        enableBackgroundLocationIfSupported()
         locationManager.pausesLocationUpdatesAutomatically = false
         locationManager.startUpdatingLocation()
     }
 
+    private func enableBackgroundLocationIfSupported() {
+        let bgModes = Bundle.main.object(forInfoDictionaryKey: "UIBackgroundModes") as? [String] ?? []
+        if bgModes.contains("location") {
+            locationManager.allowsBackgroundLocationUpdates = true
+            locationManager.showsBackgroundLocationIndicator = true
+        }
+    }
+
+    private func refreshLiveStats() {
+        guard let activeSession = session else { return }
+        liveStats = LiveTripStats(
+            distanceKm: activeSession.totalDistanceKm,
+            elapsedMs: max(0, Int64(Date().timeIntervalSince1970 * 1000) - activeSession.startedAt),
+            maxSpeedGpsKmh: activeSession.maxSpeedGpsKmh
+        )
+    }
+
     func addEcuSample(speed: Int?, rpm: Int?, ect: Int?) {
         session?.addEcuSample(speed: speed, rpm: rpm, ect: ect)
+        if isRecording {
+            refreshLiveStats()
+        }
     }
 
     func stopAndSave() async -> String? {
         guard let activeSession = session else { return nil }
+        tickTimer?.invalidate()
+        tickTimer = nil
         locationManager.stopUpdatingLocation()
         locationManager.allowsBackgroundLocationUpdates = false
+        locationManager.showsBackgroundLocationIndicator = false
         session = nil
         isRecording = false
         let trip = activeSession.stop()
@@ -63,8 +91,11 @@ final class GpsTripRecorder: NSObject, ObservableObject, CLLocationManagerDelega
     }
 
     func cancel() {
+        tickTimer?.invalidate()
+        tickTimer = nil
         locationManager.stopUpdatingLocation()
         locationManager.allowsBackgroundLocationUpdates = false
+        locationManager.showsBackgroundLocationIndicator = false
         session = nil
         isRecording = false
     }

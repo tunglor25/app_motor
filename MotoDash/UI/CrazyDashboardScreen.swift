@@ -29,6 +29,20 @@ struct CrazyDashboardScreen: View {
                         .fontWeight(.bold)
                         .tracking(2)
                     Spacer()
+                    Button(action: {
+                        if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
+                    }) {
+                        Text(state.isTripRecording ? "⏹ DỪNG TRIP" : "▶ BẮT ĐẦU TRIP")
+                            .foregroundColor(state.isTripRecording ? .white : nitroOrange)
+                            .font(DashFont.shareTechMono(11))
+                            .fontWeight(.bold)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 7)
+                            .background(state.isTripRecording ? Color.dashRed : nitroOrange.opacity(0.16))
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(state.isTripRecording ? Color.dashRed : nitroOrange.opacity(0.6), lineWidth: 1))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
                     Button(action: onGearClick) {
                         HStack(spacing: 5) {
                             Image(systemName: "gearshape.fill")
@@ -49,6 +63,10 @@ struct CrazyDashboardScreen: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.top, 4)
+
+                if state.isTripRecording {
+                    TripRecordingBar(stats: state.liveTripStats, onStop: onTripLongPress)
+                }
 
                 HStack(spacing: 16) {
                     ZStack {

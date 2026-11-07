@@ -72,6 +72,10 @@ struct AirBladeDashboardScreen: View {
                 .padding(.horizontal, 12)
                 .padding(.top, 4)
 
+                if state.isTripRecording {
+                    TripRecordingBar(stats: state.liveTripStats, onStop: onTripLongPress)
+                }
+
                 HStack(spacing: 4) {
                     ForEach(0..<22, id: \.self) { i in
                         let active = Double(i) / 22.0 < rpmRatio
@@ -105,9 +109,14 @@ struct AirBladeDashboardScreen: View {
                         Button(action: {
                             if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
                         }) {
-                            Text(String(format: "ODO TRIP: %.2f km", state.tripKm))
-                                .foregroundColor(.dashTextSecondary)
+                            Text(state.isTripRecording ? "⏹ DỪNG & LƯU TRIP (\(String(format: "%.2f km", state.liveTripStats.distanceKm)))" : String(format: "▶ BẮT ĐẦU TRIP (%.2f km)", state.tripKm))
+                                .foregroundColor(state.isTripRecording ? .white : lcdIceBlue)
                                 .font(DashFont.shareTechMono(11))
+                                .fontWeight(.bold)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(state.isTripRecording ? hondaRed : lcdIceBlue.opacity(0.14))
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
                                 .padding(.top, 2)
                         }
                         .buttonStyle(.plain)

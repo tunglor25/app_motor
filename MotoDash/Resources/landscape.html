@@ -85,15 +85,178 @@
     100% { opacity: 0.9; }
   }
 
-  /* ================= 1. TOP HEADER BAR ================= */
+  /* ================= 1. TOP HEADER BAR & DYNAMIC ISLAND HUD ================= */
   .top-header {
     position: relative;
     z-index: 30;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: max(env(safe-area-inset-top, 6px), 6px) 14px 8px;
+    gap: 8px;
+    padding: calc(env(safe-area-inset-top, 0px) + 8px) max(env(safe-area-inset-right, 14px), 14px) 8px max(env(safe-area-inset-left, 14px), 14px);
     flex-shrink: 0;
+  }
+
+  /* Dynamic Island / Notch Cyber Capsule HUD */
+  .dynamic-island-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(180deg, #05070b 0%, #0d111a 100%);
+    border: 1px solid rgba(34, 197, 94, 0.45);
+    border-radius: 999px;
+    padding: 4px 10px;
+    cursor: pointer;
+    box-shadow: 0 0 14px rgba(34, 197, 94, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    max-width: 215px;
+    flex-shrink: 1;
+  }
+  .dynamic-island-pill:active {
+    transform: scale(0.95);
+  }
+  .dynamic-island-pill.recording {
+    border-color: rgba(255, 37, 58, 0.8);
+    box-shadow: 0 0 16px rgba(255, 37, 58, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    background: linear-gradient(180deg, rgba(40, 8, 14, 0.96) 0%, rgba(16, 6, 10, 0.98) 100%);
+  }
+  .island-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+    flex-shrink: 0;
+    animation: ecuPulse 1.6s infinite ease-in-out;
+  }
+  .dynamic-island-pill.recording .island-dot {
+    background: #ff253a;
+    box-shadow: 0 0 10px #ff253a;
+    animation: shiftBlink 0.55s infinite alternate;
+  }
+  .island-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #e2e8f0;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .island-stop-chip {
+    display: none;
+    align-items: center;
+    gap: 3px;
+    background: #ff253a;
+    color: #ffffff;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px rgba(255, 37, 58, 0.7);
+  }
+  .dynamic-island-pill.recording .island-stop-chip {
+    display: inline-flex;
+  }
+
+  /* Expanded Dynamic Island Card */
+  .island-expanded-hud {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 0px) + 52px);
+    left: max(env(safe-area-inset-left, 12px), 12px);
+    right: max(env(safe-area-inset-right, 12px), 12px);
+    z-index: 80;
+    background: linear-gradient(160deg, rgba(10, 14, 22, 0.98) 0%, rgba(5, 7, 12, 0.99) 100%);
+    border: 1.5px solid rgba(0, 180, 216, 0.55);
+    border-radius: 18px;
+    padding: 12px 14px;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.85), 0 0 22px rgba(0, 180, 216, 0.25);
+    display: none;
+    flex-direction: column;
+    gap: 9px;
+    backdrop-filter: blur(16px);
+  }
+  .island-expanded-hud.open {
+    display: flex;
+    animation: panelFadeIn 0.18s ease;
+  }
+  .island-exp-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .island-exp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #22c55e;
+    letter-spacing: 0.8px;
+  }
+  .island-exp-desc {
+    font-size: 10.5px;
+    color: #94a3b8;
+    line-height: 1.35;
+  }
+
+  /* Overview Trip Action Strip (Tab 1) */
+  .overview-trip-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: linear-gradient(90deg, rgba(16, 20, 29, 0.94) 0%, rgba(11, 14, 21, 0.96) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 10px;
+    padding: 5px 10px;
+    flex-shrink: 0;
+  }
+  .overview-trip-strip.recording {
+    background: linear-gradient(90deg, rgba(48, 10, 18, 0.92) 0%, rgba(22, 8, 13, 0.96) 100%);
+    border-color: rgba(255, 37, 58, 0.65);
+    box-shadow: 0 0 14px rgba(255, 37, 58, 0.22);
+  }
+  .trip-strip-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: #e2e8f0;
+  }
+  .trip-strip-btns {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .trip-pill-btn {
+    border: 1px solid rgba(0, 180, 216, 0.6);
+    background: rgba(0, 180, 216, 0.14);
+    color: #38bdf8;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 5px 11px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+  }
+  .trip-pill-btn:active {
+    transform: scale(0.95);
+  }
+  .trip-pill-btn.stop {
+    border-color: #ff253a;
+    background: linear-gradient(180deg, #ff253a 0%, #dc2626 100%);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(255, 37, 58, 0.5);
   }
 
   .header-deco-line {
@@ -627,7 +790,7 @@
     grid-template-columns: repeat(4, 1fr);
     background: linear-gradient(180deg, rgba(16, 19, 26, 0.96) 0%, rgba(7, 8, 12, 1) 100%);
     border-top: 1px solid rgba(255, 255, 255, 0.09);
-    padding: 5px 8px max(env(safe-area-inset-bottom, 5px), 5px);
+    padding: 6px max(env(safe-area-inset-right, 10px), 10px) calc(env(safe-area-inset-bottom, 0px) + 6px) max(env(safe-area-inset-left, 10px), 10px);
     flex-shrink: 0;
   }
 
@@ -682,10 +845,10 @@
   /* ================= 5. SPA TAB PANELS (Thông số / Chẩn đoán / Cài đặt) ================= */
   .spa-tab-panel {
     position: absolute;
-    inset: 48px 0 48px 0;
+    inset: calc(env(safe-area-inset-top, 0px) + 52px) 0 calc(env(safe-area-inset-bottom, 0px) + 54px) 0;
     z-index: 25;
     background: radial-gradient(ellipse at 50% 0%, #151822 0%, #080a0e 85%);
-    padding: 12px 14px 18px;
+    padding: 12px max(env(safe-area-inset-right, 14px), 14px) 18px max(env(safe-area-inset-left, 14px), 14px);
     display: none;
     flex-direction: column;
     gap: 10px;
@@ -892,7 +1055,11 @@
      LANDSCAPE LAYOUT (MÀN NGANG - ZERO CLIPPING, FITS ALL PHONE HEIGHTS!)
      ===================================================================== */
   body.is-landscape .top-header {
-    padding: 4px 16px 6px;
+    padding: max(env(safe-area-inset-top, 4px), 4px) max(env(safe-area-inset-right, 18px), 18px) 6px max(env(safe-area-inset-left, 18px), 18px);
+  }
+
+  body.is-landscape .overview-trip-strip {
+    display: none;
   }
 
   body.is-landscape .cockpit-main {
@@ -900,7 +1067,7 @@
     align-items: stretch;
     justify-content: space-between;
     gap: 10px;
-    padding: 2px 16px 4px;
+    padding: 2px max(env(safe-area-inset-right, 16px), 16px) 4px max(env(safe-area-inset-left, 16px), 16px);
     min-height: 0;
   }
 
@@ -1125,7 +1292,7 @@
 </style>
 </head>
 
-<body>
+<body class="is-landscape">
 <div id="app-shell">
   <!-- Shift Light Overlay -->
   <div id="shiftFlashOverlay"></div>
@@ -1138,6 +1305,13 @@
         <span class="brand-125">125</span>
         <span class="brand-special">2025 SPECIAL</span>
       </div>
+    </div>
+
+    <!-- Dynamic Island / Notch Background Guardian Capsule -->
+    <div class="dynamic-island-pill" id="dynamicIslandPill" onclick="toggleIslandHud(event)" title="Trạng thái chạy ngầm & Hành trình trực tiếp">
+      <span class="island-dot" id="islandDot"></span>
+      <span class="island-text" id="islandText">🛡️ CHẠY NGẦM: BẬT</span>
+      <button class="island-stop-chip" id="islandStopBtn" onclick="stopNativeTrip(event)">⏹ DỪNG</button>
     </div>
 
     <div class="header-right">
@@ -1165,6 +1339,23 @@
     </svg>
   </header>
 
+  <!-- Expanded Dynamic Island Background Guardian + Trip Control Popup -->
+  <div class="island-expanded-hud" id="islandExpandedHud">
+    <div class="island-exp-top">
+      <span class="island-exp-badge" id="islandExpTitle">⚡ MOTODASH ĐANG BẢO VỆ NGẦM (DYNAMIC ISLAND)</span>
+      <button class="trip-pill-btn" onclick="toggleIslandHud(event)" style="padding:3px 8px; font-size:9.5px;">ĐÓNG ✕</button>
+    </div>
+    <div class="island-exp-desc" id="islandExpDesc">
+      • Tự động giữ kết nối BLE ECU + Chống báo nhầm quên tắt khóa 5 lớp kể cả khi tắt màn hình hoặc thoát ra màn hình chính.<br>
+      • Ghi hành trình GPS + tốc độ ECU ngầm liên tục, thông báo trực tiếp lên Dynamic Island &amp; Màn hình khóa.
+    </div>
+    <div class="sim-btn-row" style="margin-top:2px;">
+      <button class="action-btn" id="btnIslandStartTrip" onclick="startNativeTrip(event)">▶ BẮT ĐẦU HÀNH TRÌNH</button>
+      <button class="action-btn red" id="btnIslandStopTrip" onclick="stopNativeTrip(event)" style="display:none;">⏹ DỪNG &amp; LƯU HÀNH TRÌNH</button>
+      <button class="action-btn" onclick="openNativeTripHistory()">🗺️ LỊCH SỬ TRIP</button>
+    </div>
+  </div>
+
   <!-- ================= 2. MAIN COCKPIT STAGE (TAB 1: TỔNG QUAN) ================= -->
   <main class="cockpit-main" id="mainOverviewStage">
 
@@ -1188,8 +1379,8 @@
           <span class="side-bar-lbl red">E</span>
         </div>
 
-        <div class="landscape-trip-left" onclick="toggleNativeTrip()" title="Chạm để Ghi / Lưu Hành trình GPS" style="cursor:pointer;">
-          <span class="trip-odo-lbl" id="lblTripLandscape">TRIP A</span>
+        <div class="landscape-trip-left" onclick="toggleNativeTrip()" title="Chạm để Bắt đầu / Dừng & Lưu Hành trình GPS" style="cursor:pointer;">
+          <span class="trip-odo-lbl" id="lblTripLandscape">▶ BẮT ĐẦU TRIP</span>
           <span class="trip-odo-val"><span id="valTripLandscape">0.0</span><small>km</small></span>
         </div>
       </div>
@@ -1443,6 +1634,18 @@
       </div>
     </div>
 
+    <!-- -------- LIVE TRIP CONTROL BAR ON OVERVIEW TAB -------- -->
+    <div class="overview-trip-strip" id="overviewTripBar">
+      <div class="trip-strip-info">
+        <span id="overviewTripStatusDot" style="color:#38bdf8;">●</span>
+        <span id="overviewTripStatusText">HÀNH TRÌNH: 0.00 km · SẴN SÀNG</span>
+      </div>
+      <div class="trip-strip-btns">
+        <button class="trip-pill-btn" id="btnOverviewStartTrip" onclick="startNativeTrip(event)">▶ BẮT ĐẦU TRIP</button>
+        <button class="trip-pill-btn stop" id="btnOverviewStopTrip" onclick="stopNativeTrip(event)" style="display:none;">⏹ DỪNG &amp; LƯU</button>
+      </div>
+    </div>
+
     <!-- ================= 3. TELEMETRY CARDS SECTION ================= -->
     <section class="telemetry-section">
       <!-- 6 Primary Sensor Cards (ECT, IAT, TPS, MAP, O2, BAT) -->
@@ -1661,8 +1864,9 @@
     </div>
 
     <div class="sim-btn-row" style="margin-top:4px;">
-      <button class="action-btn red" id="btnTripRecParams" onclick="toggleNativeTrip()">&#9679; BẮT ĐẦU GHI TRIP GPS</button>
-      <button class="action-btn" onclick="openNativeTripHistory()">LỊCH SỬ TRIP GPS</button>
+      <button class="action-btn" id="btnTripRecParams" onclick="startNativeTrip(event)">▶ BẮT ĐẦU HÀNH TRÌNH GPS</button>
+      <button class="action-btn red" id="btnTripStopParams" onclick="stopNativeTrip(event)" style="display:none;">⏹ DỪNG &amp; LƯU HÀNH TRÌNH</button>
+      <button class="action-btn" onclick="openNativeTripHistory()">🗺️ LỊCH SỬ TRIP GPS</button>
     </div>
 
     <div class="sim-btn-row">
@@ -1862,6 +2066,10 @@
     hasReading: false,
     demoMode: false,
     isTripRecording: false,
+    liveTripDistKm: 0.0,
+    liveTripElapsedMs: 0,
+    liveTripMaxSpeed: 0,
+    localTripStartEpoch: 0,
     packetCount: 0,
     packetHz: 0,
     autoSweep: false,
@@ -2313,11 +2521,108 @@
     }
   }
 
-  function toggleNativeTrip() {
-    if (window.AndroidDash && window.AndroidDash.toggleTrip) {
+  function formatTripElapsed(ms) {
+    const totalSec = Math.max(0, Math.floor((ms || 0) / 1000));
+    const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+    const s = String(totalSec % 60).padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function toggleIslandHud(e) {
+    if (e) e.stopPropagation();
+    const hud = document.getElementById('islandExpandedHud');
+    if (hud) hud.classList.toggle('open');
+  }
+
+  function syncTripButtonsUi() {
+    const rec = Boolean(state.isTripRecording);
+    const dist = rec ? (state.liveTripDistKm || state.trip || 0) : (state.trip || 0);
+    const elapsedMs = rec
+      ? (state.liveTripElapsedMs > 0 ? state.liveTripElapsedMs : (state.localTripStartEpoch > 0 ? (Date.now() - state.localTripStartEpoch) : 0))
+      : 0;
+    const timeStr = formatTripElapsed(elapsedMs);
+
+    // 1. Dynamic Island Pill
+    const pill = document.getElementById('dynamicIslandPill');
+    const islandTxt = document.getElementById('islandText');
+    if (pill) pill.classList.toggle('recording', rec);
+    if (islandTxt) {
+      if (rec) {
+        islandTxt.innerText = `REC ${dist.toFixed(2)}km · ${timeStr}`;
+      } else if (state.bleConnected) {
+        islandTxt.innerText = state.ecuConnected ? '🛡️ NGẦM: K-LINE ON' : '🛡️ NGẦM: BLE LOCK';
+      } else {
+        islandTxt.innerText = '🛡️ CHẠY NGẦM: BẬT';
+      }
+    }
+
+    // 2. Expanded Dynamic Island Buttons
+    const btnIslandStart = document.getElementById('btnIslandStartTrip');
+    const btnIslandStop = document.getElementById('btnIslandStopTrip');
+    if (btnIslandStart) btnIslandStart.style.display = rec ? 'none' : 'inline-block';
+    if (btnIslandStop) btnIslandStop.style.display = rec ? 'inline-block' : 'none';
+
+    // 3. Tab 1 Overview Trip Bar
+    const ovBar = document.getElementById('overviewTripBar');
+    const ovDot = document.getElementById('overviewTripStatusDot');
+    const ovTxt = document.getElementById('overviewTripStatusText');
+    const btnOvStart = document.getElementById('btnOverviewStartTrip');
+    const btnOvStop = document.getElementById('btnOverviewStopTrip');
+    if (ovBar) ovBar.classList.toggle('recording', rec);
+    if (ovDot) ovDot.style.color = rec ? '#ff253a' : '#22c55e';
+    if (ovTxt) {
+      ovTxt.innerText = rec
+        ? `ĐANG GHI TRIP: ${dist.toFixed(2)} km · ${timeStr}`
+        : `HÀNH TRÌNH: ${dist.toFixed(2)} km · SẴN SÀNG`;
+    }
+    if (btnOvStart) btnOvStart.style.display = rec ? 'none' : 'inline-block';
+    if (btnOvStop) btnOvStop.style.display = rec ? 'inline-block' : 'none';
+
+    // 4. Tab 2 Params Buttons
+    const btnTripRec = document.getElementById('btnTripRecParams');
+    const btnTripStop = document.getElementById('btnTripStopParams');
+    if (btnTripRec) {
+      btnTripRec.style.display = rec ? 'none' : 'inline-block';
+    }
+    if (btnTripStop) {
+      btnTripStop.style.display = rec ? 'inline-block' : 'none';
+      btnTripStop.innerText = `⏹ DỪNG & LƯU TRIP (${dist.toFixed(2)} km · ${timeStr})`;
+    }
+  }
+
+  function startNativeTrip(e) {
+    if (e) e.stopPropagation();
+    state.isTripRecording = true;
+    state.localTripStartEpoch = Date.now();
+    syncTripButtonsUi();
+    if (window.AndroidDash && window.AndroidDash.startTrip) {
+      window.AndroidDash.startTrip();
+    } else if (window.AndroidDash && window.AndroidDash.toggleTrip) {
       window.AndroidDash.toggleTrip();
-    } else if (window.TripTracker && window.TripTracker.toggle) {
-      window.TripTracker.toggle();
+    } else if (window.TripTracker && window.TripTracker.start) {
+      window.TripTracker.start();
+    }
+  }
+
+  function stopNativeTrip(e) {
+    if (e) e.stopPropagation();
+    state.isTripRecording = false;
+    state.localTripStartEpoch = 0;
+    syncTripButtonsUi();
+    if (window.AndroidDash && window.AndroidDash.stopTrip) {
+      window.AndroidDash.stopTrip();
+    } else if (window.AndroidDash && window.AndroidDash.toggleTrip) {
+      window.AndroidDash.toggleTrip();
+    } else if (window.TripTracker && window.TripTracker.stop) {
+      window.TripTracker.stop();
+    }
+  }
+
+  function toggleNativeTrip(e) {
+    if (state.isTripRecording) {
+      stopNativeTrip(e);
+    } else {
+      startNativeTrip(e);
     }
   }
 
@@ -2632,8 +2937,8 @@
     if (valTripLandscape) valTripLandscape.innerText = state.trip.toFixed(1);
     const lblTripL = document.getElementById('lblTripLandscape');
     if (lblTripL) {
-      lblTripL.innerText = state.isTripRecording ? '● REC TRIP' : 'TRIP A';
-      lblTripL.style.color = state.isTripRecording ? '#22c55e' : '';
+      lblTripL.innerText = state.isTripRecording ? '⏹ DỪNG & LƯU TRIP' : '▶ BẮT ĐẦU TRIP';
+      lblTripL.style.color = state.isTripRecording ? '#ff253a' : '';
     }
     const pTripSub = document.getElementById('portraitTripSub');
     if (pTripSub) {
@@ -2643,6 +2948,7 @@
     if (valOdoLandscape) {
       valOdoLandscape.innerText = Math.round(state.odo).toLocaleString('en-US');
     }
+    syncTripButtonsUi();
 
     // Update Side Vertical Bars (Always illuminated like reference image; responsive when live!)
     if (tpsVertBarFill) {
@@ -2848,7 +3154,16 @@
     if (!payload) return;
 
     state.demoMode = Boolean(payload.demoMode);
+    const prevRec = state.isTripRecording;
     state.isTripRecording = Boolean(payload.isTripRecording);
+    if (state.isTripRecording && !prevRec && !state.localTripStartEpoch) {
+      state.localTripStartEpoch = Date.now();
+    } else if (!state.isTripRecording) {
+      state.localTripStartEpoch = 0;
+    }
+    if (typeof payload.liveTripDistKm === 'number') state.liveTripDistKm = payload.liveTripDistKm;
+    if (typeof payload.liveTripElapsedMs === 'number') state.liveTripElapsedMs = payload.liveTripElapsedMs;
+    if (typeof payload.liveTripMaxSpeed === 'number') state.liveTripMaxSpeed = payload.liveTripMaxSpeed;
     state.hasReading = Boolean(payload.hasReading);
     state.packetCount = typeof payload.packetCount === 'number' ? payload.packetCount : state.packetCount;
     state.packetHz = typeof payload.packetHz === 'number' ? payload.packetHz : 0;
@@ -2866,11 +3181,7 @@
       btnDemo.classList.toggle('active', state.demoMode);
     }
 
-    const btnTripRec = document.getElementById('btnTripRecParams');
-    if (btnTripRec) {
-      btnTripRec.innerText = state.isTripRecording ? '■ DỪNG & LƯU TRIP GPS' : '● GHI HÀNH TRÌNH GPS';
-      btnTripRec.classList.toggle('active', state.isTripRecording);
-    }
+    syncTripButtonsUi();
 
     if (payload.bleConnected) {
       state.autoSweep = false;

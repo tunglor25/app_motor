@@ -38,7 +38,7 @@ enum BleUuids {
     static let cmdSetBleName: UInt8 = 0x4E
 
     // --- OTA Firmware Update ---
-    static let bundledFwVersion: Int = 20 // v2.0 OTA Pro nhung san trong App
+    static let bundledFwVersion: Int = 21 // v2.1 Captive Portal OTA Pro nhung san trong App
     static let cmdOtaStart: UInt8 = 0x4F
     static let cmdOtaEnd: UInt8 = 0x5A
     static let cmdOtaAbort: UInt8 = 0x41

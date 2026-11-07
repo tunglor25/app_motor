@@ -30,9 +30,11 @@ final class TripRecorderSession {
     private var maxRpm = 0
     private var sumRpm: Double = 0
     private var maxEct = 0
+    private var lastEcuSampleMs: Int64 = 0
 
     func start() {
         startedAt = Int64(Date().timeIntervalSince1970 * 1000)
+        lastEcuSampleMs = startedAt
         totalDistanceKm = 0
         maxSpeedGpsKmh = 0
         lastCoord = nil
@@ -62,10 +64,17 @@ final class TripRecorderSession {
     }
 
     func addEcuSample(speed: Int?, rpm: Int?, ect: Int?) {
+        let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
         if let speed {
             if Double(speed) > maxSpeedEcu { maxSpeedEcu = Double(speed) }
+            if Double(speed) > maxSpeedGpsKmh { maxSpeedGpsKmh = Double(speed) }
             sumSpeedEcu += Double(speed)
+            let dtSec = Double(max(0, min(nowMs - lastEcuSampleMs, 2000))) / 1000.0
+            if sampleCountGps == 0, speed > 0, dtSec > 0 {
+                totalDistanceKm += (Double(speed) / 3600.0) * dtSec
+            }
         }
+        lastEcuSampleMs = nowMs
         if let rpm {
             if rpm > maxRpm { maxRpm = rpm }
             sumRpm += Double(rpm)

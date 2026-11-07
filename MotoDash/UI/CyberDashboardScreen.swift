@@ -61,6 +61,10 @@ struct CyberDashboardScreen: View {
                 .padding(.horizontal, 12)
                 .padding(.top, 4)
 
+                if state.isTripRecording {
+                    TripRecordingBar(stats: state.liveTripStats, onStop: onTripLongPress)
+                }
+
                 HStack(spacing: 3) {
                     ForEach(0..<30, id: \.self) { i in
                         let active = Double(i) / 30.0 < ratio
@@ -112,10 +116,14 @@ struct CyberDashboardScreen: View {
                     Button(action: {
                         if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
                     }) {
-                        Text(state.isTripRecording ? "● REC TRIP (\(String(format: "%.1f km", state.tripKm)))" : "▶ START TRIP (\(String(format: "%.1f km", state.tripKm)))")
-                            .foregroundColor(cyberYellow)
+                        Text(state.isTripRecording ? "⏹ DỪNG & LƯU TRIP (\(String(format: "%.2f km", state.liveTripStats.distanceKm)))" : "▶ BẮT ĐẦU TRIP (\(String(format: "%.1f km", state.tripKm)))")
+                            .foregroundColor(state.isTripRecording ? .white : cyberYellow)
                             .font(DashFont.shareTechMono(11))
-                            .padding(.vertical, 4)
+                            .fontWeight(.bold)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(state.isTripRecording ? neonMagenta : cyberYellow.opacity(0.14))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
                     .buttonStyle(.plain)
 

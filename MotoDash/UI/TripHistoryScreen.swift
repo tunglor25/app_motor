@@ -3,6 +3,11 @@ import SwiftUI
 
 struct TripHistoryScreen: View {
     let tripRepository: TripRepository
+    var isTripRecording: Bool = false
+    var liveStats: LiveTripStats = LiveTripStats()
+    var onStartTrip: () -> Void = {}
+    var onStopTrip: () -> Void = {}
+    var onCancelTrip: () -> Void = {}
     let onOpenTrip: (String) -> Void
     let onBack: () -> Void
 
@@ -16,6 +21,81 @@ struct TripHistoryScreen: View {
                 ScreenHeader(title: "L\u{1ECA}CH S\u{1EEC} H\u{00C0}NH TR\u{00CC}NH", onBack: onBack)
                     .padding(.leading, 12)
             }
+
+            // Live Trip Control Banner
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Circle()
+                        .fill(isTripRecording ? Color.dashRed : Color.dashCyan)
+                        .frame(width: 10, height: 10)
+                    Text(isTripRecording ? "ĐANG GHI HÀNH TRÌNH TRỰC TIẾP" : "GHI HÀNH TRÌNH MỚI (GPS + ECU)")
+                        .foregroundColor(isTripRecording ? .dashRed : .dashCyan)
+                        .font(DashFont.shareTechMono(12))
+                        .fontWeight(.bold)
+                    Spacer()
+                    if isTripRecording {
+                        Text(String(format: "%.2f km · %@", liveStats.distanceKm, Self.formatElapsed(liveStats.elapsedMs)))
+                            .foregroundColor(.white)
+                            .font(DashFont.shareTechMono(12))
+                            .fontWeight(.bold)
+                    }
+                }
+                HStack(spacing: 10) {
+                    if isTripRecording {
+                        Button(action: {
+                            onStopTrip()
+                            Task {
+                                try? await Task.sleep(nanoseconds: 350_000_000)
+                                await reload()
+                            }
+                        }) {
+                            Text("⏹ DỪNG & LƯU HÀNH TRÌNH")
+                                .foregroundColor(.white)
+                                .font(DashFont.shareTechMono(13))
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.dashRed)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: onCancelTrip) {
+                            Text("✕ HỦY")
+                                .foregroundColor(.dashTextSecondary)
+                                .font(DashFont.shareTechMono(12))
+                                .fontWeight(.bold)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                                .background(Color.white.opacity(0.06))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dashCardBorder, lineWidth: 1))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Button(action: onStartTrip) {
+                            Text("▶ BẮT ĐẦU HÀNH TRÌNH MỚI")
+                                .foregroundColor(.dashCyan)
+                                .font(DashFont.shareTechMono(13))
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.dashCyan.opacity(0.14))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dashCyan, lineWidth: 1))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(14)
+            .background(isTripRecording ? Color.dashRed.opacity(0.12) : Color.dashCardBackground)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isTripRecording ? Color.dashRed.opacity(0.6) : Color.dashCardBorder, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.top, 10)
 
             if trips.isEmpty {
                 VStack {
@@ -64,6 +144,13 @@ struct TripHistoryScreen: View {
 
     private func reload() async {
         trips = await tripRepository.getAllTrips()
+    }
+
+    private static func formatElapsed(_ ms: Int64) -> String {
+        let totalSeconds = ms / 1000
+        let m = totalSeconds / 60
+        let s = totalSeconds % 60
+        return String(format: "%02d:%02d", m, s)
     }
 }
 

@@ -57,7 +57,7 @@ struct DailyDashboardScreen: View {
                 .padding(.top, 4)
 
                 if state.isTripRecording {
-                    TripRecordingBar(stats: state.liveTripStats)
+                    TripRecordingBar(stats: state.liveTripStats, onStop: onTripLongPress)
                 }
 
                 ZStack {
@@ -80,7 +80,11 @@ struct DailyDashboardScreen: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 HStack(spacing: 8) {
-                    LcdCell(label: "TRIP", value: state.isTripRecording ? "● REC" : "▶ BẮT ĐẦU")
+                    LcdCell(label: "HÀNH TRÌNH", value: state.isTripRecording ? "⏹ DỪNG TRIP" : "▶ BẮT ĐẦU")
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(state.isTripRecording ? Color.dashRed : Color.dashCyan.opacity(0.4), lineWidth: 1)
+                        )
                         .onTapGesture {
                             if !state.isTripRecording { onTripShortClick() } else { onTripLongPress() }
                         }

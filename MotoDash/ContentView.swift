@@ -4,6 +4,7 @@ import UIKit
 struct ContentView: View {
     @ObservedObject var viewModel: DashboardViewModel
     @ObservedObject var mediaSessionReader: MediaSessionReader
+    @ObservedObject private var guardian = BackgroundGuardianManager.shared
     @StateObject private var locationPermissionManager = LocationPermissionManager()
 
     @State private var path: [Route] = []
@@ -41,6 +42,18 @@ struct ContentView: View {
                     destinationView(for: route)
                         .toolbar(.hidden, for: .navigationBar)
                 }
+            }
+
+            let isHtmlTheme = (viewModel.state.settings.theme == "portrait" || viewModel.state.settings.theme == "landscape")
+            if path.isEmpty && (!isHtmlTheme || guardian.justReturnedFromBackground) {
+                DynamicIslandCapsuleOverlay(
+                    state: viewModel.state,
+                    guardian: guardian,
+                    onStartTrip: viewModel.startTripRecording,
+                    onStopTrip: viewModel.stopTripRecordingAndSave,
+                    onOpenTripHistory: { path.append(.tripHistory) }
+                )
+                .zIndex(50)
             }
 
             let showAutoOtaBanner = !viewModel.state.settings.demoMode &&
@@ -117,6 +130,11 @@ struct ContentView: View {
                 onStartBundledWifiOta: viewModel.startBundledWifiOta,
                 onDisconnect: viewModel.disconnectBle,
                 onReconnect: startConnectFlow,
+                isTripRecording: viewModel.state.isTripRecording,
+                liveTripStats: viewModel.state.liveTripStats,
+                onStartTrip: viewModel.startTripRecording,
+                onStopTrip: viewModel.stopTripRecordingAndSave,
+                onCancelTrip: viewModel.cancelTripRecording,
                 onNavigateTripHistory: { path.append(.tripHistory) },
                 onNavigateDiagnostics: { path.append(.diagnostics) },
                 onNavigateLogs: { path.append(.logs) },
@@ -148,6 +166,11 @@ struct ContentView: View {
         case .tripHistory:
             TripHistoryScreen(
                 tripRepository: viewModel.tripRepository,
+                isTripRecording: viewModel.state.isTripRecording,
+                liveStats: viewModel.state.liveTripStats,
+                onStartTrip: viewModel.startTripRecording,
+                onStopTrip: viewModel.stopTripRecordingAndSave,
+                onCancelTrip: viewModel.cancelTripRecording,
                 onOpenTrip: { id in path.append(.tripResult(id)) },
                 onBack: goBack
             )

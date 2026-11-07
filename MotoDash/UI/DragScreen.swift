@@ -27,7 +27,8 @@ struct DragScreen: View {
                             elapsedMs: recorder.elapsedMs,
                             to40Ms: recorder.to40Ms,
                             to60Ms: recorder.to60Ms,
-                            to100mMs: recorder.to100mMs
+                            to100mMs: recorder.to100mMs,
+                            onCancel: recorder.cancel
                         )
                     case .finished:
                         FinishedContent(
@@ -88,6 +89,7 @@ private struct RunningContent: View {
     let to40Ms: Int64?
     let to60Ms: Int64?
     let to100mMs: Int64?
+    let onCancel: () -> Void
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -100,6 +102,8 @@ private struct RunningContent: View {
             SplitRow(label: "0-40 km/h", timeMs: to40Ms)
             SplitRow(label: "0-60 km/h", timeMs: to60Ms)
             SplitRow(label: "100m \u{0111}\u{1EA7}u", timeMs: to100mMs)
+            Spacer().frame(height: 16)
+            BigButton(text: "⏹ DỪNG / HỦY LƯỢT CHẠY", color: .dashRed, onClick: onCancel)
         }
     }
 }

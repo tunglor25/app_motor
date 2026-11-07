@@ -26,7 +26,7 @@ struct DashboardScreen: View {
                 ConnectionStatusRow(connectionState: state.connectionState, onConnectClick: onConnectClick)
                     .padding(.horizontal, 16)
                 if state.isTripRecording {
-                    TripRecordingBar(stats: state.liveTripStats)
+                    TripRecordingBar(stats: state.liveTripStats, onStop: onTripLongPress)
                 }
                 Spacer(minLength: 0)
                 SpeedReadout(speed: state.reading.speed, unitSpeed: state.settings.unitSpeed)

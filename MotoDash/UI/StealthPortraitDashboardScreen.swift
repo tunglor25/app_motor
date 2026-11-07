@@ -101,6 +101,12 @@ private struct StealthPortraitWebView: UIViewRepresentable {
           toggleTrip: function() {
             window.webkit.messageHandlers.iosDash.postMessage({ action: 'toggleTrip' });
           },
+          startTrip: function() {
+            window.webkit.messageHandlers.iosDash.postMessage({ action: 'startTrip' });
+          },
+          stopTrip: function() {
+            window.webkit.messageHandlers.iosDash.postMessage({ action: 'stopTrip' });
+          },
           setDemoMode: function(enabled) {
             window.webkit.messageHandlers.iosDash.postMessage({ action: 'setDemoMode', value: Boolean(enabled) });
           },
@@ -130,6 +136,7 @@ private struct StealthPortraitWebView: UIViewRepresentable {
         webView.backgroundColor = UIColor(red: 7.0 / 255.0, green: 8.0 / 255.0, blue: 11.0 / 255.0, alpha: 1.0)
         webView.scrollView.backgroundColor = webView.backgroundColor
         webView.scrollView.bounces = false
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.showsVerticalScrollIndicator = false
         webView.scrollView.showsHorizontalScrollIndicator = false
         webView.navigationDelegate = context.coordinator
@@ -194,6 +201,14 @@ private struct StealthPortraitWebView: UIViewRepresentable {
                     } else {
                         self.parent.onTripShortClick()
                     }
+                case "startTrip":
+                    if !self.parent.state.isTripRecording {
+                        self.parent.onTripShortClick()
+                    }
+                case "stopTrip":
+                    if self.parent.state.isTripRecording {
+                        self.parent.onTripLongPress()
+                    }
                 case "setDemoMode":
                     if let val = dict["value"] as? Bool {
                         self.parent.onSetDemoMode(val)
@@ -241,7 +256,10 @@ private struct StealthPortraitWebView: UIViewRepresentable {
                 "bleDeviceName": state.settings.bleDeviceName,
                 "unitSpeed": state.settings.unitSpeed,
                 "unitTemp": state.settings.unitTemp,
-                "tripKm": state.tripKm,
+                "tripKm": state.isTripRecording ? state.liveTripStats.distanceKm : state.tripKm,
+                "liveTripDistKm": state.liveTripStats.distanceKm,
+                "liveTripElapsedMs": state.liveTripStats.elapsedMs,
+                "liveTripMaxSpeed": state.liveTripStats.maxSpeedGpsKmh,
                 "sideStandDown": r.sideStandDown,
                 "idlingStopActive": (r.switches & 0x10) != 0,
                 "dtcPresent": !r.dtcCodes.isEmpty,
