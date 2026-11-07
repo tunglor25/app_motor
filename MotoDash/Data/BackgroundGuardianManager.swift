@@ -63,7 +63,7 @@ final class BackgroundGuardianManager: ObservableObject {
             speedKmh: state.reading.speed ?? 0,
             rpm: state.reading.rpm ?? 0,
             ectCelsius: state.reading.ect ?? 0,
-            batteryVolts: state.reading.battery ?? 12.6,
+            batteryVolts: Double(state.reading.battery ?? 12.6),
             isBleConnected: isBleConnected,
             isEcuOnline: isEcuOnline,
             isTripRecording: state.isTripRecording,
